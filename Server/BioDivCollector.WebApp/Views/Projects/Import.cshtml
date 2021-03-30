@@ -35,14 +35,15 @@
                 <div class="card-header">
                     <h5>Importdatei hochladen</h5>
                 </div>
-                <form method="post" enctype="multipart/form-data" asp-action="Import" >
+                <form method="post" enctype="multipart/form-data" asp-action="Import">
                     <div class="card-body">
                         <p>Importdatei hochladen. Möglich sind GPKG, CSV und XLSX Dateien. Für ein valides Datenmodell wird empfohlen, zuerst einen Export des Projektes zu machen und diese Daten zu bearbeiten bzw. zu ergänzen</p>
                         <input type="file" name="file" />
                     </div>
+
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary" onclick="doImport();">Importieren</button>
-                        <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index","Projects")'">Abbrechen</button>
+                        <button class="btn btn-secondary" onclick="location.href = '@Url.Action("Index","Projects")'; return false;">Abbrechen</button>
                     </div>
                 </form>
             </div>
