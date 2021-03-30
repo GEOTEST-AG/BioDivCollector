@@ -62,21 +62,20 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 if (ups.Where(m=>m.username == id).Any())
                 {
-                    UserPoco up = ups.Where(m => m.id == id).First();
-                    User u = new User();
+                    UserPoco up = ups.Where(m => m.username == id).First();
+                    edituser = new User();
 
-                    u.Name = up.lastName;
-                    u.FirstName = up.firstName;
-                    u.Email = up.email;
-                    u.UserId = up.id;
+                    edituser.Name = up.lastName;
+                    edituser.FirstName = up.firstName;
+                    edituser.Email = up.email;
+                    edituser.UserId = up.username;
 
-                    u.Status = db.Statuses.Where(m => m.Id == StatusEnum.unchanged).FirstOrDefault();
+                    edituser.Status = db.Statuses.Where(m => m.Id == StatusEnum.unchanged).FirstOrDefault();
 
+                    db.Entry(edituser).State = EntityState.Added;
+                    db.Users.Add(edituser);
+                    await db.SaveChangesAsync();
 
-                    db.Users.Add(u);
-                    db.SaveChanges();
-
-                    edituser = u;
                 }
             }
             
