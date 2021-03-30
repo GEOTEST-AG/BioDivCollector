@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioDivCollector.Connector",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioDivCollector.Connector.Tests", "BioDivCollector.Connector.Tests\BioDivCollector.Connector.Tests.csproj", "{2C9B5D83-F515-4FCB-90B2-B0F7533E709F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioDivCollector.WFS", "WFS\BioDivCollector.WFS.csproj", "{DA797BEB-77BA-4EBB-A522-C1767E8848C5}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioDivCollector.SamplePlugin", "BioDivCollector.SamplePlugin\BioDivCollector.SamplePlugin.csproj", "{2BE339A5-04F0-4428-94EF-3FCF47D99AAE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioDivCollector.PluginContract", "BioDivCollector.PluginContract\BioDivCollector.PluginContract.csproj", "{B3718F88-A9D3-4E7F-BA5D-B96A083FDCBD}"
@@ -45,10 +43,6 @@ Global
 		{2C9B5D83-F515-4FCB-90B2-B0F7533E709F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C9B5D83-F515-4FCB-90B2-B0F7533E709F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C9B5D83-F515-4FCB-90B2-B0F7533E709F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DA797BEB-77BA-4EBB-A522-C1767E8848C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DA797BEB-77BA-4EBB-A522-C1767E8848C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DA797BEB-77BA-4EBB-A522-C1767E8848C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DA797BEB-77BA-4EBB-A522-C1767E8848C5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2BE339A5-04F0-4428-94EF-3FCF47D99AAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2BE339A5-04F0-4428-94EF-3FCF47D99AAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2BE339A5-04F0-4428-94EF-3FCF47D99AAE}.Release|Any CPU.ActiveCfg = Release|Any CPU

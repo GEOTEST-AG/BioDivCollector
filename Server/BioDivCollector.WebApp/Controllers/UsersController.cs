@@ -259,7 +259,7 @@ namespace BioDivCollector.WebApp.Controllers
                         mail.Body = "Hallo " + newUser.firstName + " " + newUser.lastName + "\n\nEs wurde ein Zugang auf https://www.biodivcollector.ch erstellt. Du kannst dich dort mit folgenden Zugangsdaten einloggen: \n\nBenutzername: " + newUser.username + "\nInitial-Passwort: " + initPassword + "\n\nWir freuen uns auf deine erste Anmeldung. Viel Spass.";
 
                         SmtpServer.Port = 25;
-                        SmtpServer.Credentials = new System.Net.NetworkCredential(Configuration["Environment:RegisterEmail"], Configuration["Environment:RegisterEmailPassword"],);
+                        SmtpServer.Credentials = new System.Net.NetworkCredential(Configuration["Environment:RegisterEmail"], Configuration["Environment:RegisterEmailPassword"]);
 
                         SmtpServer.Send(mail);
                     }
