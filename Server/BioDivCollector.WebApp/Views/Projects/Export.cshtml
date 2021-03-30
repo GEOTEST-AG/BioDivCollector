@@ -147,7 +147,6 @@
 <script>
     $('#exportform').submit(function (e) {
 
-        $('#waitExportModal').modal('show');
 
         e.preventDefault(); // avoid to execute the actual submit of the form.
 
@@ -165,6 +164,9 @@
         var ArrArr = $.map(arr, function (n, i) {
             return [n.value];
         });
+
+
+        $('#waitExportModal').modal('show');
 
         data.push({ name: "projects", value: { ArrArr } });
         //JSON.stringify({ paramName: info })
