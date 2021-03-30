@@ -1,0 +1,44 @@
+﻿@using System.Security.Claims
+@using BioDivCollector.DB.Models.Domain
+@using BioDivCollector.WebApp.Controllers
+@model string
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "FAQ";
+}
+
+<style>
+    .px200 {
+        width: 200px;
+        max-width: 200px;
+        word-wrap: break-word;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    FAQ
+                    <small>Fragen und Antworten</small>
+                </h3>
+            </div>
+            <div class="col-lg-6 text-right">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">FAQ</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        @Html.Raw(Model)
+    </div>
+
+</div>

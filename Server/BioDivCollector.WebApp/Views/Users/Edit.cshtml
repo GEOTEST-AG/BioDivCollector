@@ -1,0 +1,342 @@
+﻿@model BioDivCollector.WebApp.Controllers.EditUserViewModel
+
+@{
+    ViewData["Title"] = "Benutzer editieren";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
+}
+
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Benutzer @Model.FirstName @Model.Name
+                    <small>Benutzer bearbeiten</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Benutzer</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Benutzerverwaltung</h5>
+                </div>
+                <form asp-action="Edit" id="FormEdit">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="UserId" />
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Vorname</label>
+                                    <input asp-for="FirstName" required class="form-control" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Nachname</label>
+                                    <input asp-for="Name" class="form-control" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="Email" class="control-label"></label>
+                                    <input asp-for="Email" class="form-control" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            @if (User.IsInRole("DM"))
+                            {
+                                <div class="col-md-12">
+                                    <div class="checkbox checkbox-primary" data-toggle="tooltip" data-html="true" title="Sobald der Benutzer aktiv ist kann er/sie sich einloggen.">
+                                        <input type="checkbox" asp-for="enabled">
+                                        <label asp-for="enabled" class="mb-0">Aktiv (kann sich einloggen)</label>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="hidden" asp-for="enabled">
+                            }
+                        </div>
+
+                        @if (User.IsInRole("DM"))
+                        {
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Rollen</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            @{
+                                                bool isDM = false;
+                                                bool isEF = false;
+                                            }
+
+                                            @foreach (string role in Model.roles)
+                                            {
+                                                if (role == "Erfassende") isEF = true;
+                                                if (role == "Datenmanagement") isDM = true;
+                                                <text>@role<br /></text>
+                                            }
+
+                                            @if (!isEF)
+                                            {
+                                                <button type="button" class="btn btn-primary" onclick="addToRole('EF')">Zu Erfassende hinzufügen</button>
+                                            }
+
+                                            @if (!isDM)
+                                            {
+                                                <button type="button" class="btn btn-primary" onclick="addToRole('DM')">Zu Datenmanagement hinzufügen</button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-primary" onclick="removeRole('DM')">Datenmanagement entfernen</button>
+                                            }
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                                                }
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">Speichern</button>
+                                <button class="btn btn-secondary" onclick="location.href='@Url.Action("Dashboard","Home")'">Abbrechen</button>
+                            </div>
+                        </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function addToRole(role) {
+        $.notify({
+            title: 'Bitte warten',
+            message: 'Die Rollen werden angepasst'
+        },
+            {
+                type: 'info',
+                allow_dismiss: false,
+                newest_on_top: false,
+                mouse_over: false,
+                showProgressbar: false,
+                spacing: 10,
+                timer: 2000,
+                placement: {
+                    from: 'top',
+                    align: 'right'
+                },
+                offset: {
+                    x: 30,
+                    y: 100
+                },
+                delay: 1000,
+                z_index: 10000,
+                animate: {
+                    enter: 'animated fadeInDown',
+                    exit: 'animated bounceOutRight'
+                }
+            });
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("AddRoleToUser","Users")?UserId=@Model.UserId&Role='+role,
+            success: function (data) {
+                if (data == "OK") {
+                    $.notify({
+                        title: 'Erfolgreich',
+                        message: 'Dem Benutzer wurde die Rolle erfolgreich zugefügt.'
+                    },
+                        {
+                            type: 'primary',
+                            allow_dismiss: false,
+                            newest_on_top: false,
+                            mouse_over: false,
+                            showProgressbar: false,
+                            spacing: 10,
+                            timer: 2000,
+                            placement: {
+                                from: 'top',
+                                align: 'right'
+                            },
+                            offset: {
+                                x: 30,
+                                y: 100
+                            },
+                            delay: 1000,
+                            z_index: 10000,
+                            animate: {
+                                enter: 'animated fadeInDown',
+                                exit: 'animated bounceOutRight'
+                            }
+                        });
+                    location.reload();
+                }
+                else {
+                    $.notify({
+                        title: 'Es gab ein Problem',
+                        message: 'Fehler beim Speichern: ' + data
+                    },
+                        {
+                            type: 'danger',
+                            allow_dismiss: false,
+                            newest_on_top: false,
+                            mouse_over: false,
+                            showProgressbar: false,
+                            spacing: 10,
+                            timer: 2000,
+                            placement: {
+                                from: 'top',
+                                align: 'right'
+                            },
+                            offset: {
+                                x: 30,
+                                y: 100
+                            },
+                            delay: 1000,
+                            z_index: 10000,
+                            animate: {
+                                enter: 'animated fadeInDown',
+                                exit: 'animated bounceOutRight'
+                            }
+                        });
+                }
+
+            }
+        });
+
+
+    }
+
+
+    function removeRole(role) {
+        $.notify({
+            title: 'Bitte warten',
+            message: 'Die Rollen werden angepasst'
+        },
+            {
+                type: 'info',
+                allow_dismiss: false,
+                newest_on_top: false,
+                mouse_over: false,
+                showProgressbar: false,
+                spacing: 10,
+                timer: 2000,
+                placement: {
+                    from: 'top',
+                    align: 'right'
+                },
+                offset: {
+                    x: 30,
+                    y: 100
+                },
+                delay: 1000,
+                z_index: 10000,
+                animate: {
+                    enter: 'animated fadeInDown',
+                    exit: 'animated bounceOutRight'
+                }
+            });
+        location.reload();
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("RemoveRoleFromUser", "Users")?UserId=@Model.UserId&Role='+role,
+            success: function (data) {
+                if (data == "OK") {
+                    $.notify({
+                        title: 'Erfolgreich',
+                        message: 'Dem Benutzer wurde die Rolle erfolgreich gestrichen.'
+                    },
+                        {
+                            type: 'primary',
+                            allow_dismiss: false,
+                            newest_on_top: false,
+                            mouse_over: false,
+                            showProgressbar: false,
+                            spacing: 10,
+                            timer: 2000,
+                            placement: {
+                                from: 'top',
+                                align: 'right'
+                            },
+                            offset: {
+                                x: 30,
+                                y: 100
+                            },
+                            delay: 1000,
+                            z_index: 10000,
+                            animate: {
+                                enter: 'animated fadeInDown',
+                                exit: 'animated bounceOutRight'
+                            }
+                        });
+                }
+                else {
+                    $.notify({
+                        title: 'Es gab ein Problem',
+                        message: 'Fehler beim Speichern: ' + data
+                    },
+                        {
+                            type: 'danger',
+                            allow_dismiss: false,
+                            newest_on_top: false,
+                            mouse_over: false,
+                            showProgressbar: false,
+                            spacing: 10,
+                            timer: 2000,
+                            placement: {
+                                from: 'top',
+                                align: 'right'
+                            },
+                            offset: {
+                                x: 30,
+                                y: 100
+                            },
+                            delay: 1000,
+                            z_index: 10000,
+                            animate: {
+                                enter: 'animated fadeInDown',
+                                exit: 'animated bounceOutRight'
+                            }
+                        });
+                }
+
+            }
+        });
+
+
+    }
+</script>
+
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/jquery-transfer/js/jquery.transfer.js"></script>
+
+}

@@ -1,0 +1,17 @@
+﻿@*@using System*@
+@using System
+@using System.Collections.Generic
+@using FormFactory.Attributes
+@using System.Linq
+@using System.Xml.Linq
+@using FormFactory.Attributes
+@using FormFactory
+
+@model PropertyVm
+
+@{
+    var value = Model.Value as System.Xml.Linq.XElement;
+    if (value != null) { 
+        @Html.Raw(value.ToString())
+    }
+}

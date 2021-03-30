@@ -1,0 +1,50 @@
+﻿@model BioDivCollector.DB.Models.Domain.Layer
+
+@{
+    ViewData["Title"] = "Kartenebene löschen";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Kartenebene löschen
+                    <small>WMS Layer wirklich entfernen?</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Kartenebenen</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>WMS-Layer @Model.Title wirklich löschen?</h5>
+                </div>
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="LayerId" />
+                    <input type="submit" value="Löschen" class="btn btn-danger" /> |
+                    <a asp-action="Index">Zurück zur Übersicht</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

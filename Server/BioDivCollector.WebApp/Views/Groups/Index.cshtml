@@ -1,0 +1,121 @@
+﻿@using System.Security.Claims
+@using BioDivCollector.DB.Models.Domain
+
+@model IEnumerable<BioDivCollector.WebApp.Controllers.GroupViewModel>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Gruppen";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Gruppen
+                    <small>Meine Gruppen</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item">Benutzer</li>
+                    <li class="breadcrumb-item">Gruppen</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card height-equal" style="min-height: 685px;">
+                <div class="card-header">
+                    <h5>Alle Projekte</h5>
+
+                </div>
+                <div class="card-body">
+                    <div class="user-status table-responsive product-chart">
+                        <table id="grouplist" class="table table-bordernone">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Aktion</th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Group.GroupName)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Group.ID_Extern)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Group.GroupStatus)
+                                    </th>
+                                    <th>
+                                        Projekte
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (item.Editable)
+                                            {
+                                                <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="location.href='@Url.Action("Edit", "Groups", new { id = item.Group.GroupId })'"><i class="fa fa-pencil-square-o"></i></button>
+                                            }
+                                            else if (item.ShowOnly == true)
+                                            {
+                                                <text></text>
+                                            }
+                                            else
+                                            {
+                                                <text>Benutzer ist Erfasser in der Gruppe</text>
+                                            }
+
+                                        </td>
+                                        <td>
+                                        @Html.DisplayFor(modelItem => item.Group.GroupName)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Group.ID_Extern)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Group.GroupStatus.Description)
+                                        </td>
+                                        <td>
+                                            @foreach (ProjectGroup gp in item.Group.GroupProjects)
+                                            {
+                                                <text>@Html.ActionLink(gp.Project.ProjectName, "Details","Projects", new { @id = gp.ProjectId })<br /></text>
+                                            }
+                                        </td>
+
+                                    </tr>
+
+                                }
+
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#grouplist').DataTable({
+            "language": {
+                "url": "/js/datatables/datatables.german.lang.json"
+            }
+        });
+    });
+</script>
+
+

@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>3abd17d5-a261-4407-9999-b713eb074afa</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\20201013101007_GeometryRecords.cs" />
+    <Compile Remove="Migrations\20201013101007_GeometryRecords.Designer.cs" />
+    <Compile Remove="Migrations\20201013101429_RecordDatas.cs" />
+    <Compile Remove="Migrations\20201013101429_RecordDatas.Designer.cs" />
+    <Compile Remove="Migrations\20201026123618_UserHasStringID.cs" />
+    <Compile Remove="Migrations\20201026123618_UserHasStringID.Designer.cs" />
+    <Compile Remove="Migrations\20201026124331_UserHasStringID2.cs" />
+    <Compile Remove="Migrations\20201026124331_UserHasStringID2.Designer.cs" />
+    <Compile Remove="Migrations\20201026125155_UserHasStringID2.cs" />
+    <Compile Remove="Migrations\20201026125155_UserHasStringID2.Designer.cs" />
+    <Compile Remove="Migrations\20201029094905_projectGroupsHaveGeometriesAndRecords3.cs" />
+    <Compile Remove="Migrations\20201029094905_projectGroupsHaveGeometriesAndRecords3.Designer.cs" />
+    <Compile Remove="Migrations\20201029095857_projectGroupsHaveGeometriesAndRecords4.cs" />
+    <Compile Remove="Migrations\20201029095857_projectGroupsHaveGeometriesAndRecords4.Designer.cs" />
+    <Compile Remove="Migrations\20201029100137_projectGroupsHaveGeometriesAndRecords5.cs" />
+    <Compile Remove="Migrations\20201029100137_projectGroupsHaveGeometriesAndRecords5.Designer.cs" />
+    <Compile Remove="Migrations\20201029101357_projectGroupsHaveGeometriesAndRecords6.cs" />
+    <Compile Remove="Migrations\20201029101357_projectGroupsHaveGeometriesAndRecords6.Designer.cs" />
+    <Compile Remove="Migrations\20201029101512_projectGroupsHaveGeometriesAndRecords7.cs" />
+    <Compile Remove="Migrations\20201029101512_projectGroupsHaveGeometriesAndRecords7.Designer.cs" />
+    <Compile Remove="Migrations\20201029101715_projectGroupsHaveGeometriesAndRecords8.cs" />
+    <Compile Remove="Migrations\20201029101715_projectGroupsHaveGeometriesAndRecords8.Designer.cs" />
+    <Compile Remove="Migrations\20201102074243_initDevDB.cs" />
+    <Compile Remove="Migrations\20201102074243_initDevDB.Designer.cs" />
+    <Compile Remove="Migrations\20201102082037_initDevDB.cs" />
+    <Compile Remove="Migrations\20201102082037_initDevDB.Designer.cs" />
+    <Compile Remove="Migrations\20201102082240_initDevDBGroupCreator.cs" />
+    <Compile Remove="Migrations\20201102082240_initDevDBGroupCreator.Designer.cs" />
+    <Compile Remove="Migrations\20201118153201_testForMigration.cs" />
+    <Compile Remove="Migrations\20201118153201_testForMigration.Designer.cs" />
+    <Compile Remove="Migrations\20201209152124_FormFormField_table3.cs" />
+    <Compile Remove="Migrations\20201209152124_FormFormField_table3.Designer.cs" />
+    <Compile Remove="Migrations\20210121184641_MotherFormField.cs" />
+    <Compile Remove="Migrations\20210121184641_MotherFormField.Designer.cs" />
+    <Compile Remove="Migrations\20210121185036_MotherFormField.cs" />
+    <Compile Remove="Migrations\20210121185036_MotherFormField.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.9" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="3.1.4" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,156 @@
+﻿@model BioDivCollector.DB.Models.Domain.Project
+
+@{
+    ViewData["Title"] = "Projekt erstellen";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Neues Projekt generieren
+                    <small></small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Projekte</li>
+                    <li class="breadcrumb-item active">Neues Projekt</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Projektinformationen</h5>
+                </div>
+                <form asp-action="Create">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group mb-0">
+                                    <label asp-for="ProjectName" class="control-label"></label>
+                                    <input asp-for="ProjectName" class="form-control" required />
+                                    <span asp-validation-for="ProjectName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-0">
+                                    <label asp-for="ProjectNumber" class="control-label"></label>
+                                    <input asp-for="ProjectNumber" class="form-control" />
+                                    <span asp-validation-for="ProjectNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group" style="margin-top:10px;">
+                                    <label asp-for="Description" class="control-label"></label>
+                                    <textarea asp-for="Description" class="form-control"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-0">
+                                    <label asp-for="ID_Extern" class="control-label"></label>
+                                    <input asp-for="ID_Extern" class="form-control" />
+                                    <span asp-validation-for="ID_Extern" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-5">
+                                <div class="form-group m-checkbox-inline mb-0" style="padding-top:30px;">
+                                    <div class="checkbox checkbox-primary">
+                                        <input type="checkbox" asp-for="OGD">
+                                        <label asp-for="OGD" class="mb-0"></label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Projektconfigurator -->
+                        <div class="row">
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Projektleiter wählen</label>
+                                    <select asp-for="ProjectManager" class="form-control single-select" placeholder="" required id="pk-select">
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Bitte eine Auswahl vornehmen
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Speichern</button>
+                        <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index","Projects")'">Abbrechen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+     $(document).ready(function () {
+
+        $select = $('#pk-select').selectize({
+                                        initItem: true,
+
+                                        // Need to preload, so that Selectize will go get the option
+                                        preload: true,
+                                        maxItems: 1,
+                                        persist: false,
+                                        load: function (query, callback) {
+                                            //if (!query.length) return callback();
+                                            $.ajax({
+                                                url: '@Url.Action("GetUsersByRole", "Projects", new { role = "" })?search=' + encodeURIComponent(query),
+                                                type: 'GET',
+                                                error: function () {
+                                                    callback();
+                                                },
+                                                success: function (res) {
+                                                    callback(res.slice(0, 10));
+                                                }
+                                            });
+                                        },
+                                        valueField: 'UserId',
+                                        labelField: 'Name',
+                                        searchField: 'Name'
+                                    });
+
+    });
+
+
+
+
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

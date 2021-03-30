@@ -1,0 +1,223 @@
+﻿@using System.Security.Claims
+@using BioDivCollector.DB.Models.Domain
+@using BioDivCollector.WebApp.Controllers
+
+@model IEnumerable<BioDivCollector.WebApp.Controllers.ProjectPocoForIndex>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Export";
+}
+
+@section Styles {
+    <link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
+}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Daten exportieren
+                    <small>Beobachtungen von Projekten exportieren</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Projekte</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card height-equal" style="min-height: 685px;">
+                <div class="card-header">
+                    <h5>Exportieren</h5>
+                </div>
+                <div class="card-body">
+                    <form class="" id="exportform" asp-action="Export">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="media p-20">
+                                        <div class="radio radio-primary mr-3">
+                                            <input type="radio" name="format" id="csv" value="csv" checked="checked">
+                                            <label for="csv"></label>
+                                        </div>
+                                        <div class="media-body">
+                                            <h6 class="mt-0 mega-title-badge">CSV</h6>
+                                            <p>Daten werden als CSV (Comma seperated Values) exportiert.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="media p-20">
+                                        <div class="radio radio-primary mr-3">
+                                            <input type="radio" name="format" id="xlsx" value="xlsx">
+                                            <label for="xlsx"></label>
+                                        </div>
+                                        <div class="media-body">
+                                            <h6 class="mt-0 mega-title-badge">XLSX</h6>
+                                            <p>Daten werde für Excel als XLSX exportiert.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="media p-20">
+                                        <div class="radio radio-primary mr-3">
+                                            <input type="radio" name="format" id="gpkg" value="gpkg">
+                                            <label for="gpkg"></label>
+                                        </div>
+                                        <div class="media-body">
+                                            <h6 class="mt-0 mega-title-badge">GeoPackage</h6>
+                                            <p>Daten werden als GeoPackage exportiert. Darin sind die Geometrien und die Attributedaten abgespeichert. Sie können mit QGIS oder ESRI geöffnet werden.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="span6" style="float: none; margin: 0 auto; padding-top:10px; padding-bottom: 10px;">
+                                        <div id="projectselector" class="transfer-demo"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                        <input type="hidden" name="efonly" id="efonly" value="off" />
+                        <!--
+    <div class="row">
+
+        <div class="col-md-5">
+            <div class="form-group m-checkbox-inline mb-0" style="padding-top:30px;float: none; margin: 0 auto;">
+                <div class="checkbox checkbox-primary">
+
+                    <input type="checkbox" name="efonly" id="efonly">
+                    <label for="efonly" class="mb-0">Nur Projekte exportieren, für welche der Benutzer auch Erfasser-Rechte hat.</label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+        -->
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">Exportieren</button>
+                            <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index","Projects")'">Abbrechen</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="modal fade" id="waitExportModal" tabindex="-1" role="dialog" aria-labelledby="changeProjectStateLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeProjectStateLabel">Export wird vorbereitet</h5>
+            </div>
+            <div class="modal-body">
+                <i class="fa fa-spinner fa-spin" style="font-size:25px;text-align:center;margin-top:50px;"></i> Bitte warten, der Export wird vorbereitet.
+                <p></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $('#exportform').submit(function (e) {
+
+        $('#waitExportModal').modal('show');
+
+        e.preventDefault(); // avoid to execute the actual submit of the form.
+
+        var form = $(this);
+        var url = form.attr('action');
+        var data = form.serializeArray(); // convert form to array
+        data.push({ name: "projects", value: transfer.getSelectedItems().each });
+        var arr = transfer.getSelectedItems();
+
+        if (arr.length == 0) {
+            alert("Bitte mindestens ein Projekt auswählen.");
+            return;
+        }
+
+        var ArrArr = $.map(arr, function (n, i) {
+            return [n.value];
+        });
+
+        data.push({ name: "projects", value: { ArrArr } });
+        //JSON.stringify({ paramName: info })
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: form.serialize() + "&projects=" +  ArrArr,
+            async: false,
+            cache: false,
+            dataType: 'JSON',
+            success: function (retData) {
+                $("#waitExportModal").removeClass("in");
+                $(".modal-backdrop").remove();
+                $('body').removeClass('modal-open');
+                $('body').css('padding-right', '');
+                $("#waitExportModal").hide();
+
+                if (retData.error != null) alert(retData.error);
+                else location.href = '@Url.Action("Download","Projects")?filename=' + retData.filename;
+            },
+            error: function (ex) {
+
+                $('#waitExportModal').modal('hide');
+                alert(ex);
+            }
+        });
+    });
+
+    var transfer;
+    $.ajax({
+            dataType: "json",
+            url: '@Url.Action("GetProjects", "Projects")',
+            success: function (data) {
+                var settings = {
+                    dataArray: data,
+                    tabNameText: "Verfügbare Projekte",
+                    rightTabNameText: "Gewählte Projekte",
+                    searchPlaceholderText: "Suchen",
+                    callable: function (items) {
+
+                    }
+                };
+
+                transfer = $("#projectselector").transfer(settings);
+                // get selected items
+                transfer.getSelectedItems();
+            }
+    });
+</script>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/jquery-transfer/js/jquery.transfer.js"></script>
+
+}

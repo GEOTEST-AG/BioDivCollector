@@ -1,0 +1,895 @@
+﻿@using BioDivCollector.WebApp.Helpers
+@using System.Security.Claims
+@inject IAppVersionService AppVersionService
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <partial name="~/Views/Shared/_Favicon.cshtml" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BioDivCollector.WebApp</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css" type="text/css">
+
+    <link rel="stylesheet" href="https://cdn.rawgit.com/Viglino/ol-ext/master/dist/ol-ext.min.css" />
+    <link href="~/css/sidebar/ol3-sidebar.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/style.css" />
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500,600,700" rel="stylesheet">
+
+
+    <script src="https://kit.fontawesome.com/a81fb04c4f.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
+    <link href="~/css/responsive.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="~/css/icofont.css" rel="stylesheet" />
+    <link href="~/css/fontawesome.css" rel="stylesheet" />
+    <link href="~/css/themify-icons.css" rel="stylesheet" />
+    <link href="~/lib/bootstrap-slider/css/bootstrap-slider.css" rel="stylesheet" />
+    <link href="/Content/FormFactory/FormFactory.css" rel="stylesheet" type="text/css" />
+    <link href="~/js/selectize/css/selectize.bootstrap4.css" rel="stylesheet" />
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="~/css/date-picker.css" rel="stylesheet" />
+    <style>
+        img.olTileImage {
+            max-width: none;
+        }
+
+        #toolbar {
+            border: solid 1px #999;
+            background-color: #ccc;
+            margin-bottom: 10px;
+            margin-right: 10px;
+            width: 100%;
+            height: 3%;
+            border-radius: 6px;
+        }
+
+        #map {
+            height: 100%;
+            width: 100vw;
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            bottom: 0px;
+            right: 0px;
+        }
+
+        .ol-option-bar {
+            top: -2px !important;
+            right: 40px !important;
+        }
+
+        .ui-resizable-e {
+            width: 20px !important;
+        }
+
+        .btn-clipboard {
+            max-width: 40px;
+            padding: 0.375rem 0.7rem !important;
+        }
+    </style>
+
+</head>
+<body main-theme-layout="main-theme-layout-1">
+
+    <!--page-wrapper Start-->
+    <div class="page-wrapper">
+
+        <!--Page Header Start-->
+        <div class="page-main-header">
+            <div class="main-header-left">
+                <div class="logo-wrapper">
+                    <a href="@Url.Action("Dashboard","Home")">
+                        <img src="~/img/LogoV1.png" height="60" class="image-dark" alt="BioDivCollector Logo" />
+                    </a>
+                </div>
+            </div>
+            <div class="main-header-right row">
+                <div class="mobile-sidebar">
+                    <div class="media-body text-right switch-sm">
+                        <label class="switch">
+                            <input type="checkbox" id="sidebar-toggle" checked>
+                            <span class="switch-state"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="nav-right col">
+                    <ul class="nav-menus">
+
+
+                        <li class="onhover-dropdown">
+                            <div class="media  align-items-center">
+                                <img class="align-self-center pull-right mr-2" src="~/img/user.png" alt="header-user" />
+                                <div class="media-body">
+                                    <h6 class="m-0 txt-dark f-16">
+
+                                        @{
+                                            ClaimsPrincipal currentUser = this.User;
+                                            var currentUserID = currentUser.FindFirst(ClaimTypes.GivenName).Value + " " + currentUser.FindFirst(ClaimTypes.Surname).Value;
+                                            var roles = ((ClaimsIdentity)User.Identity).Claims
+                                                .Where(c => c.Type == ClaimTypes.Role)
+                                                .Select(c => c.Value);
+                                            string myRoles = "";
+                                            foreach (var role in roles)
+                                            {
+                                                if (role.Length == 2) myRoles += role + ", ";
+                                            }
+                                            myRoles = myRoles.Substring(0, myRoles.Length - 2);
+
+                                        }
+                                        @currentUserID (@myRoles)
+                                        <i class="fa fa-angle-down pull-right ml-2"></i>
+                                    </h6>
+                                </div>
+                            </div>
+                            <ul class="profile-dropdown onhover-show-div p-20">
+                                <li>
+                                    <a href="@Url.Action("Edit","Users")">
+                                        <i class="icon-user"></i>
+                                        Benutzerprofil
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="@Url.Action("Logout","Home")">
+                                        <i class="icon-power-off"></i>
+                                        Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="d-lg-none mobile-toggle">
+                        <i class="icon-more"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Page Header Ends-->
+        <!--Page Body Start-->
+        <div class="page-body-wrapper">
+            <!--Page Sidebar Start-->
+            <div class="page-sidebar custom-scrollbar">
+                <ul class="sidebar-menu">
+                    <partial name="~/Views/Shared/_Menu.cshtml" />
+                </ul>
+                <div class="sidebar-widget text-center">
+                    <div class="sidebar-widget-top">
+                        <h6 class="mb-2 fs-14">Support</h6>
+                        <i class="icon-bell"></i>
+                    </div>
+                    <div class="sidebar-widget-bottom p-20 m-20">
+                        <p>
+                            <a href="https://jira.feldapp.ch/servicedesk/customer/portal/4" class="sidebar-header" target="_blank">
+                                <span>Support</span>
+                            </a>
+                            <br><a href="https://biodivcollector.atlassian.net/wiki/spaces/BF/pages/524294/Fragen+und+Antworten" target="_blank">FAQ</a>
+                        </p>
+                        <p style="line-height:12px;">
+                            Version: @AppVersionService.Version<br />
+                            <span style="font-size:11px;">Build @AppVersionService.BuildTime</span>
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+            <!--Page Sidebar Ends-->
+
+            <div class="page-body">
+                <!-- Container-fluid starts -->
+                <div class="container-fluid">
+
+                    <div id="olsidebar" class="olsidebar collapsed">
+                        <!-- Nav tabs -->
+                        <div class="olsidebar-tabs">
+                            <ul role="tablist">
+                                <li><a href="#home" role="tab" data-toggle="tooltip" data-placement="top" title="Projektübersicht"><i class="fa fa-bars"></i></a></li>
+                                <li><a href="#allgbeobachtungen" role="tab" data-toggle="tooltip" data-placement="top" title="Allgemeine Beobachtungen"><i class="material-icons dp48" style="padding-top:10px;">assignment</i></a></li>
+                                <li><a href="#beobachtungen" role="tab" data-toggle="tooltip" data-placement="top" title="Beobachtungen mit Geometrie"><i class="material-icons dp48" style="padding-top:10px;">add_location_alt</i></a></li>
+                                <li><a href="#layers" role="tab" data-toggle="tooltip" data-placement="top" title="Layers"><i class="material-icons dp48" style="padding-top:10px;">layers</i></a></li>
+                            </ul>
+
+                            <ul role="tablist">
+                                <li><a href="#settings" role="tab" data-toggle="tooltip" data-placement="top" title="Karteneinstellungen"><i class="fa fa-gear"></i></a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Tab panes -->
+                        <div class="olsidebar-content">
+                            <div class="olsidebar-pane" id="home">
+                                <h1 class="olsidebar-header">
+                                    Projekt: @ViewData["ProjectName"]
+                                    <span class="olsidebar-close"><i class="fa fa-caret-left"></i></span>
+                                </h1>
+                                <div class="sidebar-content-inside">
+                                    <div class="container body-content" style="width:98%; margin-top:10px;">
+                                        @RenderBody()
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="olsidebar-pane" id="allgbeobachtungen">
+                                <h1 class="olsidebar-header">Allgemeine Beobachtungen<span class="olsidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+
+                                <div id="RecordsContent" class="sidebar-content-inside">
+                                    <!-- Records -->
+                                </div>
+
+                                <div id="records-loading-spinner" style="display:none; text-align:center; width:100%">
+                                    Einträge werden geladen...
+                                    <i class="fa fa-spinner fa-spin" style="font-size:25px;text-align:center;margin-top:50px;"></i>
+                                </div>
+                                <a id="RecordsUrl" class="interLink" href="" style="display:none;"></a>
+
+
+                            </div>
+
+                            <div class="olsidebar-pane" id="beobachtungen">
+                                <h1 class="olsidebar-header">Beobachtungen mit Geometrie<span class="olsidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+
+
+                                <div id="BeobachtungContent" class="sidebar-content-inside">
+                                    <!-- Beobachtungen -->
+                                    <div class="container body-content" style="width:98%; margin-top:10px;">
+
+
+
+                                        <div class="row">
+                                            <div class="col-sm-12 col-xl-12">
+                                                <div class="card b-r-0">
+                                                    <div class="card-header">
+                                                        <h5>Auf Geometrie klicken um Informationen anzuzeigen</h5>
+
+                                                    </div>
+                                                    <div class="card-body">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+
+                                </div>
+
+                                <div id="loading-spinner" style="display:none; text-align:center; width:100%">
+                                    Inhalt wird geladen...
+                                    <i class="fa fa-spinner fa-spin" style="font-size:25px;text-align:center;margin-top:50px;"></i>
+                                </div>
+                                <a id="BeobachtungUrl" class="interLink" href="/Geometrie/Details" style="display:none;"></a>
+
+
+
+                            </div>
+
+                            <div class="olsidebar-pane" id="layers">
+                                <h1 class="olsidebar-header">Layers<span class="olsidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                                <div class="sidebar-content-inside">
+                                    <div class="container body-content" style="width:98%; margin-top:10px;">
+                                        <div class="row">
+                                            <div class="col-sm-12 col-xl-12">
+                                                <div class="card b-r-0">
+                                                    <div class="card-header">
+                                                        <h5>Kartenebenen</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div id="LayerContent" class="sidebar-content-inside">
+                                                            <!-- Layers -->
+                                                        </div>
+
+                                                        <div id="loading-spinner-layer" style="display:none; text-align:center; width:100%">
+                                                            Inhalt wird geladen...
+                                                            <i class="fa fa-spinner fa-spin" style="font-size:25px;text-align:center;margin-top:50px;"></i>
+                                                        </div>
+                                                        <a id="LayerUrl" class="interLink" href="@Url.Action("ProjectLayersList","Project", new { @id = ViewData["ProjectId"] })" style="display:none;"></a>
+
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="olsidebar-pane" id="settings">
+                                <h1 class="olsidebar-header">Einstellungen<span class="olsidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                                <div class="sidebar-content-inside">
+                                    <div class="container body-content" style="width:98%; margin-top:10px;">
+                                        <div class="row">
+                                            <div class="col-sm-12 col-xl-12">
+                                                <div class="card b-r-0">
+                                                    <div class="card-header">
+                                                        <h5>Einstellungen</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        Breite der Sidebar<br />
+                                                        <input id="sidebarWidth" data-slider-id='sidebarWidth' style="width:150px;" type="text" data-slider-min="0" data-slider-max="500" data-slider-step="5" data-slider-value="100" />
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="map" class="olsidebar-map">
+
+                    </div>
+                </div>
+                <!-- Container-fluid Ends -->
+            </div>
+            <!--Page Body Ends-->
+        </div>
+        <!--Page Body Ends-->
+
+    </div>
+    <!--page-wrapper Ends-->
+    <partial name="~/Views/Shared/_Modals.cshtml" />
+
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/lib/Cookiesjs/cookies.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.14/proj4.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script src="~/lib/bootstrap-slider/bootstrap-slider.js"></script>
+    <script src="~/js/sidebar-menu.js"></script>
+    <script src="~/js/script.js"></script>
+    <script src="~/js/sidebar/ol3-sidebar.js"></script>
+    <script src="~/js/geowebgis.js"></script>
+    <script src="~/js/sidebar-content-loader.js"></script>
+    <script src="~/js/jquery.sortable/jquery.sortable.js"></script>
+    <script src="~/lib/clipboard.js/clipboard.js"></script>
+    <script src="~/js/customcard.js"></script>
+    <script src="/Scripts/FormFactory/FormFactory.js" type="text/javascript"></script>
+    <script src="~/js/selectize/js/standalone/selectize.js"></script>
+
+    <script type="text/javascript" src="https://cdn.rawgit.com/Viglino/ol-ext/master/dist/ol-ext.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.rawgit.com/Viglino/ol-ext/master/dist/extra/Cloud.js"></script>
+    <script src="~/lib/jsts/jsts.js"></script>
+    <script src="~/js/intercooler/intercooler.js"></script>
+    <script src="~/js/openlayers-editor/index.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="~/lib/jqueryui-touch-punch/jquery.ui.touch-punch.min.js"></script>
+    <script src="~/js/mouse0270-bootstrap-notify/bootstrap-notify.js"></script>
+    <script>
+        GeoWebGIS.createMap();
+
+        GeoWebGIS.workspace = '@ViewData["Workspace"]'
+
+        var sidebar = new ol.control.Sidebar({ element: 'olsidebar', position: 'left' });
+
+
+        GeoWebGIS.map.addControl(sidebar);
+
+
+        var projectId = '@ViewData["ProjectId"]';
+        var groupId = '@ViewData["MyGroup"]';
+
+        var mainbar = new ol.control.Bar();
+        GeoWebGIS.map.addControl(mainbar);
+        var search = new ol.control.SearchNominatim(
+            {	//target: $(".options").get(0),
+                polygon: false,
+                reverse: true,
+                label: "Suche",
+                position: true	// Search, with priority to geo position
+            });
+
+        var target;
+        function setTarget() {
+            if (target) GeoWebGIS.map.removeControl(target);
+
+            var stroke = new ol.style.Stroke({ color: 'red', width: 2 });
+
+            style = [
+                new ol.style.Style({ image: new ol.style.RegularShape({ points: 4, radius: 11, radius1: 0, radius2: 0, stroke: stroke }), snapToPixel: true }),
+                new ol.style.Style({ image: new ol.style.Circle({ radius: 10, stroke: stroke }), snapToPixel: true }),
+            ];
+
+            target = new ol.control.Target({ style: style });
+            GeoWebGIS.map.addControl(target);
+        }
+
+
+        var gps = new ol.control.Toggle(
+            {
+                html: '<i class="icofont-satellite"></i>',
+                className: "",
+                active: false,
+                title: "Positionierung",
+                onToggle: function (active) {
+                    GeoWebGIS.geolocation.setTracking(active);
+                    /*if (active) {
+                        setTarget();
+                    }
+                    else if (target) GeoWebGIS.map.removeControl(target);*/
+                }
+            });
+        mainbar.addControl(gps);
+
+
+        var editbar = new ol.control.Bar(
+            {
+                html: '<i class="fas fa-map-marker-alt"></i>',
+                className: "",
+                active: false,
+                title: "Punkt Editieren",
+                toggleOne: true
+            });
+
+        var editbartoggle = new ol.control.Toggle(
+            {
+                html: '<i class="fas fa-pencil-alt"></i>',
+                title: 'Editieren',
+                // First level nested control bar
+                bar: editbar,
+                onToggle: function () { }
+            })
+
+        var editPoint = new ol.control.Button(
+            {
+                html: '<i class="fas fa-map-marker-alt"></i>',
+                className: "",
+                active: false,
+                title: "Punkt kartieren",
+                handleClick: function () {
+                    if (GeoWebGIS.isDrawing) {
+
+                        $(editPoint.getButtonElement()).blur();
+                        GeoWebGIS.endDrawInteraction();
+                    }
+                    else {
+                        $.notify({
+                            title: 'Punkt auswählen und verschieben',
+                            message: 'Bitte zuerst den zu ändernde Punkt anklicken und anschliessend die mit der Maus verschieben. Zum Speichern auf Karte klicken.'
+                        },
+                            {
+                                type: 'info',
+                                allow_dismiss: true,
+                                newest_on_top: false,
+                                mouse_over: false,
+                                showProgressbar: false,
+                                spacing: 10,
+                                timer: 2000,
+                                placement: {
+                                    from: 'top',
+                                    align: 'right'
+                                },
+                                offset: {
+                                    x: 30,
+                                    y: 100
+                                },
+                                delay: 1000,
+                                z_index: 10000,
+                                animate: {
+                                    enter: 'animated fadeInDown',
+                                    exit: 'animated bounceOutRight'
+                                }
+                            });
+                        var drawStyle = 'Point';
+                        GeoWebGIS.addDrawInteraction(drawStyle, 'point', 'Modify', null, '@ViewData["ProjectId"]', '@ViewData["MyGroup"]');
+                    }
+                }
+            });
+        editbar.addControl(editPoint);
+
+
+        var editLine = new ol.control.Button(
+            {
+                html: '<span class="material-icons">timeline</span>',
+                className: "",
+                active: false,
+                title: "Linie kartieren",
+                handleClick: function () {
+                    if (GeoWebGIS.isDrawing) {
+                        $(editLine.getButtonElement()).blur();
+                        GeoWebGIS.endDrawInteraction();
+                    }
+                    else {
+                        $.notify({
+                            title: 'Linie auswählen',
+                            message: 'Bitte zuerst die zu ändernde Linie anklicken und anschliessend die Eckpunkte verschieben oder neue Punkte erstellen. Punkte können mit ALT+Click gelöscht werden. Zum Speichern ausserhalb der Linie klicken.'
+                        },
+                            {
+                                type: 'info',
+                                allow_dismiss: true,
+                                newest_on_top: false,
+                                mouse_over: false,
+                                showProgressbar: false,
+                                spacing: 10,
+                                timer: 2000,
+                                placement: {
+                                    from: 'top',
+                                    align: 'right'
+                                },
+                                offset: {
+                                    x: 30,
+                                    y: 100
+                                },
+                                delay: 1000,
+                                z_index: 10000,
+                                animate: {
+                                    enter: 'animated fadeInDown',
+                                    exit: 'animated bounceOutRight'
+                                }
+                            });
+                        var drawStyle = 'LineString';
+                        GeoWebGIS.addDrawInteraction(drawStyle, 'line', 'Modify', null, '@ViewData["ProjectId"]', '@ViewData["MyGroup"]');
+                    }
+
+                }
+            });
+        editbar.addControl(editLine);
+
+        var editPolygon = new ol.control.Button (
+            {
+                html: '<i class="fas fa-draw-polygon"></i>',
+                className: "",
+                active: false,
+                title: "Polygon kartieren",
+                handleClick: function (e) {
+                    if (GeoWebGIS.isDrawing) {
+                        $(editPolygon.getButtonElement()).blur();
+                        GeoWebGIS.endDrawInteraction();
+                    }
+                    else {
+                        $.notify({
+                            title: 'Polygon auswählen',
+                            message: 'Bitte zuerst das zu ändernde Polygon anklicken und anschliessend die Eckpunkte verschieben oder neue Punkte erstellen. Punkte können mit ALT+Click gelöscht werden. Zum Speichern ausserhalb des Polygons klicken.'
+                        },
+                            {
+                                type: 'info',
+                                allow_dismiss: true,
+                                newest_on_top: false,
+                                mouse_over: false,
+                                showProgressbar: false,
+                                spacing: 10,
+                                timer: 2000,
+                                placement: {
+                                    from: 'top',
+                                    align: 'right'
+                                },
+                                offset: {
+                                    x: 30,
+                                    y: 100
+                                },
+                                delay: 1000,
+                                z_index: 10000,
+                                animate: {
+                                    enter: 'animated fadeInDown',
+                                    exit: 'animated bounceOutRight'
+                                }
+                            });
+                        var drawStyle = 'Polygon';
+                        GeoWebGIS.addDrawInteraction(drawStyle, 'polygon', 'Modify', null, '@ViewData["ProjectId"]', '@ViewData["MyGroup"]');
+                    }
+
+                }
+            });
+        editbar.addControl(editPolygon);
+
+
+        var newPoint = new ol.control.Button(
+            {
+                html: '<i class="fas fa-map-marker-alt"></i>',
+                className: "",
+                active: false,
+                title: "Punkt kartieren",
+                handleClick: function () {
+                    if (GeoWebGIS.isDrawing) {
+                        GeoWebGIS.endDrawInteraction();
+                    }
+                    else {
+                        var drawStyle = 'Point';
+                        GeoWebGIS.addDrawInteraction(drawStyle, 'point', 'Draw', null, '@ViewData["ProjectId"]', '@ViewData["MyGroup"]');
+                    }
+                }
+            });
+        @if ((bool)ViewData["ReadOnly"] == false)
+                    {
+                        <text>mainbar.addControl(newPoint);</text>
+                    }
+
+                    var newLine = new ol.control.Button(
+                        {
+                html: '<span class="material-icons">timeline</span>',
+                className: "",
+                active: false,
+                title: "Linie kartieren",
+                            handleClick: function () {
+                                if (GeoWebGIS.isDrawing) {
+                                    GeoWebGIS.endDrawInteraction();
+                                }
+                                else {
+                                    var drawStyle = 'LineString';
+                                    GeoWebGIS.addDrawInteraction(drawStyle, 'line', 'Draw', null, '@ViewData["ProjectId"]', '@ViewData["MyGroup"]');
+                                }
+                    }
+                        });
+        @if ((bool)ViewData["ReadOnly"] == false)
+                    {
+                        <text>mainbar.addControl(newLine);</text>
+                    }
+
+        var newPolygon = new ol.control.Button (
+            {
+                html: '<i class="fas fa-draw-polygon"></i>',
+                className: "",
+                active: false,
+                title: "Polygon kartieren",
+                handleClick: function () {
+                    if (GeoWebGIS.isDrawing) {
+                        GeoWebGIS.endDrawInteraction();
+                    }
+                    else {
+                        var drawStyle = 'Polygon';
+                        GeoWebGIS.addDrawInteraction(drawStyle, 'polygon', 'Draw', null, '@ViewData["ProjectId"]', '@ViewData["MyGroup"]');
+                    }
+                }
+        });
+
+        @if ((bool)ViewData["ReadOnly"] == false)
+                    {
+                        <text>mainbar.addControl(newPolygon);</text>
+                    }
+        @if ((bool)ViewData["ReadOnly"] == false)
+                    {
+                        <text>mainbar.addControl(editbartoggle);</text>
+                    }
+
+
+        var splitter = new ol.control.Button (
+            {
+                html: '<i class="fas fa-cut"></i>',
+                className: "",
+                active: false,
+                title: "Polygon mit Linie zerschneiden",
+                handleClick: function () {
+                    splitGeometry();
+                }
+        });
+
+        @if ((bool)ViewData["ReadOnly"] == false)
+                    {
+                        <text>//mainbar.addControl(splitter);</text>
+                    }
+
+        //var ctrl = new ol.control.Cloud({ opacity: 0.3, density: 0.5, windSpeed: 1, windAngle: 45 * Math.PI / 180 });
+        //GeoWebGIS.map.addControl(ctrl);
+
+
+        mainbar.setPosition('top-right');
+        // Select feature when click on the reference index
+        search.on('select', function (e) {	// console.log(e);
+            // Check if we get a geojson to describe the search
+            if (e.search.geojson) {
+                var format = new ol.format.GeoJSON();
+                var f = format.readFeature(e.search.geojson, { dataProjection: "EPSG:21781", featureProjection: map.getView().getProjection() });
+
+                var view = GeoWebGIS.map.getView();
+                var resolution = view.getResolutionForExtent(f.getGeometry().getExtent(), map.getSize());
+                var zoom = view.getZoomForResolution(resolution);
+                var center = ol.extent.getCenter(f.getGeometry().getExtent());
+                // redraw before zoom
+                setTimeout(function () {
+                    view.animate({
+                    center: center,
+                        zoom: Math.min(zoom, 16)
+                    });
+                }, 100);
+            }
+            else {
+                GeoWebGIS.map.getView().animate({
+                center: e.coordinate,
+                    zoom: Math.max(GeoWebGIS.map.getView().getZoom(), 16)
+                });
+            }
+        });
+
+    </script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            $('#menubarCollapse').on('click', function () {
+                $('#menubar').toggleClass('active');
+            });
+
+            $("#content").mCustomScrollbar({
+                theme: "minimal"
+            });
+
+            var olSavedWidth = Cookies.get('OlSidebarWidth');
+            // get old saved width. But if width is smaller than min-width save the minwidth
+            if ((olSavedWidth >= 0) && (olSavedWidth > $('#olsidebar').width())) $("#olsidebar").width(olSavedWidth);
+            else {
+                Cookies.set('OlSidebarWidth', $('#olsidebar').width());
+            }
+
+            sidebar.open("home");
+            $("#olsidebar").resizable({
+                handles: 'e',
+                minWidth: 150,
+                stop: function (event, ui)
+                {
+                    Cookies.set('OlSidebarWidth', ui.size.width);
+                    var center = GeoWebGIS.map.getView().getCenter();
+                    var resolution = GeoWebGIS.map.getView().getResolution();
+                    var change = ui.size.width - ui.originalSize.width;
+
+                    var newCoordinates = [center[0] - change * resolution, center[1] + 0 * resolution];
+                    console.log(change);
+                    console.log(newCoordinates);
+                    GeoWebGIS.map.getView().setCenter(newCoordinates);
+                }
+            });
+
+            loadLayersURL('@Url.Action("ProjectLayersList","Projects")');
+            // load the records for the project
+            loadRecordsURL('@Url.Action("RecordsPerProject","Records", new { @id = ViewData["ProjectId"] })');
+
+
+
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+
+        $select = $('#form-select').selectize({
+                                        initItem: true,
+
+                                        // Need to preload, so that Selectize will go get the option
+                                        preload: true,
+                                        maxItems: 1,
+                                        persist: false,
+                                        load: function (query, callback) {
+                                            //if (!query.length) return callback();
+                                            $.ajax({
+                                                url: '@Url.Action("GetFormsForProject", "Forms")?id=@ViewData["ProjectId"]&search=' + encodeURIComponent(query),
+                                                type: 'GET',
+                                                error: function () {
+                                                    callback();
+                                                },
+                                                success: function (res) {
+                                                    callback(res.slice(0, 10));
+                                                }
+                                            });
+                                        },
+            valueField: 'FormId',
+                                        labelField: 'Title',
+            searchField: 'Title'
+                                    });
+
+        });
+
+        $(document).ready(function () {
+            $('#sidebarWidth').bootstrapSlider({
+                min: 200,
+                max: $(window).width()-20,
+                value: $('#olsidebar').width(),
+                formatter: function (value) {
+                    return value;
+                }
+            }).on('change', function (eventObj) {
+
+                var newValue = eventObj.value.newValue;
+                $("#olsidebar").width(newValue);
+                Cookies.set('OlSidebarWidth', newValue);
+            });
+
+
+            @if (ViewData["geometryId"] != null)
+                {
+                <text>
+            // load geometry
+            var goToInsideUrl = "/ReferenceGeometry/Details/@ViewData["geometryId"].ToString()";
+            loadBeobachtungsURL(goToInsideUrl);
+            sidebar.open("beobachtungen");
+            GeoWebGIS.selectedfeature = '@ViewData["geometryId"].ToString()';
+            </text>
+                }
+            });
+
+
+        // Splitfunction
+        function splitGeometry() {
+        modalokclick = false;
+
+            $select = $('#splitgeometrypoly-select').selectize({
+                                        initItem: true,
+
+                                        // Need to preload, so that Selectize will go get the option
+                                        preload: true,
+                                        maxItems: 1,
+                                        persist: false,
+                                        load: function (query, callback) {
+                                            //if (!query.length) return callback();
+                                            $.ajax({
+                                                url: '@Url.Action("GetPolygonesForProject", "ReferenceGeometry")?id=' + projectId +'&search=' + encodeURIComponent(query),
+                                                type: 'GET',
+                                                error: function () {
+                                                    callback();
+                                                },
+                                                success: function (res) {
+                                                    callback(res.slice(0, 10));
+                                                }
+                                            });
+                                        },
+            valueField: 'Id',
+                                        labelField: 'Title',
+            searchField: 'Title'
+                                    });
+
+            $select = $('#splitgeometryline-select').selectize({
+                                        initItem: true,
+
+                                        // Need to preload, so that Selectize will go get the option
+                                        preload: true,
+                                        maxItems: 1,
+                                        persist: false,
+                                        load: function (query, callback) {
+                                            //if (!query.length) return callback();
+                                            $.ajax({
+                                                url: '@Url.Action("GetLinesForProject", "ReferenceGeometry")?id=' + projectId +'&search=' + encodeURIComponent(query),
+                                                type: 'GET',
+                                                error: function () {
+                                                    callback();
+                                                },
+                                                success: function (res) {
+                                                    callback(res.slice(0, 10));
+                                                }
+                                            });
+                                        },
+            valueField: 'Id',
+                                        labelField: 'Title',
+            searchField: 'Title'
+                                    });
+
+
+
+            $('#SplitGeometryModal').modal('show');
+            $('#SplitGeometryModal').on('hide.bs.modal', function (event) {
+            if (modalokclick) {
+                var splitpoly = $('#splitgeometrypoly-select').val();
+                var splitline = $('#splitgeometryline-select').val();
+
+                $('#loading-spinner').show();
+                $.ajax(
+                    {
+                        url: "@Url.Action("SplitMeBabyOneMoreTime", "ReferenceGeometry")?lineId=" + splitline + "&polygonId=" + splitpoly,
+                    }).done(function () {
+                        GeoWebGIS.reloadGeoJSON();
+                        var goToInsideUrl = "@Url.Action("Details","ReferenceGeometry")?id=" + splitpoly;
+                        loadBeobachtungsURL(goToInsideUrl);
+                        $('#loading-spinner').hide();
+                    }
+                    )
+            }
+
+            $(this).off('hide.bs.modal');
+        });
+    }
+
+    </script>
+</body>
+</html>

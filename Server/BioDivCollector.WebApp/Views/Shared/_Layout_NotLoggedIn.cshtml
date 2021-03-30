@@ -1,0 +1,98 @@
+﻿@using BioDivCollector.WebApp.Helpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <partial name="~/Views/Shared/_Favicon.cshtml" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BioDivCollector.WebApp</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="~/css/datatables/datatables.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/style.css" />
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500,600,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
+    <link href="~/css/responsive.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <link href="~/css/icofont.css" rel="stylesheet" />
+    <link href="~/css/fontawesome.css" rel="stylesheet" />
+    <link href="~/css/themify-icons.css" rel="stylesheet" />
+
+    <link href="~/js/selectize/css/selectize.bootstrap4.css" rel="stylesheet" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <style>
+    </style>
+
+    @RenderSection("Styles", required: false)
+
+</head>
+<body main-theme-layout="main-theme-layout-1">
+
+
+    <!--page-wrapper Start-->
+    <div class="page-wrapper">
+        <!--Page Body Start-->
+        <div class="page-body-wrapper landing-main">
+            <div class="landing-home">
+                <div class="landing-header">
+                    <div class="container-fluid">
+                        <nav class="navbar navbar-expand-lg">
+                            <a class="navbar-brand" href="#"><img src="~/img/LogoV1.png" class="img-fluid" alt="" width="200" /></a>
+                            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+                                <span class="navbar-toggler-icon">
+                                    <i class="fa fa-bars"></i>
+                                </span>
+                            </button>
+                            <div class="collapse navbar-collapse" id="collapsibleNavbar">
+                                <ul class="navbar-nav">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#">Home</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="@Url.Action("Dashboard","Home")">Login</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="https://id.biodivcollector.ch/auth/realms/BioDivCollector/protocol/openid-connect/registrations?client_id=BioDivCollector&response_type=code&scope=email&redirect_uri=https%3A%2F%2Fbiodivcollector.ch">Registrieren</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+                <div class="landing-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-lg-5 offset-lg-2 dashboard-image-pt-xs offset-md-1 col-md-10 offset-sm-0">
+                                <div class="landing-left">
+                                    @RenderBody()
+                                </div>
+                            </div>
+                            <div class="pr-0 col-md-6">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/sidebar-menu.js"></script>
+    <script src="~/js/script.js"></script>
+    <script src="~/js/datatables/datatables.js"></script>
+    <script src="~/js/selectize/js/standalone/selectize.js"></script>
+
+    @RenderSection("Scripts", required: false)
+
+</body>
+</html>

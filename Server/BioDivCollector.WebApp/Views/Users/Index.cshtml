@@ -1,0 +1,145 @@
+﻿@using System.Security.Claims
+@using BioDivCollector.DB.Models.Domain
+
+@model IEnumerable<BioDivCollector.WebApp.Controllers.UserPoco>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Benutzer";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Benutzer
+                    <small>Liste der Benutzer</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item">Benutzer</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card height-equal" style="min-height: 685px;">
+                <div class="card-header">
+                    <h5>Alle Benutzer</h5>
+
+                </div>
+                <div class="card-body">
+                    <div class="user-status table-responsive product-chart">
+                       
+                        <table id="grouplist" class="table table-bordernone">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Aktion</th>
+                                    <th>
+                                        Benutzername
+                                    </th>
+                                    <th>
+                                        Vorname
+                                    </th>
+                                    <th>
+                                        Nachname
+                                    </th>
+                                    <th>
+                                        Rollen
+                                    </th>
+                                    <th>
+                                        Gruppen
+                                    </th>
+                                    <th>
+                                        Projekte
+                                    </th>
+                                    <th>
+                                        Aktiv
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                <tr>
+                                    <td>
+                                        <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="location.href = '@Url.Action("Edit","Users", new { @id = item.username })'"><i class="fa fa-pencil-square-o"></i></button>
+                                    </td>
+                                    <td>
+                                        @item.username
+                                    </td>
+                                    <td>
+                                        @item.firstName
+                                    </td>
+                                    <td>
+                                        @item.lastName
+                                    </td>
+                                    <td>
+                                        @foreach (string r in item.roles)
+                                        {
+                                            <text>@r</text><br />
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.dbUser != null)
+                                        {
+                                            foreach (GroupUser gu in item.dbUser?.UserGroups)
+                                            {
+                                                <text>@gu.Group.GroupName</text><br />
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @if ((item.dbUser != null) && (item.projects != null))
+                                        {
+                                            foreach (BioDivCollector.WebApp.Controllers.UserProjectPoco upp in item.projects)
+                                            {
+                                                <text>@upp.Project.ProjectName (@upp.Role)</text><br />
+                                            }
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (item.enabled)
+                                        {
+                                            <text>Ja</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Nein</text>
+                                        }
+                                    </td>
+                                </tr>
+
+                                }
+
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#grouplist').DataTable({
+            "language": {
+                "url": "/js/datatables/datatables.german.lang.json"
+            }
+        });
+    });
+</script>
+
+

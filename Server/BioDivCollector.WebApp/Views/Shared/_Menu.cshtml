@@ -1,0 +1,80 @@
+﻿@using BioDivCollector.WebApp.Helpers
+<li class="@Html.IsTopSelected(controllers: "Index")">
+    <div class="sidebar-title">Menü</div>
+
+    <a href="@Url.Action("Dashboard", "Home")" class="sidebar-header @Html.IsSelected(actions: "Dashboard", controllers: "Home")">
+        <i class="material-icons dp48" style="padding-top:10px;">desktop_windows</i><span>Dashboard</span>
+    </a>
+</li><li class="@Html.IsTopSelected(controllers: "Projects")">
+    <a href="#" class="sidebar-header">
+        <i class="material-icons dp48" style="padding-top:10px;">folder</i><span>Projekte</span>
+        <i class="fa fa-angle-right pull-right" style="margin-top:10px;"></i>
+    </a>
+    <ul class="sidebar-submenu">
+        <li><a href="@Url.Action("Index", "Projects")" class="@Html.IsSelected(actions: "Index", controllers: "Projects")"><i class="fa fa-angle-right"></i>Übersicht</a></li>
+        <li><a href="@Url.Action("Details", "Projects")" class="@Html.IsSelected(actions: "Details", controllers: "Projects")"><i class="fa fa-angle-right"></i>Projekt konfigurieren</a></li>
+        <li><a href="@Url.Action("DetailsDataEdit", "Projects")" class="@Html.IsSelected(actions: "DetailsDataEdit", controllers: "Projects")"><i class="fa fa-angle-right"></i>Projektdaten editieren</a></li>
+        <li><a href="@Url.Action("Map", "Projects")" class="@Html.IsSelected(actions: "Map", controllers: "Projects")"><i class="fa fa-angle-right"></i>Projekt auf Karte darstellen</a></li>
+
+
+        <li><a href="@Url.Action("Export", "Projects")" class="@Html.IsSelected(actions: "Export", controllers: "Projects")"><i class="fa fa-angle-right"></i>Daten exportieren</a></li>
+
+        <li><a href="@Url.Action("Import", "Projects")" class="@Html.IsSelected(actions: "Import", controllers: "Projects")"><i class="fa fa-angle-right"></i>Daten importieren</a></li>
+
+        @if (User.IsInRole("DM"))
+        {
+            <li><a href="@Url.Action("Create", "Projects")" class="@Html.IsSelected(actions: "Create", controllers: "Projects")"><i class="fa fa-angle-right"></i>Neues Projekt erstellen</a></li>
+
+        }
+
+        <!--<li><a href="@Url.Action("Export", "Projects")" class="@Html.IsSelected(actions: "Export", controllers: "Projects")"><i class="fa fa-angle-right"></i>Exportieren</a></li>-->
+
+    </ul>
+</li>
+@if ((User.IsInRole("PK")) || (User.IsInRole("PL")) || (User.IsInRole("DM")))
+    {
+    <li class="@Html.IsTopSelected(controllers: "Forms")">
+        <a href="#" class="sidebar-header">
+            <i class="material-icons dp48" style="padding-top:10px;">assignment</i><span>Formulare</span>
+            <i class="fa fa-angle-right pull-right" style="margin-top:10px;"></i>
+        </a>
+        <ul class="sidebar-submenu">
+            <li><a href="@Url.Action("Index", "Forms")" class="@Html.IsSelected(actions: "", controllers: "Forms")"><i class="fa fa-angle-right"></i>Beobachtungsformulare</a></li>
+            
+        </ul>
+    </li>
+}
+
+
+
+
+<li class="@Html.IsTopSelected(controllers: "Layers")">
+    <a href="#" class="sidebar-header">
+        <i class="material-icons dp48" style="padding-top:10px;">map</i><span>Karten</span>
+        <i class="fa fa-angle-right pull-right" style="margin-top:10px;"></i>
+    </a>
+    <ul class="sidebar-submenu">
+        <li><a href="@Url.Action("Index", "Layers")" class="@Html.IsSelected(actions: "Index", controllers: "Layers")"><i class="fa fa-angle-right"></i>Verfügbare Kartenebenen</a></li>
+        <li><a href="@Url.Action("Create", "Layers")" class="@Html.IsSelected(actions: "Create", controllers: "Layers")"><i class="fa fa-angle-right"></i>Neue Kartenebene definieren</a></li>
+    </ul>
+</li><li class="@Html.IsTopSelected(controllers: "Users")">
+    <a href="#" class="sidebar-header">
+        <i class="material-icons dp48" style="padding-top:10px;">supervisor_account</i><span>Benutzer</span>
+        <i class="fa fa-angle-right pull-right" style="margin-top:10px;"></i>
+    </a>
+    <ul class="sidebar-submenu">
+        @if (User.IsInRole("DM"))
+        {
+            <li><a href="@Url.Action("Index", "Users")" class="@Html.IsSelected(actions: "Index", controllers: "Users")"><i class="fa fa-angle-right"></i>Übersicht Benutzer</a></li>
+            <li><a href="@Url.Action("CreateUser", "Users")" class="@Html.IsSelected(actions: "CreateUser", controllers: "Users")"><i class="fa fa-angle-right"></i>Benutzer erstellen</a></li>
+        }
+
+        <li><a href="@Url.Action("Index", "Groups")" class="@Html.IsSelected(actions: "Index", controllers: "Groups")"><i class="fa fa-angle-right"></i>Übersicht Gruppen</a></li>
+        @if ((User.IsInRole("DM")) || (User.IsInRole("PK")) || (User.IsInRole("PL")))
+        {
+            <li><a href="@Url.Action("Create", "Groups")" class="@Html.IsSelected(actions: "Create", controllers: "Groups")"><i class="fa fa-angle-right"></i>Gruppe erstellen</a></li>
+        }
+        <li><a href="@Url.Action("Logout", "Home")" class="@Html.IsSelected(actions: "Logout", controllers: "Home")"><i class="fa fa-angle-right"></i>Logout</a></li>
+    </ul>
+
+</li>

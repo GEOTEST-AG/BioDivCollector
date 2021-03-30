@@ -1,0 +1,71 @@
+﻿@using System.Security.Claims
+@model BioDivCollector.DB.Models.Domain.Project
+@{
+    Layout = "_LayoutMap";
+    ViewData["Title"] = "Kartenansicht";
+}
+
+<div class="row">
+    <div class="col-sm-12 col-xl-12">
+        <div class="card b-r-0">
+            <div class="card-header">
+                <h5>@Model.ProjectName</h5>
+
+            </div>
+            <div class="card-body">
+                <div id="project_accordionoc" class="default-according style-1">
+                    <!-- Overview -->
+                    <div class="card">
+                        <div class="card-header">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#projects_collapse_0" aria-expanded="false" aria-controls="projects_collapse_0">
+                                <i class="fas fa-info-circle"></i>Projektinformationen
+                            </button>
+                        </div>
+                        <div id="projects_collapse_0" class="collapse show" aria-labelledby="collapseicon" style="">
+                            <div class="card-body">
+
+                                <dl class="row">
+                                    <dt class="col-sm-5">@Html.DisplayNameFor(model => model.ProjectName)</dt>
+                                    <dd class="col-sm-7">@Model.ProjectName</dd>
+                                    <dt class="col-sm-5">@Html.DisplayNameFor(model => model.ProjectNumber)</dt>
+                                    <dd class="col-sm-7">@Model.ProjectNumber</dd>
+                                    <dt class="col-sm-5">@Html.DisplayNameFor(model => model.ID_Extern)</dt>
+                                    <dd class="col-sm-7">@Model.ID_Extern</dd>
+                                    <dt class="col-sm-5">@Html.DisplayNameFor(model => model.Description)</dt>
+                                    <dd class="col-sm-7">@Model.Description</dd>
+                                    <dt class="col-sm-5">@Html.DisplayNameFor(model => model.BDCGuid)</dt>
+                                    <dd class="col-sm-7">
+                                        @Model.BDCGuid
+                                        <span class="input-group-btn">
+                                            <button type="button" class="btn btn-primary btn-clipboard" data-clipboard-action="copy"><i class="fa fa-copy"></i></button>
+                                        </span>
+                                    </dd>
+
+                                    <dt class="col-sm-5">@Html.DisplayNameFor(model => model.OGD)</dt>
+                                    <dd class="col-sm-7">
+                                        <div class="checkbox checkbox-primary" data-toggle="tooltip" data-html="true" title="Alle Projektdaten sind für BioDivCollector-Nutzende ohne Login und unter der Creative Commons (CC) Public Domain (PD) Lizenz (Creative Commons — CC0 1.0 Universell) nutzbar. (Ohne OGD sind die Projektdaten nur für dafür freigegebene registrierte Benutzer/-gruppen nutzbar.)">
+                                            <input type="checkbox" name="ogd" @if (Model.OGD) {
+                                                <text>checked</text>
+                                                    }>
+                                            <label class="mb-0"></label>
+                                        </div>
+
+                                    </dd>
+
+                                    <dt class="col-sm-5">@Html.DisplayNameFor(model => model.ProjectManager)</dt>
+                                    <dd class="col-sm-7">@Model.ProjectManager?.FirstName @Model.ProjectManager?.Name</dd>
+
+                                    <dt class="col-sm-5">@Html.DisplayNameFor(model => model.ProjectConfigurator)</dt>
+                                    <dd class="col-sm-7">@Model.ProjectConfigurator?.FirstName @Model.ProjectConfigurator?.Name</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                            
+                        </div>
+                    </div>
+                </div>
+</div>

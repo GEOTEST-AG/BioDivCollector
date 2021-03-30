@@ -1,0 +1,14 @@
+﻿@using FormFactory.Attributes
+@using FormFactory
+@model FormFactory.PropertyVm
+@using System
+
+@{
+    var dateAttr = Model.GetCustomAttributes().Where(a => a is DateAttribute || a is DateTimeAttribute).FirstOrDefault()
+                   ?? new DateTimeAttribute();
+    var isDate = dateAttr is DateAttribute;
+    var displayFormatAttribute = Model.GetCustomAttributes().OfType<DisplayFormatAttribute>().SingleOrDefault();
+    var stringFormat = (displayFormatAttribute != null ? displayFormatAttribute.DataFormatString : null) ?? (isDate ? "dd MMM yyyy" : "g");
+    var valueAsString = Model.Value is string ? (Model.Value as string) : Model.Value as DateTimeOffset? == null ? "" : ((DateTimeOffset?)Model.Value).Value.ToString(stringFormat);
+}
+<div>@valueAsString</div>

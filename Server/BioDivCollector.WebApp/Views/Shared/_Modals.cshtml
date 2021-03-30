@@ -1,0 +1,260 @@
+﻿<!-- Modals -->
+<div class="modal fade" id="newGeometryModal" tabindex="-1" role="dialog" aria-labelledby="newGeometryModalLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newGeometryModalLabel">Neue Beobachtungsgeometrie</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Name der Beobachtungsgeometrie:</label>
+                        <input type="text" class="form-control" id="newGeometryTitle">
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Erstellen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteGeometryModal" tabindex="-1" role="dialog" aria-labelledby="deleteGeometryModalLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteGeometryModalLabel">Beobachtungsgeometrie löschen?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Beobachtungsgeometrie mit sämtlichen Einträgen löschen?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Löschen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteRecordModal" tabindex="-1" role="dialog" aria-labelledby="deleteRecordModalLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteRecordModalLabel">Eintrag löschen?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Eintrag wirklich löschen?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Löschen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="renameGeometryModal" tabindex="-1" role="dialog" aria-labelledby="renameGeometryModalLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="renameGeometryModalLabel">Geometrie umbenennen</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Neuer Name der Beobachtungsgeometrie:</label>
+                        <input type="text" class="form-control" id="newRenameGeometryTitle">
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var modalokclick = false;
+</script>
+
+<!-- Formselector-modal -->
+
+<div class="modal fade" id="formSelectorModal" tabindex="-1" role="dialog" aria-labelledby="formSelectorModalLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="formSelectorModalLabel">Formular auswählen</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label>Formulartyp wählen</label>
+                        <select class="form-control single-select" placeholder="" required id="form-select">
+                        </select>
+                        <div class="invalid-feedback">
+                            Bitte eine Auswahl vornehmen
+                        </div>
+                        <div class="form-group has-valid">
+
+
+                            <div class="checkbox checkbox-primary">
+
+                                <input type="hidden" value="false" id="hidden-copycheck">
+                                <input type="checkbox" id="copycheck" value="" onchange="document.getElementById('hidden-copycheck').value=this.checked; ">
+                                <label for="copycheck">Inhalt der letzten Beobachtung kopieren?</label>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Erstellen</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Formselector-modal -->
+<!-- Delete Form-->
+<div class="modal fade" id="deleteFormModal" tabindex="-1" role="dialog" aria-labelledby="deleteFormLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteFormLabel">Formular löschen?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Soll das Formular wirklich gelöscht werden? Damit gehen alle Beobachtungen, welche dieses Formular verwenden verloren?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Delete Form-->
+<!-- MoveReord-modal -->
+
+<div class="modal fade" id="moveRecordModal" tabindex="-1" role="dialog" aria-labelledby="moveRecordModalModalLabel" aria-hidden="true" style="z-index:100000;" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="moveRecordModalModalLabel">Beobachtung verschieben</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label>Verschieben nach</label>
+                        <select class="form-control single-select" placeholder="" required id="togeometrie-select">
+                        </select>
+                        <div class="invalid-feedback">
+                            Bitte eine Auswahl vornehmen
+                        </div>
+
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Verschieben</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End MoveReord-modal -->
+
+<!-- SplitGeometry-modal -->
+
+<div class="modal fade" id="SplitGeometryModal" tabindex="-1" role="dialog" aria-labelledby="SplitGeometryModalLabel" aria-hidden="true" style="z-index:100000;" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="SplitGeometryModalModalLabel">Geometrie schneiden</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label>Polygon</label>
+                        <select class="form-control single-select" placeholder="" required id="splitgeometrypoly-select">
+                        </select>
+                        <div class="invalid-feedback">
+                            Bitte zu schneidendes Polygon auswählen
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label>Linie</label>
+                        <select class="form-control single-select" placeholder="" required id="splitgeometryline-select">
+                        </select>
+                        <div class="invalid-feedback">
+                            Bitte die Verschnittlinie auswählen
+                        </div>
+
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Verschneiden</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End MoveReord-modal -->
+<!-- Change Projectstates -->
+<div class="modal fade" id="changeProjectState" tabindex="-1" role="dialog" aria-labelledby="changeProjectStateLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeProjectStateLabel">Status ändern</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body" id="statechangetext">
+                Sollen die Gruppendaten wirklich angepasst werden? Die Daten in der Gruppe können anschliessend unter Umständen nicht mehr bearbeitet werden.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Change Projectstates-->
+<!-- End Modals -->

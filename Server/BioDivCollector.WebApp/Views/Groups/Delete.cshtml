@@ -1,0 +1,46 @@
+﻿@model BioDivCollector.DB.Models.Domain.Group
+
+@{
+    ViewData["Title"] = "Löschen";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
+}
+
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Gruppe @Model.GroupName
+                    <small>Löschen der Gruppe bestätigen</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Gruppen</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Soll die Gruppe wirklich gelöscht werden?</h5>
+                </div>
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="GroupId" />
+                    <input type="submit" value="Delete" class="btn btn-danger" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

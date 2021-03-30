@@ -1,0 +1,72 @@
+﻿@model BioDivCollector.DB.Models.Domain.Group
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Guppe erstellen
+                    <small>Editieren der Gruppe und Erfassende hinzufügen</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Gruppen</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Gruppe Eigenschaften</h5>
+                </div>
+                <form asp-action="Create">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="GroupName" class="control-label"></label>
+                                    <input asp-for="GroupName" required class="form-control" />
+                                    <span asp-validation-for="GroupName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="ID_Extern" class="control-label"></label>
+                                    <input asp-for="ID_Extern" class="form-control" />
+                                    <span asp-validation-for="ID_Extern" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">Speichern</button>
+                            <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index","Groups")'">Abbrechen</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

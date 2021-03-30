@@ -1,0 +1,187 @@
+﻿@model BioDivCollector.DB.Models.Domain.Group
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
+}
+
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Gruppe @Model.GroupName
+                    <small>Editieren der Gruppe und Erfassende hinzufügen</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Gruppen</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Gruppe Eigenschaften</h5>
+                </div>
+                <form asp-action="Edit" id="FormEdit">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="GroupId" />
+                        <input type="hidden" asp-for="CreatorId" />
+                        <input type="hidden" asp-for="GroupStatusId" />
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="GroupName" class="control-label"></label>
+                                    <input asp-for="GroupName" required class="form-control" />
+                                    <span asp-validation-for="GroupName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="ID_Extern" class="control-label"></label>
+                                    <input asp-for="ID_Extern" class="form-control" />
+                                    <span asp-validation-for="ID_Extern" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">Speichern</button>
+                            @if (Model.GroupProjects.Where(m => m.Project.StatusId != BioDivCollector.DB.Models.Domain.StatusEnum.deleted).Count() == 0)
+                            {
+                                <button type="button" class="btn btn-danger" onclick="location.href='@Url.Action("Delete", "Groups", new { @id = Model.GroupId })'"><i class="icofont-ui-delete"></i> Löschen</button>
+                            }                            
+                            <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index","Groups")'">Abbrechen</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Erfassende in Gruppe</h5>
+                </div>
+                <div class="row">
+                    <div class="span6" style="float: none; margin: 0 auto; padding-top:10px; padding-bottom: 10px;">
+                        <div id="usersselector" class="transfer-demo"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Projects -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Gruppe zu Projekte hinzufügen</h5>
+                </div>
+                <div class="row">
+                    <div class="span6" style="float: none; margin: 0 auto; padding-top:10px; padding-bottom: 10px;">
+                        <div id="projectselector" class="transfer-demo"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Shared/_Modals.cshtml" />
+
+<script>
+    $.ajax({
+            dataType: "json",
+            url: '@Url.Action("GetUsersByRole", "Groups", new { @id=@Model.GroupId, role = "EF" })',
+            success: function (data) {
+                var settings = {
+                    dataArray: data,
+                    tabNameText: "Verfügbare Erfasser",
+                    rightTabNameText: "Gewählte Erfasser",
+                    searchPlaceholderText: "Suchen",
+                    callable: function (items) {
+                        console.log(items);
+                        $.ajax({
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({ items, "guid":"@Model.GroupId" }),
+                            url: "@Url.Action("EditUsersInGroup","Groups")",
+                            contentType: "application/json; charset=utf-8",
+                            processData: true,
+                            cache: false,
+                        })
+                    }
+                };
+
+                var transfer = $("#usersselector").transfer(settings);
+                // get selected items
+                transfer.getSelectedItems();
+            }
+    });
+
+    $.ajax({
+            dataType: "json",
+            url: '@Url.Action("GetProjectsForGroup", "Groups", new { @id=@Model.GroupId })',
+            success: function (data) {
+                var settings = {
+                    dataArray: data,
+                    tabNameText: "Verfügbare Projekte",
+                    rightTabNameText: "Gewählte Projekte",
+                    searchPlaceholderText: "Suchen",
+                    callable: function (items) {
+                        console.log(items);
+                        $.ajax({
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({ items, "guid":"@Model.GroupId" }),
+                            url: "@Url.Action("EditProjectsForGroup", "Groups")",
+                            contentType: "application/json; charset=utf-8",
+                            processData: true,
+                            cache: false,
+                        })
+                    }
+                };
+
+                var transfer = $("#projectselector").transfer(settings);
+                // get selected items
+                transfer.getSelectedItems();
+            }
+    });
+
+
+
+</script>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/jquery-transfer/js/jquery.transfer.js"></script>
+
+}

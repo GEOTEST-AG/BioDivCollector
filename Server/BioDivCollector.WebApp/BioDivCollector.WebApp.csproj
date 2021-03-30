@@ -1,0 +1,148 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>BioDivCollector.WebApp</RootNamespace>
+    <AssemblyName>BioDivCollector.WebApp</AssemblyName>
+    <UserSecretsId>d6d1fa8b-f7af-438b-a3ed-c066f2744147</UserSecretsId>
+    <Authors>Christoph Suter</Authors>
+    <Company>GEOTEST AG</Company>
+    <Copyright>2021 GEOTEST AG</Copyright>
+    <PackageLicenseExpression>Apache Licence 2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://www.biodivcollector.ch</PackageProjectUrl>
+    <AssemblyVersion>0.5.0.0</AssemblyVersion>
+    <Version>0.5.0.0</Version>
+    <FileVersion>0.5.0.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\bootstrap3-typeahead.js" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\bootstrap3-typeahead.unobtrusive.js" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.DateTime.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.DateTimeOffset.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.Decimal.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.Double.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.Enum.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.Int32.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.Int64.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.Object.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.String.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Cell.System.TimeSpan.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Form.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Form.Property.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\FormFactory.css" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\FormFactory.js" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\jquery-ui-sliderAccess.js" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\jquery-ui-timepicker-addon.css" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\jquery-ui-timepicker-addon.js" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\jquery-ui-timepicker-addon.min.css" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\jquery-ui-timepicker-addon.min.js" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\jquery.validate.unobtrusive.dynamic.js" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.FormFactory.Components.Navbar.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.FormFactory.Components.SubmitButton.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.ICollection.System.Object.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.IEnumerable.System.Enum.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.IEnumerable.System.Object.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.Boolean.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.DateTime.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.DateTimeOffset.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.Decimal.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.Double.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.Enum.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.Int32.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.Int64.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.Object.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.String.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.TimeSpan.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\Property.System.Xml.Linq.XElement.cshtml" />
+    <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\_README.txt" />
+    <Content Remove="wwwroot\Content\FormFactory\FormFactory.css" />
+    <Content Remove="wwwroot\Scripts\FormFactory\FormFactory.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="BuildDate.txt" />
+    <None Remove="Properties\BuildDate.txt" />
+    <None Remove="Resources\BuildDate.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\BuildDate.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FormFactory" Version="5.0.71" />
+    <PackageReference Include="FormFactory.AspNetCore" Version="5.0.71" />
+    <PackageReference Include="GeoAPI" Version="1.7.5" />
+    <PackageReference Include="McMaster.NETCore.Plugins.Mvc" Version="1.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.1.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="3.1.8" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
+    <PackageReference Include="NetTopologySuite" Version="2.1.0" />
+    <PackageReference Include="NetTopologySuite.Features" Version="2.1.0" />
+    <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="2.0.4" />
+    <PackageReference Include="RestSharp" Version="106.11.7" />
+    <PackageReference Include="RunProcessAsTask" Version="1.2.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BioDivCollector.DB\BioDivCollector.DB.csproj" />
+    <ProjectReference Include="..\BioDivCollector.PluginContract\BioDivCollector.PluginContract.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="plugins\BioDivCollector.SamplePlugin\" />
+    <Folder Include="wwwroot\app\" />
+    <Folder Include="wwwroot\img\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\Content\FormFactory\FormFactory.css" />
+    <None Include="wwwroot\Scripts\FormFactory\FormFactory.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="BuildDate.txt" />
+    <Resource Include="Properties\BuildDate.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="plugins\BioDivCollector.SamplePlugin\BioDivCollector.SamplePlugin.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="plugins\BioDivCollector.SamplePlugin\BioDivCollector.SamplePlugin.Views.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="echo %25date%25 %25time%25 &gt; &quot;$(ProjectDir)\Resources\BuildDate.txt&quot;" />
+  </Target>
+
+</Project>

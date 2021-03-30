@@ -1,0 +1,202 @@
+﻿@model IEnumerable<BioDivCollector.DB.Models.Domain.ProjectLayer>
+@{
+    Layout = "_LayoutSidebar";
+    ViewData["Title"] = "Layers";
+}
+
+<style>
+    .slider.slider-horizontal {
+        width: 100%;
+    }
+
+    .slider-handle {
+        background: #3BB50B;
+    }
+</style>
+
+<div class="row">
+    <div class="col-sm-12 col-xl-12">
+        <div class="card b-r-0">
+            <div class="card-header">
+                <h5>Hintergrundskarten</h5>
+                
+            </div>
+            <div class="card-body">
+                <div class="row">
+
+                    <div class="form-group m-t-15 custom-radio-ml" style="padding-left:10px;">
+                        <div class="radio radio-primary">
+                            <input type="radio" name="bgmap" id="radio1" value="pk25" checked="">
+                            <label for="radio1">Landeskarte</label>
+                        </div>
+                        <div class="radio radio-primary">
+                            <input type="radio" name="bgmap" id="radio3" value="sat">
+                            <label for="radio3">Luftbild</label>
+                        </div>
+                        <div class="radio radio-primary">
+                            <input type="radio" name="bgmap" id="radio4" value="osm" >
+                            <label for="radio4">Open Street Map</label>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    jQuery(document).ready(function () {
+                        $("input[name='bgmap']").change(radioValueChanged);
+                    });
+                    function radioValueChanged() {
+                        radioValue = $(this).val();
+                        if (radioValue == "osm") {
+                            GeoWebGIS.map.addLayer(GeoWebGIS.osmBackgroundmap);
+                            GeoWebGIS.map.removeLayer(GeoWebGIS.backgroudmap);
+                            GeoWebGIS.map.removeLayer(GeoWebGIS.satellitemap);
+                        }
+                        else if (radioValue == "pk25") {
+                            GeoWebGIS.map.addLayer(GeoWebGIS.backgroudmap);
+                            GeoWebGIS.map.removeLayer(GeoWebGIS.osmBackgroundmap);
+                            GeoWebGIS.map.removeLayer(GeoWebGIS.satellitemap);
+                        }
+                        else if (radioValue == "sat") {
+                            GeoWebGIS.map.addLayer(GeoWebGIS.satellitemap);
+                            GeoWebGIS.map.removeLayer(GeoWebGIS.backgroudmap);
+                            GeoWebGIS.map.removeLayer(GeoWebGIS.osmBackgroundmap);
+                        }
+                        
+                    } 
+                </script>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+                <ul id="sortableLayerList" class="list-group">
+                    @foreach (BioDivCollector.DB.Models.Domain.ProjectLayer pl in Model)
+                    {
+
+                        <li class="list-group-item" id="li_customlayer_@pl.Layer.LayerId">
+                            <script type="text/javascript">
+
+            var transValue_@pl.Layer.LayerId = @pl.Transparency / 100;
+
+                            var customlayer_@pl.Layer.LayerId = @Html.Raw(pl.Layer.OlCode);
+
+                            GeoWebGIS.customLayers.push({id:'customlayer_@pl.Layer.LayerId', layer: customlayer_@pl.Layer.LayerId});
+                        $(document).ready(function () {
+                            $('#customlayer_@pl.Layer.LayerId').change();
+
+
+                            $('#transparency_@pl.Layer.LayerId').bootstrapSlider({
+                                formatter: function (value) {
+                                    return 'Deckkraft: ' + value;
+                                }
+                            }).on('change', function (eventObj) {
+
+                                var newValue = eventObj.value.newValue;
+                                transValue_@pl.Layer.LayerId = newValue;
+
+                                GeoWebGIS.setOpacity('customlayer_@pl.Layer.LayerId', newValue / 100);
+                                $.ajax({
+                                    url: '@Url.Action("ChangeTransparencyLayer", "Layers", new { id = pl.LayerId })?transparency=' + newValue / 100
+                                });
+                            });
+                        });
+
+
+             $('#customlayer_@pl.Layer.LayerId').change(function () {
+                                            if ($("#customlayer_@pl.Layer.LayerId").prop('checked')) {
+                                                //GeoWebGIS.showLayer('customlayer_@pl.Layer.LayerId');
+                                                showLayersWithSort($("#sortableLayerList"));
+
+                                                GeoWebGIS.setOpacity('customlayer_@pl.Layer.LayerId', transValue_@pl.Layer.LayerId);
+                                                $.ajax({
+                                                    url: '@Url.Action("ChangeEnabledLayer", "Layers", new { id = pl.LayerId })?visible=true'
+                                                });
+                                            }
+                                            else {
+                                                GeoWebGIS.hideLayer('customlayer_@pl.Layer.LayerId');
+
+                                                $.ajax({
+                                                    url: '@Url.Action("ChangeEnabledLayer", "Layers", new { id = pl.LayerId })?visible=false'
+                                                });
+                                            }
+                                        })
+
+
+
+                            </script>
+                            <div class="row">
+                                <div class="col-md-3 align-self-center">
+                                    <i class="icofont icofont-justify-all" style="font-size: 20px;"></i>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <form class="form-group">
+                                                <div class="form-group m-checkbox-inline mb-0">
+                                                    <div class="checkbox checkbox-primary">
+                                                        <input id="customlayer_@pl.Layer.LayerId" type="checkbox" @if (pl.Visible) { <text> checked</text>
+                                    }>
+                                                        <label for="customlayer_@pl.Layer.LayerId" class="mb-0">@pl.Layer.Title</label>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <input id="transparency_@pl.Layer.LayerId" data-slider-id='transparency_@pl.Layer.LayerId' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="5" data-slider-value="@pl.Transparency" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </li>
+
+                    }
+
+
+                </ul>
+                <script>
+
+    function showLayersWithSort(ulElement) {
+        var layers = [];
+        ulElement.children().each(function (entry) {
+            layers.push($(this).attr('id').replace("li_", ""));
+        });
+
+        layers.reverse().forEach(function (layerid) {
+            GeoWebGIS.hideLayer(layerid);
+            if ($("#" + layerid).prop('checked')) {
+                GeoWebGIS.showLayer(layerid);
+            }
+        });
+    }
+
+
+    $(document).ready(function () {
+        $("#sortableLayerList").sortable({
+            forcePlaceholderSize: true,
+            handle: 'i'
+        }).bind('sortupdate', function (e, ui) {
+            var ulElement = $(ui.item[0]).parent();
+            showLayersWithSort(ulElement);
+
+            // save the new order to the db
+            var layers = [];
+            ulElement.children().each(function (entry) {
+                layers.push($(this).attr('id').replace("li_customlayer_", ""));
+            });
+
+            $.ajax({
+                url: '@Url.Action("ChangeLayerOrder", "Layers")',
+                type: 'POST',
+                data: JSON.stringify({ "Ids": layers }),
+                contentType: "application/json; charset=utf-8"
+            });
+        });
+
+
+    });
+                </script>

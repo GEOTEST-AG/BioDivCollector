@@ -1,0 +1,33 @@
+﻿
+@{
+    Layout = "_Layout_NotLoggedIn";
+    ViewData["Title"] = "BioDivCollector Startseite";
+}
+
+<div>
+    <img src="~/img/LogoV2.png" />
+    <h1>Herzlich willkommen</h1>
+    <h5> <span class="digits txt-primary f-w-700 f-26">@ViewData["records"]<text>+</text> </span> Beobachtungen ,<span class="digits txt-info f-w-700 f-26"> @ViewData["projects"]<text>+</text></span> Projekte , <span class="digits txt-danger f-w-700 f-26">  @ViewData["users"]<text>+</text> </span> aktive Benutzer</h5>
+    <p class="pr-5">
+        Du kartierst Biodiversitätsdaten und nutzt für Deine Artenerhebungen die Anwendungen von <a href="www.infospecies.ch">www.infospecies.ch</a>? Du willst zusätzliche Parameter und Geometrien effizient erheben oder sammelst geografische Biodiversitätsdaten ohne Arteninformationen?
+    </p>
+    <p class="pr-5">
+        BioDivCollector ermöglicht deine Erfassungsprojekte mit eigenen Parametern einzurichten und alleine oder mit Benutzergruppen die Erhebungen effizient durchzuführen sowie alle deine Erhebungskampagnen einfach zu überwachen.
+    </p>
+    <p class="pr-5">
+        Kopiere jede beliebige BioDiv-Datensatz-ID in von dir gewünschte Drittanwendungen, um diese Drittdaten in Echtzeit (über Geo-Services) oder bei Bedarf (über Download-Service) mit den BioDiv-Informationen zusammenzuführen.
+    </p>
+    <div class="button-bottom">
+        <a href="@Url.Action("Dashboard","Home")" class="btn btn-primary mr-2">Login</a>
+        <a href="@ViewBag.registerLink/protocol/openid-connect/registrations?client_id=BioDivCollector&response_type=code&scope=email&redirect_uri=https%3A%2F%2Fbiodivcollector.ch" class="btn btn-outline-primary-2x">Registrieren</a>
+        <div class="appstores">
+            <a href='https://play.google.com/store/apps/details?id=ch.geotest.biodivcollector&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Jetzt bei Google Play' style="width:130px;" width="130" src='https://play.google.com/intl/en_us/badges/static/images/badges/de_badge_web_generic.png' /></a>
+            <a href="https://apps.apple.com/ch/app/biodivcollector/id1535208464?itsct=apps_box&amp;itscg=30200" style="border-radius: 13px; width: 110px;"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/de-de?size=250x83&amp;releaseDate=1616716800&h=94bebb79741d8e52990692965e94d17e" alt="Download on the App Store" style="border-radius: 13px; width: 110px;"></a>
+        </div>
+
+    </div>
+
+    <p class="pr-5" style="margin-top:40px;">
+        <a href="@Url.ActionLink("Privacy","Home")">Datenschutzerklärung</a>
+    </p>
+</div>

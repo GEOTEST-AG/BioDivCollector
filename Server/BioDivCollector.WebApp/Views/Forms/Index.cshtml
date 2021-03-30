@@ -1,0 +1,224 @@
+﻿@using System.Security.Claims
+@using BioDivCollector.DB.Models.Domain
+
+@model IEnumerable<BioDivCollector.WebApp.Controllers.FormPoco>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Formulare";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Formulare
+                    <small>Liste der verfügbaren Formulare</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item">Formulare</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="newFormModal" tabindex="-1" role="dialog" aria-labelledby="newFormModalLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newFormModalLabel">Neues Beobachtungsformular</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="newform-name" class="col-form-label">Name des Formulars:</label>
+                        <input type="text" class="form-control" id="newFormTitle">
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Erstellen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // add new Form
+    var modalokclick = false;
+    function createNewForm() {
+        modalokclick = false;
+        $('#newFormModal').modal('show');
+        $('#newFormModal').on('hide.bs.modal', function (event) {
+            if ((modalokclick) && ($('#newFormTitle').val()!="")) {
+                $.ajax(
+                    {
+                        url: "@Url.Action("Create","Forms")?name=" +  $('#newFormTitle').val(),
+                    }).done(function (newId) {
+                        var goToInsideUrl = "@Url.Action("Edit","Forms")/" + newId;
+                        location.href = goToInsideUrl;
+
+                    }
+                    );
+            }
+            $(this).off('hide.bs.modal');
+        });
+    }
+</script>
+
+<!-- Copy Modal -->
+<div class="modal fade" id="copyFormModal" tabindex="-1" role="dialog" aria-labelledby="copyFormModalLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="copyFormModalLabel">Beobachtungsformular kopieren</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="newform-name" class="col-form-label">Name des kopierten Formulars:</label>
+                        <input type="text" class="form-control" id="copyFormTitle">
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Erstellen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // add new Form
+    function CopyForm(origId) {
+        modalokclick = false;
+        $('#copyFormModal').modal('show');
+        $('#copyFormModal').on('hide.bs.modal', function (event) {
+            if ((modalokclick) && ($('#copyFormTitle').val() != "")) {
+
+                $.ajax(
+                    {
+                        url: "@Url.Action("Copy","Forms")/"+origId+"?name=" +  $('#copyFormTitle').val(),
+                    }).done(function (newId) {
+                        var goToInsideUrl = "@Url.Action("Edit","Forms")?id=" + newId;
+                        location.href = goToInsideUrl;
+
+                    }
+                    );
+            }
+            $(this).off('hide.bs.modal');
+        });
+    }
+</script>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card height-equal" style="min-height: 685px;">
+                <div class="card-header">
+                    <h5>Alle Formulare</h5>
+
+                </div>
+                <div class="card-body">
+                    <div class="user-status table-responsive product-chart">
+                        <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="createNewForm();"><i class="fa fa-plus"></i> Formular erstellen</button>
+
+                        <table id="grouplist" class="table table-bordernone">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Aktion</th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Form.Title)
+                                    </th>
+                                    <th>
+                                        Felder
+                                    </th>
+                                    <th>
+                                        Verwendet in
+                                    </th>
+                                    <th>
+                                        Anzahl Beobachtungen
+                                    </th>
+                                    <th>
+                                        Autor des Formulars
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (BioDivCollector.WebApp.Controllers.FormPoco formpoco in Model.OrderByDescending(m=>m.Editable))
+                                {
+                                    var item = formpoco.Form; 
+                                        
+                                <tr>
+                                    <td>
+                                        @if (formpoco.Editable)
+                                        {
+                                            <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="location.href='@Url.Action("Edit", "Forms", new { id = item.FormId })'"><i class="fa fa-pencil-square-o"></i></button>
+                                        }
+                                        <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="Kopieren" onclick="CopyForm(@item.FormId)"><i class="fa fa-copy"></i></button>
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Title)
+                                    </td>
+                                    <td>
+                                        @foreach (FormFormField fff in item.FormFormFields.OrderBy(m => m.FormField.Order))
+                                        {
+                                            <text>@fff.FormField.Title</text><br />
+                                        }
+                                    </td>
+                                    <td>
+                                        @foreach (ProjectForm pf in item.FormProjects)
+                                        {
+                                            <text>@pf.Project.ProjectName</text><br />
+                                        }
+                                    </td>
+                                    <td>
+                                        @item.FormRecords.Count()
+                                    </td>
+                                    <td>
+                                        @formpoco.Author.FirstName @formpoco.Author.Name
+                                    </td>
+                                </tr>
+
+                                }
+
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#grouplist').DataTable({
+            "language": {
+                "url": "/js/datatables/datatables.german.lang.json"
+            }
+        });
+    });
+</script>
+
+

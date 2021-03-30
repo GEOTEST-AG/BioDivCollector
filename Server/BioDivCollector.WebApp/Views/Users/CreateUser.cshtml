@@ -1,0 +1,104 @@
+﻿@model BioDivCollector.WebApp.Controllers.NewUser
+
+@{
+    ViewData["Title"] = "Neuen Benutzer erstellen";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Neuen Benutzer erstellen
+                    <small>Lade einen weiteren Benutzer ein</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Neuer Benutzer</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Neuer Benutzer</h5>
+                </div>
+
+
+                @{
+                    if ((Model!=null) && (Model.error != null))
+                    {
+                        <div class="alert alert-danger dark" style="margin:10px;" role="alert">
+                            Es gab einen Fehler beim Erstellen: @Model.error
+                        </div>
+                    }
+                    
+                    if ((Model != null) && (Model.initial_password != null))
+                    {
+            <div class="alert alert-primary dark" style="margin:10px;" role="alert">
+                Der Benutzer konnte erfolgreich erstellt werden. Folgende Zugangsdaten wurden dem Benutzer per @Model.email zugesandt.:
+                <p><b>Benutzername: </b>@Model.username</p>
+                <p><b>Initialpasswort: </b>@Model.initial_password</p>
+            </div>
+                    }
+                    else
+                    {
+
+                <form asp-action="CreateUser">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="username" class="control-label"></label>
+                                    <input asp-for="username" class="form-control" />
+                                    <span asp-validation-for="username" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="firstName" class="control-label"></label>
+                                    <input asp-for="firstName" class="form-control" />
+                                    <span asp-validation-for="firstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="lastName" class="control-label"></label>
+                                    <input asp-for="lastName" class="form-control" />
+                                    <span asp-validation-for="lastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="email" class="control-label"></label>
+                                    <input asp-for="email" class="form-control" />
+                                    <span asp-validation-for="email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            
+
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Benutzer erstellen</button>
+                        <button class="btn btn-secondary" onclick="location.href='@Url.Action("Dashboard", "Home")'">Abbrechen</button>
+                    </div>
+                </form>
+                        }
+                    }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

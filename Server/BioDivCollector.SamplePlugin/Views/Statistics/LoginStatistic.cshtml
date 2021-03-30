@@ -1,0 +1,107 @@
+﻿@model IEnumerable<BioDivCollector.SamplePlugin.LoginEvents>
+
+@{
+    ViewData["Title"] = "Login Statistik";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Alle Logins
+                    <small>Liste der erfolgreichen Logins</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Statistik</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Übersicht</h5>
+                </div>
+                <form asp-action="Create">
+                    <div class="card-body">
+                        <div class="row">
+                            <table class="table" id="statistic">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Zeit (Sortierbar)
+                                        </th>
+                                        <th>
+                                            Zeit
+                                        </th>
+                                        <th>
+                                            IP-Adresse
+                                        </th>
+                                        <th>
+                                            Benutzername
+                                        </th>
+                                        <th>
+                                            Methode
+                                        </th>
+                                        <th>
+                                            Redirect-URL
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (BioDivCollector.SamplePlugin.LoginEvents le in Model)
+                                    {
+                                    <tr>
+                                        <td>
+                                            @le.time
+                                        </td>
+                                        <td>
+                                            @le.LoginTime().ToString("dd.MM.yyyy HH:mm")
+                                        </td>
+                                        <td>
+                                            @le.ipAddress
+                                        </td>
+                                        <td>
+                                            @le.details.username
+                                        </td>
+                                        <td>
+                                            @le.details.auth_method
+                                        </td>
+
+                                        <td>
+                                            @le.details.redirect_uri
+
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#statistic').DataTable({
+
+            "order": [[0, 'desc']],
+            "language": {
+                "url": "/js/datatables/datatables.german.lang.json"
+            }
+        });
+    });
+</script>

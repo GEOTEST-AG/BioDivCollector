@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+	  <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+	  <PreserveCompilationContext>false</PreserveCompilationContext>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.9" />
+    <PackageReference Include="RestSharp" Version="106.11.7" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\BioDivCollector.DB\BioDivCollector.DB.csproj" />
+    <ProjectReference Include="..\BioDivCollector.PluginContract\BioDivCollector.PluginContract.csproj" />
+    <ProjectReference Include="..\BioDivCollector.WebApp\BioDivCollector.WebApp.csproj" />
+  </ItemGroup>
+
+</Project>

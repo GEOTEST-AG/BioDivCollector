@@ -1,0 +1,48 @@
+﻿@using FormFactory.Attributes
+@using System.Linq;
+@using FormFactory
+@model PropertyVm
+@{ var posted = ((Model.Value as bool? ?? bool.Parse((Model.Value as string ?? "false")))); 
+    string chk = posted ? "checked=\"checked\"" : "";
+    
+    
+    }
+
+@if (Model.Readonly) 
+{
+<div class="checkbox checkbox-primary">
+    <input @Html.Raw(Model.Readonly()) @Html.Raw(Model.Disabled()) @Html.UnobtrusiveValidation(Model) type="checkbox" id="@Model.Id" name="@Model.Name" value="true" @chk />
+    <label for="@Model.Id"></label>
+</div>
+}
+else if (Model.GetCustomAttributes().OfType<LabelOnRightAttribute>().Any())
+{
+    <div class="checkbox checkbox-primary">
+
+        @if (Model.GetCustomAttributes().OfType<RequiredAttribute>
+    ().Any())
+    {
+        <input @Html.Raw(Model.Readonly()) @Html.Raw(Model.Disabled()) @Html.UnobtrusiveValidation(Model) type="checkbox" id="@Model.Id" name="@Model.Name" value="true" @chk />
+        <label for="@Model.Id">@Html.Raw(Model.DisplayName)</label>
+
+
+    }
+    else //if not required, then it is possible to post a false value, which means we need a hidden field as unchecked checkboxes aren't posted. sigh.
+    {
+        <input type='hidden' @Html.Raw(Model.Disabled()) value='@posted.ToString().ToLower()' id="hidden-@Model.Id" name='@Model.Name' />
+        <input @Html.Raw(Model.Readonly()) @Html.Raw(Model.Disabled()) @Html.UnobtrusiveValidation(Model) type="checkbox" id="@Model.Id" value="@posted" @chk onchange="document.getElementById('hidden-@Model.Id').value=this.checked; " />}
+
+        <label for="@Model.Id">@Html.Raw(Model.DisplayName)</label>
+    </div> }
+else
+{
+if (Model.GetCustomAttributes().OfType<RequiredAttribute>().Any())
+{
+    <input @Html.Raw(Model.Readonly()) @Html.Raw(Model.Disabled()) @Html.UnobtrusiveValidation(Model) type="checkbox" id="@Model.Id" name="@Model.Name" value="true" @chk /> }
+                else //if not required, then it is possible to post a false value, which means we need a hidden field as unchecked checkboxes aren't posted. sigh.
+                {
+    <input type='hidden' @Html.Raw(Model.Disabled()) value='@posted.ToString().ToLower()' id="hidden-@Model.Id" name='@Model.Name' />
+    <input @Html.Raw(Model.Readonly()) @Html.Raw(Model.Disabled()) @Html.UnobtrusiveValidation(Model) type="checkbox" id="@Model.Id" value="true" @chk onchange="document.getElementById('hidden-@Model.Id').value=this.checked; " />}
+                                }
+
+

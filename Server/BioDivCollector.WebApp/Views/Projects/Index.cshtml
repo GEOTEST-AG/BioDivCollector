@@ -1,0 +1,146 @@
+﻿@using System.Security.Claims
+@using BioDivCollector.DB.Models.Domain
+@using BioDivCollector.WebApp.Controllers
+
+@model IEnumerable<BioDivCollector.WebApp.Controllers.ProjectPocoForIndex>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Projekte";
+}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Projekte
+                    <small>Meine Projekte</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Projekte</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card height-equal" style="min-height: 685px;">
+                <div class="card-header">
+                    <h5>Alle Projekte</h5>
+
+                </div>
+                <div class="card-body">
+                    <div class="user-status table-responsive product-chart">
+                        <table id="projectlist" class="table table-bordernone">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="min-width:190px;">Aktion</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Projektnummer</th>
+                                    <th scope="col">ID_Extern</th>
+                                    <th scope="col">Beschreibung</th>
+                                    <th scope="col">OGD</th>
+                                    <th scope="col">Gruppe</th>
+                                    <th scope="col">Geometrien</th>
+                                    <th scope="col">Einträge</th>
+                                    <th scope="col">Koordinator</th>
+                                    <th scope="col">Projektleiter</th>
+                                    <th scope="col">Projektstatus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (ProjectPocoForIndex pp in Model)
+                                {
+                                    int? anzGeometrien = (from ii in pp.Project.ProjectGroups select ii.Geometries?.Where(u => u.StatusId != StatusEnum.deleted).Count()).Sum();
+                                    int? anzRecords = (from iii in pp.Project.ProjectGroups select iii.Records?.Where(m => m.StatusId != StatusEnum.deleted && m.Geometry == null).Count()).Sum();
+                                    int? anz2Records = (from iiii in pp.Project.ProjectGroups select iiii.Geometries?.Where(m => m.StatusId != StatusEnum.deleted).SelectMany(m => m.Records.Where(tt => tt.StatusId != StatusEnum.deleted)).Where(z => z.StatusId != StatusEnum.deleted).Count()).Sum();
+                                    int? totalRecords = anzRecords + anz2Records;
+
+                                    <tr>
+                                        <td>
+                                            @{ string buttonstyle = "primary";
+                                                string editbuttonstyle = "primary";
+                                                string fontcolor = "";
+                                                string editfontcolor = "";
+                                                }
+                                            @if (pp.IsReadOnly)
+                                            {
+                                                buttonstyle = "light";
+                                                editbuttonstyle = "light";
+
+                                                fontcolor = " style=\"color:black;\" ";
+                                                editfontcolor = " style=\"color:black;\" ";
+
+                                            }
+                                             @if (pp.IsPKOrPLOrDM)
+                                             {
+                                                 editbuttonstyle = "primary";
+
+                                                 editfontcolor = "";
+
+                                             }
+
+                                            <button type="button" class="btn btn-@editbuttonstyle" data-original-title="btn btn-light" data-toggle="tooltip" data-placement="top" title="Projekt konfigurieren" onclick="location.href='@Url.Action("Details", "Projects", new { id = pp.Project.ProjectId })'"><i class="fa fa-pencil-square-o" @Html.Raw(editfontcolor)></i></button>
+                                            <button type="button" class="btn btn-@buttonstyle" data-original-title="btn btn-light" data-toggle="tooltip" data-placement="top" title="Projektdaten anzeigen und bearbeiten" onclick="location.href='@Url.Action("DetailsDataEdit", "Projects", new { id = pp.Project.ProjectId })'"><i class="fa fa-list-alt" @Html.Raw(fontcolor)></i></button>
+                                            <button type="button" class="btn btn-@buttonstyle" data-original-title="btn btn-light" onclick="location.href='@Url.Action("Map", "Projects", new { id = pp.Project.ProjectId })'" data-toggle="tooltip" data-placement="top" title="Projekt auf Karte anzeigen"><i class="fas fa-map-marked-alt" @Html.Raw(fontcolor)></i></button>
+                                            <button type="button" class="btn btn-@buttonstyle btn-copy" data-original-title="btn btn-light" onclick="" data-toggle="tooltip" data-placement="top" title="BDC GUID kopieren" data-clipboard-text="@Html.Raw(pp.Project.BDCGuid)"><i class="fas fa-copy" @Html.Raw(fontcolor)></i></button>
+                                        </td>
+                                        <td>@pp.Project.ProjectName</td>
+                                        <td>@pp.Project.ProjectNumber</td>
+
+                                        <td>@pp.Project.ID_Extern</td>
+                                        <td>@pp.Project.Description</td>
+                                        <td>
+                                            @if (pp.Project.OGD)
+                                            {
+                                                <text>Ja</text>
+                                            }
+                                            else
+                                            {
+                                                <text>Nein</text>
+                                            }
+                                        </td>
+                                        <td>@pp.Project.ProjectGroups?.Select(m => m.Group).Where(m => m.GroupUsers.Any(u => u.UserId.ToString() == ViewData["Username"].ToString()))?.FirstOrDefault()?.GroupName</td>
+                                        <td>@anzGeometrien</td>
+                                        <td>@totalRecords</td>
+                                        <td>@pp.Project.ProjectConfigurator?.FirstName @pp.Project.ProjectConfigurator?.Name</td>
+                                        <td>@pp.Project.ProjectManager?.FirstName @pp.Project.ProjectManager?.Name</td>
+                                        <td>@pp.Project.ProjectStatus.Description</td>
+                                    </tr>
+
+                                }
+
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    new ClipboardJS('.btn-copy');
+
+    $(document).ready(function () {
+        $('#projectlist').DataTable({
+            "columnDefs": [
+                { "orderable": false, "targets": 0 }
+            ],
+            "order": [[2, 'asc']],
+            "language": {
+                "url": "/js/datatables/datatables.german.lang.json"
+            }
+        });
+    });
+</script>

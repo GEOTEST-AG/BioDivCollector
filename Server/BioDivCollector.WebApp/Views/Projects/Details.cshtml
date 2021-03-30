@@ -1,0 +1,745 @@
+﻿@model BioDivCollector.DB.Models.Domain.Project
+@using BioDivCollector.DB.Models.Domain
+
+@{
+    ViewData["Title"] = "Projekt bearbeiten";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Projekt @Model.ProjectName 
+                    <small>Projekt konfigurieren</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Projekte</li>
+                    <li class="breadcrumb-item active">@Model.ProjectName</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div id="project_accordionoc" class="default-according style-1">
+        <!-- Overview -->
+        <div class="card">
+            <div class="card-header">
+                <button class="btn btn-link" data-toggle="collapse" data-target="#projects_collapse_0" aria-expanded="false" aria-controls="projects_collapse_0">
+                    <i class="fas fa-info-circle"></i>Projektinformationen
+                </button>
+            </div>
+            <div id="projects_collapse_0" class="collapse show" aria-labelledby="collapseicon" style="">
+                @if ((User.IsInRole("DM")) || (Model.ProjectManager?.UserId == ViewData["Username"]?.ToString()) || (Model.ProjectConfigurator?.UserId == ViewData["Username"]?.ToString()))
+                {
+                    <div class="card-body">
+                        <form asp-action="Edit">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <input type="hidden" asp-for="ProjectId" />
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group mb-0">
+                                        <label asp-for="ProjectName" class="control-label"></label>
+                                        <input asp-for="ProjectName" class="form-control" />
+                                        <span asp-validation-for="ProjectName" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-0">
+                                        <label asp-for="ProjectNumber" class="control-label"></label>
+                                        <input asp-for="ProjectNumber" class="form-control" />
+                                        <span asp-validation-for="ProjectNumber" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group" style="margin-top:10px;">
+                                        <label asp-for="Description" class="control-label"></label>
+                                        <textarea asp-for="Description" class="form-control"></textarea>
+                                        <span asp-validation-for="Description" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-0">
+                                        <label asp-for="ID_Extern" class="control-label"></label>
+                                        <input asp-for="ID_Extern" class="form-control" />
+                                        <span asp-validation-for="ID_Extern" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="form-group">
+                                        <label class="control-label" asp-for="BDCGuid">BDC GUID</label>
+                                        <div class="input-group">
+                                            <input asp-for="BDCGuid" class="form-control" disabled />
+                                            <span class="input-group-btn">
+                                                <button type="button" class="btn btn-primary btn-clipboard" data-clipboard-action="copy" data-clipboard-target="#ProjectId"><i class="fa fa-copy"></i></button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="col-md-5">
+                                    <div class="form-group m-checkbox-inline mb-0" style="padding-top:30px;">
+                                        <div class="checkbox checkbox-primary" data-toggle="tooltip" data-html="true" title="Alle Projektdaten sind für BioDivCollector-Nutzende ohne Login und unter der Creative Commons (CC) Public Domain (PD) Lizenz (Creative Commons — CC0 1.0 Universell) nutzbar. (Ohne OGD sind die Projektdaten nur für dafür freigegebene registrierte Benutzer/-gruppen nutzbar.)">
+                                            <input type="checkbox" asp-for="OGD">
+                                            <label asp-for="OGD" class="mb-0"></label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <dl class="row">
+                                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProjectStatus)</dt>
+                                <dd class="col-sm-9">@Model.ProjectStatus.Description</dd>
+                            </dl>
+
+                            @if (User.IsInRole("DM"))
+                            {
+                                <!-- ProjektManager -->
+                                <div class="row">
+
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Projektleiter wählen</label>
+                                            <select asp-for="ProjectManager" class="form-control single-select" placeholder="" required id="pl-select">
+                                                <option value="@Model.ProjectManager?.UserId">@Model.ProjectManager?.FirstName @Model.ProjectManager?.Name</option>
+                                            </select>
+                                            <div class="invalid-feedback">
+                                                Bitte eine Auswahl vornehmen
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            }
+
+                            @if ((User.IsInRole("DM")) || (Model.ProjectManager?.UserId == ViewData["Username"]?.ToString()))
+                            {
+
+                                <!-- Projektconfigurator -->
+                                <div class="row">
+
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Projektkonfigurator wählen</label>
+                                            <select asp-for="ProjectConfigurator" class="form-control single-select" placeholder="" required id="pk-select">
+                                                <option value="@Model.ProjectConfigurator?.UserId">@Model.ProjectConfigurator?.FirstName @Model.ProjectConfigurator?.Name</option>
+                                            </select>
+                                            <div class="invalid-feedback">
+                                                Bitte eine Auswahl vornehmen
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            }
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary" style="width:auto !important;">Speichern</button>
+                            <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index", "Projects")'" style="width:auto !important;">Abbrechen</button>
+                            <button type="button" class="btn btn-danger" style="width:auto !important;" onclick="deleteProject();">Projekt löschen</button>
+                        </div>
+
+                        </form>
+                    </div>
+                }
+                else
+                {
+
+                    <div class="card-body">
+
+                        <dl class="row">
+                            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProjectName)</dt>
+                            <dd class="col-sm-9">@Model.ProjectName</dd>
+                            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProjectNumber)</dt>
+                            <dd class="col-sm-9">@Model.ProjectNumber</dd>
+                            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ID_Extern)</dt>
+                            <dd class="col-sm-9">@Model.ID_Extern</dd>
+                            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Description)</dt>
+                            <dd class="col-sm-9">@Model.Description</dd>
+                            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.BDCGuid)</dt>
+                            <dd class="col-sm-9">
+                                @Model.BDCGuid
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-primary btn-clipboard" data-clipboard-action="copy"><i class="fa fa-copy"></i></button>
+                                </span>
+                            </dd>
+
+                            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.OGD)</dt>
+                            <dd class="col-sm-9">
+                                <div class="checkbox checkbox-primary" data-toggle="tooltip" data-html="true" title="Alle Projektdaten sind für BioDivCollector-Nutzende ohne Login und unter der Creative Commons (CC) Public Domain (PD) Lizenz (Creative Commons — CC0 1.0 Universell) nutzbar. (Ohne OGD sind die Projektdaten nur für dafür freigegebene registrierte Benutzer/-gruppen nutzbar.)">
+                                    
+                                        <input type="checkbox" name="ogd" @if (Model.OGD) 
+                                        { 
+                                            <text> checked</text>
+                                                    }>
+                                    <label asp-for="OGD" class="mb-0"></label>
+                                </div>
+
+                            </dd>
+
+                            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProjectManager)</dt>
+                            <dd class="col-sm-9">@Model.ProjectManager?.FirstName @Model.ProjectManager?.Name</dd>
+
+                            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProjectConfigurator)</dt>
+                            <dd class="col-sm-9">@Model.ProjectConfigurator?.FirstName @Model.ProjectConfigurator?.Name</dd>
+                        </dl>
+                    </div>
+                }
+            </div>
+        </div>
+        <!-- End Overview -->
+        <!-- Layers -->
+        @if ((bool)ViewData["OnlyLE"] == false)
+        {
+            <div class="card">
+                <div class="card-header">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#projects_collapse_2" aria-expanded="false" aria-controls="projects_collapse_2">
+                        <i class="material-icons dp48">map</i>Kartenebenen
+                    </button>
+                </div>
+                <div id="projects_collapse_2" class="collapse" aria-labelledby="collapseicon" style="">
+                    <div class="card-body">
+
+                        <div class="span6" style="float: none; margin: 0 auto; padding-top:10px; padding-bottom: 10px;">
+                            <div id="layerselector" class="transfer-demo"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+        <!-- End Layers -->
+        <!-- Project Groups -->
+        <div class="card">
+            <div class="card-header">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#projects_collapse_3" aria-expanded="false" aria-controls="projects_collapse_3">
+                    <i class="material-icons dp48">supervisor_account</i>
+                    Projektgruppen / Lesende
+                </button>
+            </div>
+            <div id="projects_collapse_3" class="collapse" aria-labelledby="collapseicon" style="">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="user-status table-responsive product-chart">
+                            <table id="grouplist" class="table table-bordernone">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Aktion</th>
+                                        <th>
+                                            Gruppenname
+                                        </th>
+                                        <th>
+                                            Nur lesen
+                                        </th>
+                                        <th>
+                                            Geometrien
+                                        </th>
+                                        <th>
+                                            Einträge
+                                        </th>
+                                        <th>
+                                            Ersteller
+                                        </th>
+                                        <th>
+                                            Status
+                                        </th>
+                                        <th>
+                                            Benutzer
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (ProjectGroup pg in Model.ProjectGroups.OrderByDescending(m => m.ReadOnly))
+                                    {
+                                        int? anzGeometrien = pg.Geometries?.Where(u => u.StatusId != StatusEnum.deleted).Count();
+                                        int? anzRecords = pg.Records?.Where(m => m.StatusId != StatusEnum.deleted && m.Geometry == null).Count();
+                                        int? anz2Records = pg.Geometries?.Where(m => m.StatusId != StatusEnum.deleted).SelectMany(m => m.Records.Where(tt => tt.StatusId != StatusEnum.deleted)).Where(z => z.StatusId != StatusEnum.deleted).Count();
+                                        int? totalRecords = anzRecords + anz2Records;
+
+
+
+                                    <tr>
+                                        <td>
+                                            @if (pg.Group.CreatorId == ViewData["Username"].ToString())
+                                            {
+                                                <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="location.href='@Url.Action("Edit", "Groups", new { id = pg.Group.GroupId })'"><i class="fa fa-pencil-square-o"></i></button>
+                                            }
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => pg.Group.GroupName)
+                                        </td>
+
+                                        <td>
+                                            @if (pg.ReadOnly)
+                                            {
+                                                <text>Ja</text>
+                                            }
+                                            else
+                                            {
+                                                <text>Nein</text>
+                                            }
+                                        </td>
+                                        <td>@anzGeometrien</td>
+                                        <td>@totalRecords</td>
+                                        <td>
+                                            @pg.Group.Creator?.FirstName @pg.Group.Creator?.Name
+                                        </td>
+                                        <td>
+                                            @if (!pg.ReadOnly)
+                                            {
+                                                @Html.DisplayFor(modelItem => pg.GroupStatus.Description)
+                                            }
+
+                                            @if (pg.ReadOnly == false)
+                                            {
+                                            <!-- Statusänderungen -->
+                                            @if (pg.Group.GroupUsers.Any(m => m.UserId == ViewData["Username"]?.ToString()))
+                                            {
+                                                if (pg.GroupStatusId == BioDivCollector.DB.Models.Domain.GroupStatusEnum.Gruppe_bereit)
+                                                {
+                                                    <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 3);"><i class="fa fa-check"></i> Auf "Gruppendaten erfasst" setzen</button></p>
+                                                }
+                                                else if (pg.GroupStatusId == BioDivCollector.DB.Models.Domain.GroupStatusEnum.Gruppendaten_fehlerhaft)
+                                                {
+                                                    <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 3);"><i class="fa fa-check"></i> Auf "Gruppendaten erfasst" setzen (korrigiert)</button></p>
+                                                }
+                                            }
+                                            @if ((User.IsInRole("DM")) || (Model.ProjectManager?.UserId == ViewData["Username"]?.ToString()) || (Model.ProjectConfigurator?.UserId == ViewData["Username"]?.ToString()))
+                                            {
+                                                if (pg.GroupStatusId == BioDivCollector.DB.Models.Domain.GroupStatusEnum.Gruppendaten_erfasst)
+                                                {
+                                                    <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 9);"><i class="fa fa-exclamation"></i> Auf "Gruppendaten fehlerhaft" setzen</button></p>
+                                                    <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 4);"><i class="fa fa-check"></i> Auf "Gruppendaten gültig" setzen</button></p>
+                                                }
+                                            }
+                                            }
+
+                                        </td>
+                                        <td>
+                                            @foreach (GroupUser u in pg.Group.GroupUsers)
+                                            {
+                                                @u.User.FirstName<text> </text>@u.User.Name <br />
+
+                                            }
+                                        </td>
+
+                                    </tr>
+
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <hr />
+
+
+                    @if ((User.IsInRole("DM")) || (Model.ProjectConfigurator?.UserId == ViewData["Username"]?.ToString()) || (Model.ProjectManager?.UserId == ViewData["Username"]?.ToString()))
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Gruppen hinzufügen oder entfernen</h5>
+                                    </div>
+                                    <div class="row">
+                                        <div class="span6" style="float: none; margin: 0 auto; padding-top:10px; padding-bottom: 10px;">
+                                            <div id="groupsselector" class="transfer-demo"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Readonly Users -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Gruppen mit nur Lesen-Berechtigung</h5>
+                                    </div>
+                                    <div class="row">
+                                        <div class="span6" style="float: none; margin: 0 auto; padding-top:10px; padding-bottom: 10px;">
+                                            <div id="usersselector" class="transfer-demo"></div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <!-- End Project Groups -->
+        <!-- Forms -->
+        @if ((bool)ViewData["OnlyLE"] == false)
+        {
+            <div class="card">
+                <div class="card-header">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#forms_collapse_2" aria-expanded="false" aria-controls="forms_collapse_2">
+                        <i class="icofont-list"></i>Formulare
+                    </button>
+                </div>
+                <div id="forms_collapse_2" class="collapse" aria-labelledby="collapseicon" style="">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="span6" style="float: none; margin: 0 auto; padding-top:10px; padding-bottom: 10px;">
+                                <div id="formsselector" class="transfer-demo"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+        <!-- End Forms -->
+    </div>
+</div>
+
+
+<div class="modal fade" id="deleteProjectModal" tabindex="-1" role="dialog" aria-labelledby="deleteGeometryModalLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteGeometryModalLabel">Projekt löschen?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Soll das Projekt wirklich gelöscht werden?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">Löschen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Shared/_Modals.cshtml" />
+
+
+<script>
+
+    function deleteProject() {
+        modalokclick = false;
+        $('#deleteProjectModal').modal('show');
+        $('#deleteProjectModal').on('hide.bs.modal', function (event) {
+            if (modalokclick) {
+                location.href = '@Url.Action("Delete", "Projects", new { @id = Model.ProjectId })';
+            }
+            $(this).off('hide.bs.modal');
+        }
+            );
+
+        }
+
+    $(document).ready(function () {
+
+        $('#grouplist').DataTable({
+            "columnDefs": [
+                { "orderable": false, "targets": 0 }
+            ],
+            "order": [[2, 'asc']],
+            "language": {
+                "url": "/js/datatables/datatables.german.lang.json"
+            }
+        });
+
+        $select = $('#pk-select').selectize({
+                                        initItem: true,
+
+                                        // Need to preload, so that Selectize will go get the option
+                                        preload: false,
+                                        maxItems: 1,
+                                        persist: false,
+                                        load: function (query, callback) {
+                                            //if (!query.length) return callback();
+                                            $.ajax({
+                                                url: '@Url.Action("GetUsersByRole", "Projects", new { @id = @Model.ProjectId, role = "" })?search=' + encodeURIComponent(query),
+                                                type: 'GET',
+                                                error: function () {
+                                                    callback();
+                                                },
+                                                success: function (res) {
+                                                    callback(res.slice(0, 10));
+                                                }
+                                            });
+                                        },
+                                        valueField: 'UserId',
+                                        labelField: 'Name',
+                                        searchField: 'Name'
+        });
+
+    $select = $('#pl-select').selectize({
+                                        initItem: true,
+
+                                        // Need to preload, so that Selectize will go get the option
+                                        preload: false,
+                                        maxItems: 1,
+                                        persist: false,
+                                        load: function (query, callback) {
+                                            //if (!query.length) return callback();
+                                            $.ajax({
+                                                url: '@Url.Action("GetUsersByRole", "Projects", new { @id = @Model.ProjectId, role = "" })?search=' + encodeURIComponent(query),
+                                                type: 'GET',
+                                                error: function () {
+                                                    callback();
+                                                },
+                                                success: function (res) {
+                                                    callback(res.slice(0, 10));
+                                                }
+                                            });
+                                        },
+                                        valueField: 'UserId',
+                                        labelField: 'Name',
+                                        searchField: 'Name'
+                                    });
+
+    });
+
+
+
+
+
+
+</script>
+
+<script>
+        var projectId = '@ViewData["ProjectId"]';
+        var groupId = '@ViewData["MyGroup"]';
+
+        $(document).ready(function () {
+
+        $select = $('#form-select').selectize({
+                                        initItem: true,
+
+                                        // Need to preload, so that Selectize will go get the option
+                                        preload: true,
+                                        maxItems: 1,
+                                        persist: false,
+                                        load: function (query, callback) {
+                                            //if (!query.length) return callback();
+                                            $.ajax({
+                                                url: '@Url.Action("GetFormsForProject", "Forms")?id=@Model.ProjectId&search=' + encodeURIComponent(query),
+                                                type: 'GET',
+                                                error: function () {
+                                                    callback();
+                                                },
+                                                success: function (res) {
+                                                    callback(res.slice(0, 10));
+                                                }
+                                            });
+                                        },
+            valueField: 'FormId',
+                                        labelField: 'Title',
+            searchField: 'Title'
+                                    });
+
+        });
+
+</script>
+
+
+<script>
+
+
+
+
+    function changeProjectState(projectid, groupid, newstate) {
+        modalokclick = false;
+
+        if (newstate == 3) $('#statechangetext').html("Sollen die Gruppendaten wirklich auf \"erfasst\" gestellt werden? Die Daten in der Gruppe können anschliessend nicht mehr bearbeitet werden.");
+        else if (newstate == 4) $('#statechangetext').html("Sollen die Gruppendaten wirklich auf \"gültig\" gestellt werden? Die Daten können anschliessend nicht mehr bearbeitet werden.");
+        else if (newstate == 9) $('#statechangetext').html("Sollen die Gruppendaten wirklich auf \"fehlerhaft\" gestellt werden? Anschliessend können die Daten wieder bearbeitet werden.");
+
+
+        $('#changeProjectState').modal('show');
+        $('#changeProjectState').on('hide.bs.modal', function (event) {
+            if (modalokclick) {
+
+                $.ajax(
+                    {
+                        url: "@Url.Action("ChangeProjectState", "Projects")/" + projectid + "?groupId=" + groupid + "&newState=" + newstate,
+                    }).always(function () {
+
+                        location.reload();
+                    }
+            );
+
+            }
+
+            $(this).off('hide.bs.modal');
+        });
+    }
+
+    $(document).ready(function () {
+
+        new ClipboardJS('.btn-clipboard', {
+            text: function (trigger) {
+                return '@Html.Raw(Model.BDCGuid)';
+            }
+        });
+
+        $.ajax({
+            dataType: "json",
+            url: '@Url.Action("LayersList","Projects", new { id = Model.ProjectId })',
+            success: function (data) {
+                var settings = {
+                    dataArray: data,
+                    tabNameText: "Verfügbare Layers",
+                    rightTabNameText: "Gewählte Layers",
+                    searchPlaceholderText: "Suchen",
+                    callable: function (items) {
+                        console.log(items);
+                        $.ajax({
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({ items, "project":"@Model.ProjectId" }),
+                            url: "/Projects/EditProjectLayers",
+                            contentType: "application/json; charset=utf-8",
+                            processData: true,
+                            cache: false,
+                        })
+                    }
+                };
+
+                var transfer = $("#layerselector").transfer(settings);
+                // get selected items
+                transfer.getSelectedItems();
+            }
+        });
+
+        $.ajax({
+            dataType: "json",
+            url: '@Url.Action("GroupsList","Projects", new { id = Model.ProjectId })?onlyreadonly=false',
+            success: function (data) {
+                var settings = {
+                    dataArray: data,
+                    tabNameText: "Meine Gruppen",
+                    rightTabNameText: "Gewählte Gruppen",
+                    searchPlaceholderText: "Suchen",
+                    callable: function (items) {
+                        console.log(items);
+                        $.ajax({
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({ items, "project": "@Model.ProjectId", "onlyreadonly": false  }),
+                            url: "/Projects/EditProjectGroup",
+                            contentType: "application/json; charset=utf-8",
+                            processData: true,
+                            cache: false,
+                        })
+                    }
+                };
+
+                var transfer = $("#groupsselector").transfer(settings);
+                // get selected items
+                transfer.getSelectedItems();
+            }
+        });
+
+
+     $.ajax({
+            dataType: "json",
+            url: '@Url.Action("GetFormsForProjectTransfer", "Forms", new { @id=@Model.ProjectId })',
+            success: function (data) {
+                var settings = {
+                    dataArray: data,
+                    tabNameText: "Verfügbare Formulare",
+                    rightTabNameText: "Gewählte Formulare",
+                    searchPlaceholderText: "Suchen",
+                    callable: function (items) {
+                        console.log(items);
+                        $.ajax({
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({ items, "guid":"@Model.ProjectId" }),
+                            url: "@Url.Action("EditFormsForProject", "Forms")",
+                            contentType: "application/json; charset=utf-8",
+                            processData: true,
+                            cache: false,
+                        })
+                    }
+                };
+
+                var transfer = $("#formsselector").transfer(settings);
+                // get selected items
+                transfer.getSelectedItems();
+            }
+        });
+
+        $.ajax({
+            dataType: "json",
+            url: '@Url.Action("GroupsList", "Projects", new { @id=@Model.ProjectId})?onlyreadonly=true',
+            success: function (data) {
+                var settings = {
+                    dataArray: data,
+                    tabNameText: "Verfügbare Gruppen",
+                    rightTabNameText: "Gewählte Gruppen",
+                    searchPlaceholderText: "Suchen",
+                    callable: function (items) {
+                        console.log(items);
+                        $.ajax({
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({ items, "project": "@Model.ProjectId", "onlyreadonly":true }),
+                            url: "@Url.Action("EditProjectGroup", "Projects")",
+                            contentType: "application/json; charset=utf-8",
+                            processData: true,
+                            cache: false,
+                        })
+                    }
+                };
+
+                var transfer = $("#usersselector").transfer(settings);
+                // get selected items
+                transfer.getSelectedItems();
+            }
+    });
+
+
+    });
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+
+    <script src="~/js/jquery-transfer/js/jquery.transfer.js"></script>
+
+}

@@ -1,0 +1,210 @@
+﻿@model BioDivCollector.DB.Models.Domain.Layer
+
+@{
+    ViewData["Title"] = "Kartenebene definieren";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Neue Kartenebene definieren
+                    <small>WMS Layer definieren und zur Verfügung stellen</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Kartenebenen</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>WMS-Layer Eigenschaften</h5>
+                </div>
+                <form asp-action="Create">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label asp-for="Title" class="control-label"></label>
+                                    <input asp-for="Title" class="form-control" required="required" />
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group m-checkbox-inline mb-0" style="padding-top:30px;">
+                                    <div class="checkbox checkbox-primary">
+                                        <input type="checkbox" asp-for="Public">
+                                        <label asp-for="Public" class="mb-0"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="col-form-label" asp-for="Url">GetCapabilities-URL (z.B. http://wms.zh.ch/FnsSVOZHWMS?SERVICE=WMS&Request=GetCapabilities): </label>
+                                    <div class="input-group">
+                                        <input asp-for="Url" type="text" class="form-control" placeholder="" id="wmsurl">
+                                        <span asp-validation-for="Url" class="text-danger"></span>
+                                        <span class="input-group-btn">
+
+                                            <button type="button" class="btn btn-primary" onclick="loadWMS();">GetCapabilities laden</button>
+                                        </span>
+                                    </div>
+
+
+                                </div>
+
+
+                            </div>
+
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Layer wählen</label>
+                                        <select asp-for="WMSLayer" class="form-control single-select" placeholder="Zu verwendender Layer auswählen..." required id="layer-select">
+                                            <option value="">Bitte WMS Url angeben...</option>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                            Bitte eine Auswahl vornehmen
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Speichern</button>
+                        <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index","Layers")'">Abbrechen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Konnte GetCapabilities nicht parsen</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Es gab einen Fehler bei der eingegebenen URL. Die URL kann auch in einem Internet-Browser eingegeben werden um zu überprüfen, ob ein XML zurückgegeben wird. Normalerweise enden diese URLs mit xxx?SERVICE=WMS&Request=GetCapabilities
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK, ich versuche es nochmals</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="okModal" tabindex="-1" role="dialog" aria-labelledby="okModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">OK</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Layers wurden geladen. Bitte Layer auswählen und speichern.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadWMS() {
+        $.ajax({
+            url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val()) +'&search=',
+            type: 'GET',
+            error: function () {
+                callback();
+            },
+            success: function (res) {
+                if ((res.items.length==0) || (res.items[0].ID === "ERROR")) {
+                    $('#errorModal').modal('show');
+                }
+                else {
+                    var select = $('#layer-select')[0].selectize;
+                    select.onSearchChange('');
+                    $('#okModal').modal('show');
+                }
+
+            }
+        });
+
+    }
+
+
+    $(document).ready(function () {
+
+        $select = $('#layer-select').selectize({
+                                        initItem: true,
+
+                                        // Need to preload, so that Selectize will go get the option
+                                        preload: false,
+                                        maxItems: 1,
+                                        persist: false,
+                                        load: function (query, callback) {
+                                            //if (!query.length) return callback();
+                                            $.ajax({
+                                                url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val()) +'&search=' + encodeURIComponent(query),
+                                                type: 'GET',
+                                                error: function () {
+                                                    callback();
+                                                },
+                                                success: function (res) {
+                                                    callback(res.items.slice(0, 1000));
+                                                }
+                                            });
+                                        },
+                                        valueField: 'ID',
+                                        labelField: 'Title',
+                                        searchField: 'Title'
+                                    });
+
+    });
+
+
+    $("#wmsurl").blur(function () {
+        var selectize = $select[0].selectize;
+        selectize.onSearchChange('uniqueSearchQueryOrElseCacheWillBeUsed');
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

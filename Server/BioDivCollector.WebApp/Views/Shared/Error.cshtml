@@ -1,0 +1,31 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+    Layout = "_Layout_Error";
+}
+
+
+<!--error-500 start-->
+<div class="error-wrapper">
+    <div class="container">
+        <img src="../img/sad.png" class="img-100" alt="">
+        <div class="error-heading">
+            <img src="../img/cloud-bg-1.png" class="cloud-first" alt="">
+            <h2 class="headline font-primary">@Model.ErrorCode</h2>
+            <img src="../img/cloud-bg-2.png" class="cloud-second" alt="">
+        </div>
+        <div class="col-md-8 offset-md-2">
+            <p class="sub-content">
+                Oje, da gab es einen Fehler!
+            </p>
+            <p>
+                @Model.ErrorMessage
+            </p>
+        </div>
+        <div class="">
+            <a href="@Url.Action("Index","Home")" class="btn btn-primary btn-lg">Zurück zur Startseite</a>
+        </div>
+    </div>
+</div>
+<!--error-500 end-->
+

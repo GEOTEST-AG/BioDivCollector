@@ -1,0 +1,501 @@
+﻿@model BioDivCollector.DB.Models.Domain.Form
+
+@{
+    ViewData["Title"] = "Aufnahmeformular editieren";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .formbuilder-icon-checkbox-group {
+        margin-bottom: 20px !important;
+    }
+</style>
+
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Neues Aufnahmeformular
+                    <small>Welche Attribute und Domänen sollen aufgenommen werden</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Formulare</li>
+                    <li class="breadcrumb-item active">@Model.Title</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Formular zusammenstellen</h5>
+                </div>
+                <form asp-action="Create">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="Title" class="control-label"></label>
+                                    <input asp-for="Title" required class="form-control" />
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="col-md-12">
+                                Formular
+                                <div id="formbuilder" style="border: solid;padding: 10px;"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+                <div class="card-footer">
+
+                    <button type="button" class="btn btn-danger" onclick="deleteForm();">Löschen</button>
+                    <button type="submit" class="btn btn-primary" onclick="saveFormBuilder();">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Shared/_Modals.cshtml" />
+<style>
+    .checkbox-group-field .field-label {
+        display: none;
+    }
+</style>
+
+<script>
+    var myauthor = '@ViewData["MyAuthor"].ToString()';
+    function deleteForm() {
+        modalokclick = false;
+        $('#deleteFormModal').modal('show');
+        $('#deleteFormModal').on('hide.bs.modal', function (event) {
+            if (modalokclick) {
+                location.href = "@Url.Action("Delete", "Forms", new {@id = Model.FormId})";
+
+
+
+            }
+
+            $(this).off('hide.bs.modal');
+        });
+    }
+
+    function saveFormBuilder() {
+        var json = fb.actions.getData('json', true);
+        sendData = {
+            "json": [],
+            "id": @Model.FormId,
+            "title": $('#Title').val()
+        };
+
+        $.each(JSON.parse(json), function () {
+            sendData.json.push(this);
+        });
+
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify(sendData),
+            url: "@Url.Action("SaveFormBuilderJson", "Forms")",
+            contentType: "application/json; charset=utf-8",
+            cache: false,
+
+        }).fail(function (data) {
+            $.notify({
+                title: 'Es gab ein Problem',
+                message: 'Das Formular konnte nicht gespeichert werden. Evtl. bestehen noch Einträge, welche auf das Formular verweisen: ' + data.respnseText
+            },
+                {
+                    type: 'danger',
+                    allow_dismiss: false,
+                    newest_on_top: false,
+                    mouse_over: false,
+                    showProgressbar: false,
+                    spacing: 10,
+                    timer: 2000,
+                    placement: {
+                        from: 'top',
+                        align: 'right'
+                    },
+                    offset: {
+                        x: 30,
+                        y: 100
+                    },
+                    delay: 1000,
+                    z_index: 10000,
+                    animate: {
+                        enter: 'animated fadeInDown',
+                        exit: 'animated bounceOutRight'
+                    }
+                });}
+
+
+            ).
+            done(function () {
+                                $.get("@Url.Action("ResetWFSLayers", "Forms")", function (data) {
+                                    if (data == "OK") {
+
+                                        $.ajax({
+                                            dataType: "json",
+                                            url: '@Url.Action("CreateFormBuilderJson", "Forms", new { @id = Model.FormId })',
+                                            success: function (data) {
+                                                fb.actions.setData(data);
+                                            }
+                                        });
+
+                        $.notify({
+                            title: 'Speichern erfolgreich',
+                            message: 'Das Formular wurde erfolgreich angepasst'
+                        },
+                            {
+                                type: 'primary',
+                                allow_dismiss: false,
+                                newest_on_top: false,
+                                mouse_over: false,
+                                showProgressbar: false,
+                                spacing: 10,
+                                timer: 2000,
+                                placement: {
+                                    from: 'top',
+                                    align: 'right'
+                                },
+                                offset: {
+                                    x: 30,
+                                    y: 100
+                                },
+                                delay: 1000,
+                                z_index: 10000,
+                                animate: {
+                                    enter: 'animated fadeInDown',
+                                    exit: 'animated bounceOutRight'
+                                }
+                            });
+                    }
+                    else {
+                        $.notify({
+                            title: 'Es gab ein Problem',
+                            message: 'Das Formular konnte nicht gespeichert werden. Evtl. bestehen noch Einträge, welche auf das Formular verweisen: ' + data
+                        },
+                            {
+                                type: 'danger',
+                                allow_dismiss: false,
+                                newest_on_top: false,
+                                mouse_over: false,
+                                showProgressbar: false,
+                                spacing: 10,
+                                timer: 2000,
+                                placement: {
+                                    from: 'top',
+                                    align: 'right'
+                                },
+                                offset: {
+                                    x: 30,
+                                    y: 100
+                                },
+                                delay: 1000,
+                                z_index: 10000,
+                                animate: {
+                                    enter: 'animated fadeInDown',
+                                    exit: 'animated bounceOutRight'
+                                }
+                            });
+                    }
+                });
+
+            }
+        ).fail(function (jqXHR, textStatus, errorThrown) {
+            console.log("Error");
+            console.log(textStatus);
+            console.log(errorThrown);
+
+        });
+    }
+
+
+    function setOptionValue(evt) {
+        // evt.target.nextSibling.value = evt.target.value;
+    }
+    function applyOptionChanges(option, isDisabled) {
+        option.removeEventListener("input", setOptionValue, false);
+        option.addEventListener("input", setOptionValue, false);
+        option.nextSibling.style.display = "none";
+        option.placeholder = "Eine Auswahl";
+
+        @if (!User.IsInRole("DM"))
+        {
+        <text>
+        if (isDisabled) {
+            // disable public fields for pk and pl
+            option.disabled = true;
+        }
+        </text>
+        }
+
+    }
+    function selectOptions(fld) {
+        const optionLabelInputs = fld.querySelectorAll(".option-label");
+        const optionRemoveFields = fld.querySelectorAll(".remove");
+        const isPublic = fld.querySelector(".fld-ispublic");
+        const author = fld.querySelector(".fld-author");
+
+        var isReadOnly = false;
+        if ((author == null) || ((author.value != myauthor) && (isPublic.attributes.checked))) isReadOnly = true
+
+
+        for (i = 0; i < optionLabelInputs.length; i++) {
+            applyOptionChanges(optionLabelInputs[i], isReadOnly);
+        }
+
+
+        @if (!User.IsInRole("DM"))
+        {
+            <text>@Html.Raw(ViewData["HidePublicFieldsJSCode"].ToString());</text>
+        }
+    }
+
+    function selectOptionsCheckbox(fld) {
+        const optionLabelInputs = fld.querySelectorAll(".option-label");
+        for (i = 0; i < optionLabelInputs.length; i++) {
+            applyOptionChanges(optionLabelInputs[i]);
+        }
+
+        var addOption = fld.querySelector(".add-opt");
+        addOption.style.display = "none";
+
+
+    }
+
+    function createObserver(fld) {
+        const callback = function (mutationsList) {
+            for (var mutation of mutationsList) {
+                selectOptions(fld);
+            }
+        };
+        const observer = new MutationObserver(callback);
+        observer.observe(fld.querySelector(".sortable-options"), { childList: true });
+        return observer
+    }
+    function onAddOptionInput(fld) {
+        selectOptions(fld);
+        const observer = createObserver(fld);
+        console.log(observer)
+    }
+    function onAddOptionInputCheckbox(fld) {
+        fld.label = ``;
+        selectOptionsCheckbox(fld);
+        const observer = createObserver(fld);
+    }
+
+    var fb;
+
+    jQuery($ => {
+
+        window.sessionStorage.setItem('fieldOrder', '["text","select","date","checkbox-group","number","radio-group"]');
+
+        var xx2 = window.sessionStorage.getItem('fieldOrder');
+
+        const fbTemplate = document.getElementById('formbuilder');
+        var options = {
+            showActionButtons: false,
+            sortableControls: true,
+            typeUserAttrs: {
+                text: {
+                    description: {
+                        label: 'Beschreibung',
+                        value: ''
+                    },
+                    source: {
+                        label: 'Quelle',
+                        value: ''
+                    },
+                    mandatory: {
+                        label: 'Pflichtfeld',
+                        type: 'checkbox',
+                    },
+                    useinrecordtitle: {
+                        label: 'Inhalt in Titel verwenden',
+                        type: 'checkbox',
+                    },
+                    ispublic: {
+                        label: 'Wiederverwendbar',
+                        type: 'checkbox',
+                    },
+                    author: {
+                        label: 'Autor',
+                        value: '',
+                        disabled: true
+                    }
+                },
+                select: {
+                    description: {
+                        label: 'Beschreibung',
+                        value: ''
+                    },
+                    source: {
+                        label: 'Quelle',
+                        value: ''
+                    },
+                    mandatory: {
+                        label: 'Pflichtfeld',
+                        type: 'checkbox',
+                    },
+                    useinrecordtitle: {
+                        label: 'Inhalt in Titel verwenden',
+                        type: 'checkbox',
+                    },
+                    ispublic: {
+                        label: 'Wiederverwendbar',
+                        type: 'checkbox',
+                    },
+                    author: {
+                        label: 'Autor',
+                        value: '',
+                        disabled: true
+                    }
+                },
+                date: {
+                    description: {
+                        label: 'Beschreibung',
+                        value: ''
+                    },
+                    source: {
+                        label: 'Quelle',
+                        value: ''
+                    },
+                    mandatory: {
+                        label: 'Pflichtfeld',
+                        type: 'checkbox',
+                    },
+                    useinrecordtitle: {
+                        label: 'Inhalt in Titel verwenden',
+                        type: 'checkbox',
+                    },
+                    ispublic: {
+                        label: 'Wiederverwendbar',
+                        type: 'checkbox',
+                    },
+                    author: {
+                        label: 'Autor',
+                        value: '',
+                        disabled: true
+                    }
+                }
+            },
+            fields: @Html.Raw(ViewData["PublicFormFields"].ToString()),
+            typeUserDisabledAttrs: {
+                'checkbox-group': [
+                    'label'
+                ]
+            },
+            disabledAttrs: [
+                'access',
+                'className',
+                'description',
+                'inline',
+                'max',
+                'maxlength',
+                'min',
+                'multiple',
+                'name',
+                'other',
+                'placeholder',
+                'required',
+                'rows',
+                'step',
+                'style',
+                'subtype',
+                'toggle',
+                'value'
+            ],
+
+            disableFields: ['autocomplete',
+                'button',
+                'file',
+                'header',
+                'hidden','number',
+                'paragraph',
+                'starRating', 'radio-group',
+                'textarea']
+            ,
+            typeUserEvents: {
+                "checkbox-group": {
+                    onadd: onAddOptionInputCheckbox
+                },
+                "radio-group": {
+                    onadd: onAddOptionInput
+                },
+                select: {
+                    onadd: onAddOptionInput
+                }
+            },
+            onAddField: function (fieldId) {
+                console.log(fieldId);
+            },
+            i18n: {
+                locale: 'de-DE',
+                location: '/lib/jQuery-formBuilder/',
+                extension: '.txt'
+                //override: {
+                //    'en-US': {...}
+                //}
+            }
+
+        };
+        fb = $(fbTemplate).formBuilder(options);
+        fb.promise.then(function (fbready) {
+            $.ajax({
+            dataType: "json",
+            url: '@Url.Action("CreateFormBuilderJson", "Forms", new { @id = Model.FormId })',
+            success: function (data) {
+                fbready.actions.setData(data);
+                $('.frmb-control').on('mouseenter', 'li', function () {
+                    var $this = $(this);
+                    console.log($this);
+                    if (!$this.attr('title')) {
+                        $this.attr('title', $this.text());
+                    }
+                });
+            }
+        });
+        });
+
+
+        
+
+    });
+
+    
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+
+
+
+    }
+}

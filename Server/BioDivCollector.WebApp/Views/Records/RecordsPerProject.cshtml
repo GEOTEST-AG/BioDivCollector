@@ -1,0 +1,273 @@
+﻿@model BioDivCollector.WebApp.Controllers.ProjectViewModel
+
+@using FormFactory
+@using FormFactory.Attributes
+@using FormFactory.AspMvc
+
+@{
+    Layout = "_LayoutSidebar";
+}
+
+<script>
+    // add new Record
+    function addRecordToProject() {
+        modalokclick = false;
+        $('#formSelectorModal').modal('show');
+        $('#formSelectorModal').on('hide.bs.modal', function (event) {
+            if (modalokclick) {
+                $('#RecordContent').html('');
+                $('#records-loading-spinner').show();
+                $.ajax(
+                    {
+                        url: "@Url.Action("AddToProject","Records", new { ProjectId = Model.Project.ProjectId})&GroupId=" + groupId + "&FormId=" + $('#form-select').val() + "&CopyFromLast=" + $('#hidden-copycheck').val(),
+                    }).done(function () {
+                        var goToInsideUrl = "@Url.Action("RecordsPerProject","Records", new {@id = Model.Project.ProjectId})";
+                        loadRecordsURL(goToInsideUrl);
+                    }
+                    );
+            }
+            $(this).off('hide.bs.modal');
+        });
+    }
+
+    function deleteRecordFromProject(recordId) {
+        modalokclick = false;
+        $('#deleteRecordModal').modal('show');
+        $('#deleteRecordModal').on('hide.bs.modal', function (event) {
+            if (modalokclick) {
+                $('#RecordContent').html('');
+                $('#records-loading-spinner').show();
+                $.ajax(
+            {
+                url: "@Url.Action("Delete","Records")/" + recordId,
+            }).done(function () {
+                var goToInsideUrl = "@Url.Action("RecordsPerProject","Records", new {@id = Model.Project.ProjectId})";
+                loadRecordsURL(goToInsideUrl);
+            }
+            );
+
+            }
+
+            $(this).off('hide.bs.modal');
+        });
+    }
+
+</script>
+
+<div class="row">
+    <div class="col-sm-12 col-xl-12">
+        <div class="card b-r-0">
+            <div class="card-header">
+                <h5>
+                    @if ((bool)ViewData["withOnlyGeometries"] == false)
+                    {
+                        <text>Allgemeine Beobachtungen</text>
+                    }
+                    else
+                    {
+                        <text>Beobachtungen in Geometrien</text>
+                    }
+                </h5>
+                <div class="card-header-right">
+                    @if (((bool)ViewData["withOnlyGeometries"] == false) && ((bool)ViewData["ReadOnly"] == false))
+                    {
+                    <a href="javascript:addRecordToProject();" class="badge badge-light" style="font-size:11px; "><i class="icofont-plus-circle" style="position:relative;left:0px;top:0px;font-size:11px;"></i></a>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="records_accordionoc" class="default-according style-1">
+                    @{ int i = 0;
+                        bool first = true;
+
+                        string showString = "";
+                    }
+                    @foreach (BioDivCollector.WebApp.Controllers.RecordViewModel rvm in Model.Records.OrderByDescending(m=>m.Record.RecordChangeLogs.Max(cl=>cl.ChangeLogId)))
+                    {
+                        i++;
+                        if (i == 1)
+                        {
+                            showString = "show";
+                        }
+                        else
+                        {
+                            showString = "";
+                        }
+                        string background = "bg-primary";
+                        string fontcolor = "txt-white";
+                        if (rvm.Readonly)
+                        {
+                            background = "bg-light";
+                            fontcolor = "";
+                        }
+
+
+                        <div class="card b-r-0">
+                            <div class="card-header @background">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link @fontcolor" data-toggle="collapse" data-target="#records_collapse_@i"
+                                            @if (i == 1) { <text> aria-expanded="true" </text>  } else { <text> aria-expanded="false" </text> }
+                                            aria-controls="records_collapse_@i">
+                                        <i class="icofont-list"></i>@if (rvm.Record.Form.FormFormFields.Any(m => m.FormField.UseInRecordTitle == true))
+                                        {
+                                            string newTitle = "";
+                                            foreach (BioDivCollector.DB.Models.Domain.FormFormField fff in rvm.Record.Form.FormFormFields.Where(m => m.FormField.UseInRecordTitle == true))
+                                            {
+                                                if ((fff.FormField.FieldTypeId == BioDivCollector.DB.Models.Domain.FieldTypeEnum.Text) || (fff.FormField.FieldTypeId == BioDivCollector.DB.Models.Domain.FieldTypeEnum.Choice))
+                                                {
+                                                    if (rvm.Record.TextData.Any(m => m.FormFieldId == fff.FormField.FormFieldId))
+                                                    {
+                                                        newTitle += rvm.Record.TextData.Where(m => m.FormFieldId == fff.FormField.FormFieldId).First().Value + ", ";
+                                                    }
+                                                }
+                                            }
+                                            if (newTitle.Length > 1) newTitle = newTitle.Substring(0, newTitle.Length - 2);
+                                            <text>@newTitle (@rvm.Record.Form.Title)</text>
+                                        }
+                                        else
+                                        {
+                                            @rvm.Record.Form.Title
+                                        }
+                                        @if (rvm.Record.Geometry != null)
+                                        {
+                                            <text> (@rvm.Record.Geometry.GeometryName)</text>
+                                        }
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="records_collapse_@i" class="collapse @showString" aria-labelledby="collapseicon" data-parent="#records_accordionoc" style="">
+                                <div class="card-body">
+                                    @{
+                                        var lastCl = rvm.Record.RecordChangeLogs.OrderBy(cl => cl.ChangeLogId).Last();
+                                    }
+
+                                    <h6 style="text-align:right;"></h6>
+                                    <form asp-action="Save" asp-controller="Records" id="Form_@rvm.Record.RecordId">
+                                        @rvm.DynamicForm.ToArray().Render(Html)
+                                        <div class="card-footer card-subfooter">
+                                            @if (!rvm.Readonly)
+                                            {
+                                            <button type="submit" class="btn btn-primary" style="width:auto;"><i class="icofont-save"></i></button>
+                                            <button type="button" onclick="deleteRecordFromProject('@rvm.Record.RecordId')" class="btn btn-danger" style="width:auto;"><i class="icofont-ui-delete"></i></button>
+                                            }
+                                            <p style="font-size:9px;">
+                                                Erfasst in Gruppe @rvm.Group.GroupName<br />
+                                                <span>Letzte Änderung: @lastCl.ChangeLog.ChangeDate.ToLocalTime().ToString("dd.MM.yy") von @lastCl.ChangeLog.User.FirstName @lastCl.ChangeLog.User.Name</span>
+                                            </p>
+
+                                        </div>
+                                    </form>
+
+                                    <!-- DIV for Table View - Selectboxes not as selectize... -->
+                                    <div style="display:none;">
+                                        <form asp-action="Save" asp-controller="Records" id="Form_hidden_@rvm.Record.RecordId">
+                                            @rvm.DynamicForm.ToArray().Render(Html)
+                                            <div class="card-footer card-subfooter">
+                                                @if (!rvm.Readonly)
+                                                                    {
+                                                <button type="submit" class="btn btn-primary" style="width:auto;"><i class="icofont-save"></i></button>
+                                                <button type="button" onclick="deleteRecordFromProject('@rvm.Record.RecordId')" class="btn btn-danger" style="width:auto;"><i class="icofont-ui-delete"></i></button>
+                                                <button type="button" onclick="moveRecord('@rvm.Record.RecordId')" class="btn btn-primary" style="width:auto;"><i class="icofont-bubble-right" title="Beobachtung verschieben"></i></button>
+                                                }
+                                                <p style="font-size:9px;">
+                                                    Erfasst in Gruppe @rvm.Group.GroupName<br />
+                                                    <span>Letzte Änderung: @lastCl.ChangeLog.ChangeDate.ToLocalTime().ToString("dd.MM.yy") von @lastCl.ChangeLog.User.FirstName @lastCl.ChangeLog.User.Name</span>
+                                                </p>
+
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            $(document).ready(function () {
+                                                        $('#Form_@rvm.Record.RecordId select').each(function () {
+                                                            $(this).selectize();
+                                                        });
+                                                    });
+                        $('#Form_@rvm.Record.RecordId').submit(function (e) {
+
+                            e.preventDefault(); // avoid to execute the actual submit of the form.
+
+                            var form = $(this);
+                            var url = form.attr('action');
+
+                            $.ajax({
+                                type: "POST",
+                                url: url,
+                                data: form.serialize(), // serializes the form's elements.
+                                success: function (data) {
+                                    if (data == "OK") {
+                                        $.notify({
+                                            title: 'Speichern erfolgreich',
+                                            message: 'Der Eintrag wurde erfolgreich gespeichert.'
+                                        },
+                                            {
+                                                type: 'primary',
+                                                allow_dismiss: false,
+                                                newest_on_top: false,
+                                                mouse_over: false,
+                                                showProgressbar: false,
+                                                spacing: 10,
+                                                timer: 2000,
+                                                placement: {
+                                                    from: 'top',
+                                                    align: 'right'
+                                                },
+                                                offset: {
+                                                    x: 30,
+                                                    y: 100
+                                                },
+                                                delay: 1000,
+                                                z_index: 10000,
+                                                animate: {
+                                                    enter: 'animated fadeInDown',
+                                                    exit: 'animated bounceOutRight'
+                                                }
+                                            });
+                                    }
+                                    else {
+                                        $.notify({
+                                            title: 'Es gab ein Problem',
+                                            message: 'Fehler beim Speichern: ' + data
+                                        },
+                                            {
+                                                type: 'danger',
+                                                allow_dismiss: false,
+                                                newest_on_top: false,
+                                                mouse_over: false,
+                                                showProgressbar: false,
+                                                spacing: 10,
+                                                timer: 2000,
+                                                placement: {
+                                                    from: 'top',
+                                                    align: 'right'
+                                                },
+                                                offset: {
+                                                    x: 30,
+                                                    y: 100
+                                                },
+                                                delay: 1000,
+                                                z_index: 10000,
+                                                animate: {
+                                                    enter: 'animated fadeInDown',
+                                                    exit: 'animated bounceOutRight'
+                                                }
+                                            });
+                                    }
+
+                                }
+                            });
+
+
+                        });
+                        </script>
+
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

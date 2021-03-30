@@ -1,0 +1,106 @@
+﻿@model IEnumerable<BioDivCollector.WebApp.Controllers.LayerViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Verfügbare Kartenebene
+                    <small>WMS Layer welche zur verfügung stehen</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Kartenebenen</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Übersicht</h5>
+                </div>
+                <form asp-action="Create">
+                    <div class="card-body">
+                        <div class="row">
+                            <table class="table" id="layerslist">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                        Aktion
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Layer.Public)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Layer.Title)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Layer.Url)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Layer.WMSLayer)
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (item.Editable)
+                                                {
+                                                <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="location.href='@Url.Action("Edit", "Layers", new { id = item.Layer.LayerId })'"><i class="icofont icofont-ui-edit"></i></button>
+                                                <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="location.href='@Url.Action("Delete", "Layers", new { id = item.Layer.LayerId })'"><i class="icofont icofont-trash"></i></button>
+                                                }
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Layer.Public)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Layer.Title)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Layer.Url)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Layer.WMSLayer)
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#layerslist').DataTable({
+            "columnDefs": [
+                { "orderable": false, "targets": 0 }
+            ],
+            "order": [[1, 'asc']],
+            "language": {
+                "url": "/js/datatables/datatables.german.lang.json"
+            }
+        });
+    });
+</script>
