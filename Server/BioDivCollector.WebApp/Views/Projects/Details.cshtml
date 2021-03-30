@@ -153,11 +153,11 @@
                                 </div>
                             }
 
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary" style="width:auto !important;">Speichern</button>
-                            <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index", "Projects")'" style="width:auto !important;">Abbrechen</button>
-                            <button type="button" class="btn btn-danger" style="width:auto !important;" onclick="deleteProject();">Projekt löschen</button>
-                        </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary" style="width:auto !important;">Speichern</button>
+                                <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index", "Projects")'" style="width:auto !important;">Abbrechen</button>
+                                <button type="button" class="btn btn-danger" style="width:auto !important;" onclick="deleteProject();">Projekt löschen</button>
+                            </div>
 
                         </form>
                     </div>
@@ -187,10 +187,8 @@
                             <dt class="col-sm-3">@Html.DisplayNameFor(model => model.OGD)</dt>
                             <dd class="col-sm-9">
                                 <div class="checkbox checkbox-primary" data-toggle="tooltip" data-html="true" title="Alle Projektdaten sind für BioDivCollector-Nutzende ohne Login und unter der Creative Commons (CC) Public Domain (PD) Lizenz (Creative Commons — CC0 1.0 Universell) nutzbar. (Ohne OGD sind die Projektdaten nur für dafür freigegebene registrierte Benutzer/-gruppen nutzbar.)">
-                                    
-                                        <input type="checkbox" name="ogd" @if (Model.OGD) 
-                                        { 
-                                            <text> checked</text>
+
+                                    <input type="checkbox" name="ogd" @if (Model.OGD) { <text> checked</text>
                                                     }>
                                     <label asp-for="OGD" class="mb-0"></label>
                                 </div>
@@ -278,72 +276,72 @@
 
 
 
-                                    <tr>
-                                        <td>
-                                            @if (pg.Group.CreatorId == ViewData["Username"].ToString())
-                                            {
-                                                <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="location.href='@Url.Action("Edit", "Groups", new { id = pg.Group.GroupId })'"><i class="fa fa-pencil-square-o"></i></button>
-                                            }
-                                        </td>
-                                        <td>
-                                            @Html.DisplayFor(modelItem => pg.Group.GroupName)
-                                        </td>
-
-                                        <td>
-                                            @if (pg.ReadOnly)
-                                            {
-                                                <text>Ja</text>
-                                            }
-                                            else
-                                            {
-                                                <text>Nein</text>
-                                            }
-                                        </td>
-                                        <td>@anzGeometrien</td>
-                                        <td>@totalRecords</td>
-                                        <td>
-                                            @pg.Group.Creator?.FirstName @pg.Group.Creator?.Name
-                                        </td>
-                                        <td>
-                                            @if (!pg.ReadOnly)
-                                            {
-                                                @Html.DisplayFor(modelItem => pg.GroupStatus.Description)
-                                            }
-
-                                            @if (pg.ReadOnly == false)
-                                            {
-                                            <!-- Statusänderungen -->
-                                            @if (pg.Group.GroupUsers.Any(m => m.UserId == ViewData["Username"]?.ToString()))
-                                            {
-                                                if (pg.GroupStatusId == BioDivCollector.DB.Models.Domain.GroupStatusEnum.Gruppe_bereit)
+                                        <tr>
+                                            <td>
+                                                @if (pg.Group.CreatorId == ViewData["Username"].ToString())
                                                 {
-                                                    <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 3);"><i class="fa fa-check"></i> Auf "Gruppendaten erfasst" setzen</button></p>
+                                                    <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="location.href='@Url.Action("Edit", "Groups", new { id = pg.Group.GroupId })'"><i class="fa fa-pencil-square-o"></i></button>
                                                 }
-                                                else if (pg.GroupStatusId == BioDivCollector.DB.Models.Domain.GroupStatusEnum.Gruppendaten_fehlerhaft)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => pg.Group.GroupName)
+                                            </td>
+
+                                            <td>
+                                                @if (pg.ReadOnly)
                                                 {
-                                                    <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 3);"><i class="fa fa-check"></i> Auf "Gruppendaten erfasst" setzen (korrigiert)</button></p>
+                                                    <text>Ja</text>
                                                 }
-                                            }
-                                            @if ((User.IsInRole("DM")) || (Model.ProjectManager?.UserId == ViewData["Username"]?.ToString()) || (Model.ProjectConfigurator?.UserId == ViewData["Username"]?.ToString()))
-                                            {
-                                                if (pg.GroupStatusId == BioDivCollector.DB.Models.Domain.GroupStatusEnum.Gruppendaten_erfasst)
+                                                else
                                                 {
-                                                    <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 9);"><i class="fa fa-exclamation"></i> Auf "Gruppendaten fehlerhaft" setzen</button></p>
-                                                    <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 4);"><i class="fa fa-check"></i> Auf "Gruppendaten gültig" setzen</button></p>
+                                                    <text>Nein</text>
                                                 }
-                                            }
-                                            }
+                                            </td>
+                                            <td>@anzGeometrien</td>
+                                            <td>@totalRecords</td>
+                                            <td>
+                                                @pg.Group.Creator?.FirstName @pg.Group.Creator?.Name
+                                            </td>
+                                            <td>
+                                                @if (!pg.ReadOnly)
+                                                {
+                                                    @Html.DisplayFor(modelItem => pg.GroupStatus.Description)
+                                                }
 
-                                        </td>
-                                        <td>
-                                            @foreach (GroupUser u in pg.Group.GroupUsers)
-                                            {
-                                                @u.User.FirstName<text> </text>@u.User.Name <br />
+                                                @if (pg.ReadOnly == false)
+                                                {
+                                                    <!-- Statusänderungen -->
+                                                    @if (pg.Group.GroupUsers.Any(m => m.UserId == ViewData["Username"]?.ToString()))
+                                                    {
+                                                        if (pg.GroupStatusId == BioDivCollector.DB.Models.Domain.GroupStatusEnum.Gruppe_bereit)
+                                                        {
+                                                            <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 3);"><i class="fa fa-check"></i> Auf "Gruppendaten erfasst" setzen</button></p>
+                                                        }
+                                                        else if (pg.GroupStatusId == BioDivCollector.DB.Models.Domain.GroupStatusEnum.Gruppendaten_fehlerhaft)
+                                                        {
+                                                            <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 3);"><i class="fa fa-check"></i> Auf "Gruppendaten erfasst" setzen (korrigiert)</button></p>
+                                                        }
+                                                    }
+                                                    @if ((User.IsInRole("DM")) || (Model.ProjectManager?.UserId == ViewData["Username"]?.ToString()) || (Model.ProjectConfigurator?.UserId == ViewData["Username"]?.ToString()))
+                                                    {
+                                                        if (pg.GroupStatusId == BioDivCollector.DB.Models.Domain.GroupStatusEnum.Gruppendaten_erfasst)
+                                                        {
+                                                            <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 9);"><i class="fa fa-exclamation"></i> Auf "Gruppendaten fehlerhaft" setzen</button></p>
+                                                            <p><button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" onclick="changeProjectState('@Model.ProjectId', '@pg.GroupId', 4);"><i class="fa fa-check"></i> Auf "Gruppendaten gültig" setzen</button></p>
+                                                        }
+                                                    }
+                                                }
 
-                                            }
-                                        </td>
+                                            </td>
+                                            <td>
+                                                @foreach (GroupUser u in pg.Group.GroupUsers)
+                                                {
+                                                    @u.User.FirstName<text> </text>@u.User.Name <br />
 
-                                    </tr>
+                                                }
+                                            </td>
+
+                                        </tr>
 
                                     }
                                 </tbody>
@@ -392,7 +390,7 @@
         </div>
         <!-- End Project Groups -->
         <!-- Forms -->
-        @if ((bool)ViewData["OnlyLE"] == false)
+        @if ((User.IsInRole("DM")) || (Model.ProjectConfigurator?.UserId == ViewData["Username"]?.ToString()) || (Model.ProjectManager?.UserId == ViewData["Username"]?.ToString()))
         {
             <div class="card">
                 <div class="card-header">
