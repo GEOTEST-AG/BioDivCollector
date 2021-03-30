@@ -63,11 +63,6 @@
   <ItemGroup>
     <None Remove="BuildDate.txt" />
     <None Remove="Properties\BuildDate.txt" />
-    <None Remove="Resources\BuildDate.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\BuildDate.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -101,6 +96,7 @@
 
   <ItemGroup>
     <Folder Include="plugins\BioDivCollector.SamplePlugin\" />
+    <Folder Include="Resources\" />
     <Folder Include="wwwroot\app\" />
     <Folder Include="wwwroot\img\" />
   </ItemGroup>
