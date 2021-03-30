@@ -268,6 +268,7 @@ namespace BioDivCollector.WebApp.Controllers
                     }
 
                 }
+                else if (response.Content.Contains("User exists")) newUser.error = "Benutzer exisistiert bereits (entweder Mailadresse oder Benutzername)";
                 else newUser.error = response.StatusDescription + "(" + response.Content + ")";
 
 
