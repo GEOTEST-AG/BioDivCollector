@@ -27,7 +27,7 @@ namespace BioDivCollector.SamplePlugin
 
             if (access_token != null)
             {
-                var client = new RestClient("https://id.geotest.ch/auth/admin/realms/BioDivCollector/events?type=LOGIN&client=BioDivCollector");
+                var client = new RestClient("https://id.biodivcollector.ch/auth/admin/realms/BioDivCollector/events?type=LOGIN&client=BioDivCollector");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.GET);
                 request.AddHeader("Authorization", "Bearer " + access_token);
