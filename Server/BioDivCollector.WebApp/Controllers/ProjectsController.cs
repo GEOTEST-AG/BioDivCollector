@@ -1429,7 +1429,7 @@ namespace BioDivCollector.WebApp.Controllers
         public DB.Models.Domain.User myUser { get; set; }
         [Newtonsoft.Json.JsonIgnore]
         public Project myProject { get; set; }
-        public string Name { get { return myUser.FirstName + " " + myUser.Name; } }
+        public string Name { get { return myUser.FirstName + " " + myUser.Name + " (" + myUser.Email + ")"; } }
         public string UserId { get { return myUser.UserId; } }
 
     }
