@@ -6,8 +6,19 @@
 
 <div>
     <img src="~/img/LogoV2.png" />
+
     <h1>Herzlich willkommen</h1>
+
+    @if (ViewBag.AnnouncementHeader.ToString() != "")
+    {
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">@ViewBag.AnnouncementHeader</h4>
+            <p>@ViewBag.AnnouncementMessage</p>
+        </div>
+    }
+
     <h5> <span class="digits txt-primary f-w-700 f-26">@ViewData["records"]<text>+</text> </span> Beobachtungen ,<span class="digits txt-info f-w-700 f-26"> @ViewData["projects"]<text>+</text></span> Projekte , <span class="digits txt-danger f-w-700 f-26">  @ViewData["users"]<text>+</text> </span> aktive Benutzer</h5>
+
     <p class="pr-5">
         Du kartierst Biodiversitätsdaten und nutzt für Deine Artenerhebungen die Anwendungen von <a href="www.infospecies.ch">www.infospecies.ch</a>? Du willst zusätzliche Parameter und Geometrien effizient erheben oder sammelst geografische Biodiversitätsdaten ohne Arteninformationen?
     </p>
