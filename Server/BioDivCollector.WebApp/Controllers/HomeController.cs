@@ -53,6 +53,28 @@ namespace BioDivCollector.WebApp.Controllers
             if (users > 50) ViewData["users"] = (((int)users) / 50) * 50;
             if (users > 100) ViewData["users"] = (((int)users) / 100) * 100;
 
+            // Get Announcements from Jira Service Desk
+            try
+            {
+                var client = new RestClient(Configuration["Environment:JiraServiceDeskUrl"]);
+                client.Timeout = -1;
+                var request = new RestRequest(Method.GET);
+                request.AddHeader("Content-Type", "application/json");
+                request.AddHeader("Authorization", "Basic " + Configuration["Environment:JiraServiceDeskAuth"]);
+                IRestResponse response = client.Execute(request);
+
+                dynamic json = Newtonsoft.Json.Linq.JObject.Parse(response.Content);
+
+                string header = json.header.Value;
+                string message = json.message.Value;
+                ViewBag.AnnouncementHeader = header;
+                ViewBag.AnnouncementMessage = message;
+            }
+            catch (Exception e)
+            {
+                // There is no active announcement, that's absolutely ok
+            }
+
 
             ViewBag.registerLink = Configuration["Jwt:Url"] + "/auth/realms/" + Configuration["Jwt:Realm"];
 
