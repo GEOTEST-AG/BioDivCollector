@@ -62,7 +62,7 @@
 
                         <div class="card-footer">
                             <button type="submit" class="btn btn-primary">Speichern</button>
-                            @if (Model.GroupProjects.Where(m => m.Project.StatusId != BioDivCollector.DB.Models.Domain.StatusEnum.deleted).Count() == 0)
+                            @if ((Model.GroupProjects!=null) && (Model.GroupProjects.Where(m => m.Project.StatusId != BioDivCollector.DB.Models.Domain.StatusEnum.deleted).Count() == 0))
                             {
                                 <button type="button" class="btn btn-danger" onclick="location.href='@Url.Action("Delete", "Groups", new { @id = Model.GroupId })'"><i class="icofont-ui-delete"></i> Löschen</button>
                             }                            

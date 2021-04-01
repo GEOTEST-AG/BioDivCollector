@@ -207,8 +207,8 @@
         </div>
         <!-- End Overview -->
         <!-- Layers -->
-        @if ((bool)ViewData["OnlyLE"] == false)
-        {
+        @if ((User.IsInRole("DM")) || (Model.ProjectConfigurator?.UserId == ViewData["Username"]?.ToString()) || (Model.ProjectManager?.UserId == ViewData["Username"]?.ToString()))
+            {
             <div class="card">
                 <div class="card-header">
                     <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#projects_collapse_2" aria-expanded="false" aria-controls="projects_collapse_2">

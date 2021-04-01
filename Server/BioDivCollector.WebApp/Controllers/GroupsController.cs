@@ -248,8 +248,8 @@ namespace BioDivCollector.WebApp.Controllers
             DB.Models.Domain.User me = UserHelper.GetCurrentUser(User, _context);
 
             List<Project> projects;
-            if (User.IsInRole("DM")) projects = await _context.Projects.Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).Include(m => m.ProjectGroups).ThenInclude(m => m.Group).ToListAsync();
-            else projects = await _context.Projects.Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).Include(m => m.ProjectGroups).ThenInclude(m => m.Group).Where(m => m.ProjectConfigurator.UserId == me.UserId || m.ProjectManager.UserId == me.UserId).ToListAsync();            
+            if (User.IsInRole("DM")) projects = await _context.Projects.Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).Include(m => m.ProjectGroups).ThenInclude(m => m.Group).Where(m => m.StatusId != StatusEnum.deleted).ToListAsync();
+            else projects = await _context.Projects.Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).Include(m => m.ProjectGroups).ThenInclude(m => m.Group).Where(m => m.ProjectConfigurator.UserId == me.UserId || m.ProjectManager.UserId == me.UserId).Where(m=>m.StatusId!=StatusEnum.deleted).ToListAsync();            
             List<SelectedProjectPoco> returnList = new List<SelectedProjectPoco>();
             foreach (Project p in projects)
             {
@@ -469,8 +469,8 @@ namespace BioDivCollector.WebApp.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
+            //if (ModelState.IsValid)
+            //{
                 Status ok = await _context.Statuses.Where(m => m.Id == StatusEnum.changed).FirstOrDefaultAsync();
                 mgroup.StatusId = ok.Id;
 
@@ -508,10 +508,7 @@ namespace BioDivCollector.WebApp.Controllers
                     }
                 }
                 return RedirectToAction(nameof(Index));
-            }
-            ViewData["GroupStatusId"] = new SelectList(_context.GroupStatuses, "Id", "Description", mgroup.GroupStatusId);
-            ViewData["StatusId"] = new SelectList(_context.Statuses, "Id", "Descrpition", mgroup.StatusId);
-            return View(mgroup);
+            //}
         }
 
         // GET: Groups/Delete/5
@@ -566,7 +563,7 @@ namespace BioDivCollector.WebApp.Controllers
         public DB.Models.Domain.User myUser { get; set; }
         [JsonIgnore]
         public Group myGroup { get; set; }
-        public string item { get { return myUser.FirstName + " " + myUser.Name; } }
+        public string item { get { return myUser.FirstName + " " + myUser.Name + " (" + myUser.Email + ")"; } }
         public string value { get { return myUser.UserId;  } }
 
         private bool _selected;

@@ -138,6 +138,56 @@ namespace BioDivCollector.WebApp.Controllers
             return View(edituserVM);
         }
 
+
+        // GET: Groups/Delete/5
+        public async Task<IActionResult> Delete(string? id)
+        {
+            User me = UserHelper.GetCurrentUser(User, db);
+            if ((!User.IsInRole("DM")) && (me.UserId != id)) return RedirectToAction("NotAllowed", "Home");
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var deleteUser = await db.Users.FirstOrDefaultAsync(m => m.UserId == id);
+
+            if (deleteUser == null)
+            {
+                return NotFound();
+            }
+
+            return View(deleteUser);
+        }
+
+        // POST: Groups/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(string id)
+        {
+            User me = UserHelper.GetCurrentUser(User, db);
+            if ((!User.IsInRole("DM")) && (me.UserId != id)) return RedirectToAction("NotAllowed", "Home");
+
+            var deleteUser = await db.Users.FirstOrDefaultAsync(m => m.UserId == id);
+
+            List<UserPoco> ups = await GetAllUsers(false);
+            string access_token = GetAdminAccessToken();
+            if (access_token != "Error")
+            {
+                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users/" + ups.Where(m => m.username == deleteUser.UserId).FirstOrDefault().id);
+                client.Timeout = -1;
+                var request = new RestRequest(Method.DELETE);
+                request.AddHeader("Content-Type", "application/json");
+                request.AddHeader("Authorization", "Bearer " + access_token);
+                IRestResponse response = client.Execute(request);
+
+            }
+
+
+            await db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+
         public async Task<IActionResult> AddRoleToUser(string UserId, string Role)
         {
 

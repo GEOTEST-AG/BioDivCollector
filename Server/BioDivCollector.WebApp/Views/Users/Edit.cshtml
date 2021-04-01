@@ -41,6 +41,11 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <input type="hidden" asp-for="UserId" />
                         <div class="row">
+
+                            <div class="col-md-12">
+                                Benutzername: <b>@Model.UserId</b>
+                            </div>
+
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="control-label">Vorname</label>
@@ -120,10 +125,12 @@
                                 </div>
                             </div>
                                                 }
-                            <div class="card-footer">
-                                <button type="submit" class="btn btn-primary">Speichern</button>
-                                <button class="btn btn-secondary" onclick="location.href='@Url.Action("Dashboard","Home")'">Abbrechen</button>
-                            </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Speichern</button>
+
+                        <button class="btn btn-danger" onclick="location.href='@Url.Action("Delete", "Users", new { @id = Model.UserId }); return;'"><i class="icofont-ui-delete"></i> Löschen</button>
+                        <button class="btn btn-secondary" onclick="location.href = '@Url.Action("Dashboard","Home")'; return;">Abbrechen</button>
+                    </div>
                         </div>
                 </form>
             </div>

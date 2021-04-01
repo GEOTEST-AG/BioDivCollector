@@ -1,12 +1,8 @@
-﻿@model BioDivCollector.DB.Models.Domain.Group
+﻿@model BioDivCollector.DB.Models.Domain.User
 
 @{
     ViewData["Title"] = "Löschen";
     Layout = "~/Views/Shared/_Layout.cshtml";
-}
-
-@section Styles {
-    <link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
 }
 
 
@@ -15,14 +11,14 @@
         <div class="row">
             <div class="col-lg-6">
                 <h3>
-                    Gruppe @Model.GroupName
-                    <small>Löschen der Gruppe bestätigen</small>
+                    Benutzer @Model.FirstName @Model.Name (@Model.Email)
+                    <small>Löschen des Benutzers bestätigen</small>
                 </h3>
             </div>
             <div class="col-lg-6">
                 <ol class="breadcrumb pull-right">
                     <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
-                    <li class="breadcrumb-item active">Gruppen</li>
+                    <li class="breadcrumb-item active">Benutzer</li>
                 </ol>
             </div>
         </div>
@@ -34,10 +30,10 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5>Soll die Gruppe wirklich gelöscht werden?</h5>
+                    <h5>Soll der Benutzer wirklich gelöscht werden?</h5>
                 </div>
                 <form asp-action="Delete">
-                    <input type="hidden" asp-for="GroupId" />
+                    <input type="hidden" asp-for="UserId" />
                     <input type="submit" value="Löschen" class="btn btn-danger" />
                 </form>
             </div>
