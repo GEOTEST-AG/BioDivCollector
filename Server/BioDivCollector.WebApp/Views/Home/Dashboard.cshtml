@@ -103,7 +103,23 @@
                                     </td>
                                     <td>@p.Project.ProjectName</td>
                                     <td>@p.Project.ProjectNumber</td>
-                                    <td>@p.Project.Description</td>
+                                    <td>
+                                        @if ((p.Project.Description != null) && (p.Project.Description.Length > 150))
+                                        {
+                                        <div data-container="body" data-toggle="tooltip" data-placement="top" title="@p.Project.Description">
+
+                                            <text>@p.Project.Description.Substring(0, 150)</text><text>...</text>
+                                        </div>
+
+
+
+                                        }
+                                        else
+                                        {
+                                            @p.Project.Description
+                                        }
+
+                                    </td>
                                     <td>@p.Project.ProjectGroups?.Select(m => m.Group).Where(m => m.GroupUsers.Any(u => u.UserId.ToString() == ViewData["Username"].ToString()))?.FirstOrDefault()?.GroupName</td>
                                     <td>@p.Project.ProjectManager?.FirstName @p.Project.ProjectManager?.Name</td>
                                     <td>@p.Project.ProjectConfigurator?.FirstName @p.Project.ProjectConfigurator?.Name</td>
