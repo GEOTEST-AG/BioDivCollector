@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BioDivCollectorXamarin.Views.LoginPage"
+             BackgroundColor="White">
+    <ContentPage.Content>
+        <Grid>
+            <Image Source="Background.png" VerticalOptions="Fill" HorizontalOptions="Fill" Aspect="AspectFill"/>
+        <StackLayout Margin="40" VerticalOptions="Center">
+            <Image Source="LogoV1.png" WidthRequest="400" Margin="20"/>
+            <Label Text="Sie werden angemeldet. Bitte warten..."
+                VerticalOptions="CenterAndExpand" 
+                HorizontalOptions="CenterAndExpand" HorizontalTextAlignment="Center" TextColor="Black"/>
+        </StackLayout>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:BioDivCollectorXamarin"
+             xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
+             x:Class="BioDivCollectorXamarin.Views.ProjectsPage"
+             xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor = "{StaticResource BioDivGrey}"
+             x:Name ="Project"
+             Title = "Projekt"
+             ios:Page.UseSafeArea="true">
+
+    
+    <ContentPage.Content>
+
+
+        <StackLayout BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HorizontalOptions="Fill"  Margin="0,0,0,0">
+            <Grid   BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HeightRequest="160" MinimumHeightRequest="160" >
+                    <Frame BorderColor="{StaticResource BioDivGrey}"
+                           OutlineColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
+                           BackgroundColor="Transparent"
+                           Opacity="1"
+                           CornerRadius="20"
+                           Margin="20,30,20,10"
+                           HasShadow="False"
+                           WidthRequest="600"
+                           HorizontalOptions="CenterAndExpand"
+                           VerticalOptions="Start">
+                        <StackLayout Orientation="Horizontal" Margin="0,10,0,0" >
+                            <Button x:Name ="ProjectSelectionButton" Text="MEINE PROJEKTE" Clicked="ProjectSelectionButton_Clicked" CornerRadius="10" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" HeightRequest="50" MinimumHeightRequest="50" Margin="0"/>
+                            <Button x:Name="LogoutButton"  HorizontalOptions="Center" VerticalOptions="FillAndExpand" WidthRequest="60" HeightRequest="50" MinimumHeightRequest="50" CornerRadius="10" Command = "{Binding LogoutCommand}" ImageSource="baseline_face_white_24dp.png" />
+                        </StackLayout>
+                    </Frame>
+                    <Frame Margin ="0,10,0,0" Padding="0" WidthRequest="40" HeightRequest="40" IsClippedToBounds="True" HorizontalOptions="Center" VerticalOptions="Start" BorderColor="{StaticResource BioDivGrey}" CornerRadius="20" BackgroundColor="White" HasShadow="False" >
+                        <Image HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="25" HeightRequest="25" Source="LogoSmall.png"/>
+                    </Frame>
+                </Grid>
+                <!-- Current Project Information -->
+            <ScrollView Margin="0" VerticalOptions="FillAndExpand" IsVisible="{Binding CurrentProject, Converter={StaticResource objectToBool}}">
+                <FlexLayout Direction="Column" JustifyContent="SpaceEvenly" >
+                    <Grid  BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill">
+
+                        <Frame x:Name="CurrentProjectCard" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
+                           OutlineColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
+                           BackgroundColor="Transparent"
+                           Opacity="1"
+                           CornerRadius="20"
+                           Margin="20,15,20,30"
+                           HasShadow="False"
+                           WidthRequest="600"
+                           HorizontalOptions="CenterAndExpand"
+                           VerticalOptions="Fill">
+                            <FlexLayout x:Name ="currentProjectStack"
+                                         HorizontalOptions="CenterAndExpand"
+                                         VerticalOptions="FillAndExpand"
+                                         Opacity="1"
+                                         Padding="10,5,10,10"
+                                         JustifyContent="SpaceBetween"
+                                        Wrap="NoWrap"
+                                        Direction="Column">
+
+                                <Label Text="{Binding CurrentProject.projectName}"
+                                       HeightRequest="60"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BioDivGreen}"
+                                       FontSize="Large"
+                                       HorizontalOptions="CenterAndExpand"
+                                       HorizontalTextAlignment="Center"
+                                       Opacity="1" 
+                                       Margin="5,15,5,0"
+                                       />
+
+                                <Label Text="{Binding CurrentProject.projectNumber}"
+                                       HeightRequest="25"
+                                       FontAttributes="Bold"
+                                       HorizontalOptions="CenterAndExpand"
+                                       HorizontalTextAlignment="Center"
+                                       FontSize="Medium"
+                                       Opacity="1" 
+                                       Margin="5,10,5,0"
+                                       />
+                                <Label Text="Enthält unsychronisierte Änderungen" FontAttributes="Bold" Margin="0,20,0,0" HorizontalTextAlignment="Center" TextColor="Red" IsVisible="{Binding ChangesMessageVisible}"/>
+                                <StackLayout Orientation="Horizontal" Margin="0,10,0,0" >
+                                    <Button x:Name="DeleteButton" Style="{StaticResource DangerButtonStyle}" FlexLayout.Grow="0" ImageSource="delete.png" HeightRequest="40" CornerRadius="10" WidthRequest="80" Command="{Binding BindingContext.DeleteProjectCommand, Source={x:Reference Project}}" CommandParameter="{Binding CurrentProject}" />
+                                    <Button x:Name="SyncButton" Text="SYNC" FlexLayout.Grow="1" BackgroundColor="{StaticResource BioDivGreen}" TextColor="White" BorderColor="{StaticResource BioDivGreen}" HeightRequest="40" CornerRadius="10" HorizontalOptions="FillAndExpand" Command="{Binding SyncCommand}"/>
+                                </StackLayout>
+                                <Label Text="Beschreibung:" FontAttributes="Bold" Margin="0,20,0,0"/>
+                                <Label Text="{Binding CurrentProject.description}"/>
+                                <Label Text="Projektleiter:" FontAttributes="Bold" Margin="0,20,0,0"/>
+                                <Label Text="{Binding CurrentProject.projectManager}"/>
+                                <Label Text="Projektkonfigurator:" FontAttributes="Bold" Margin="0,20,0,0"/>
+                                <Label Text="{Binding CurrentProject.projectConfigurator}"/>
+                                <FlexLayout Direction="Row" HeightRequest="70" HorizontalOptions="FillAndExpand" Margin="0" >
+                                    <StackLayout Orientation="Vertical" FlexLayout.Grow="1">
+                                        <Label Text="BDC GUID:" FontAttributes="Bold" Margin="0,20,0,0" />
+                                        <Label Text="{Binding CurrentProject.projectId, StringFormat='&lt;&lt;BDC&gt;&lt;{0}&gt;&gt;'}" FontSize="Caption" Margin="0,0,0,5"/>
+                                    </StackLayout>
+                                    <StackLayout Orientation="Vertical" WidthRequest="110" MinimumWidthRequest="50" FlexLayout.Grow="0" Margin="10,0,0,0">
+                                        <Button x:Name ="bdc" Text="GUID" FontSize="11" FontAttributes="Bold" BorderColor="{StaticResource BioDivGreen}" BackgroundColor="{StaticResource BioDivGreen}" TextColor="White" BorderWidth="4" TextTransform="Uppercase" HeightRequest="40"  WidthRequest="50" MinimumWidthRequest="50" Margin="0,30,0,0" CornerRadius="10" Command="{Binding CopyBDCGUIDCommand}" CommandParameter="{Binding CurrentProject}" />
+                                    </StackLayout>
+                                </FlexLayout>
+                                
+                                <Label Text="Letzte Synchronisation:" FontAttributes="Bold" Margin="0,20,0,0"/>
+                                <Label Text="{Binding CurrentProject.lastSync,StringFormat='{0:dd MMMM yyyy HH:mm zzz}'}"/>
+                            </FlexLayout>
+                        </Frame>
+                        <Frame Margin ="0,0,0,0" Padding="0" WidthRequest="200" HeightRequest="30" IsClippedToBounds="True" HorizontalOptions="Center" VerticalOptions="Start" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}" CornerRadius="15" BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" HasShadow="False">
+                            <Label Text="Aktuelles Projekt" FontAttributes="Bold" Margin="0,5,0,5" HorizontalOptions="CenterAndExpand" HorizontalTextAlignment="Center" BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}"/>
+                        </Frame>
+
+                    </Grid>
+                </FlexLayout>
+            </ScrollView>
+            <Label x:Name="ActivityLabel"
+                   IsVisible="{Binding Activity, Converter={StaticResource stringToBool}}"
+                   Text="{Binding Activity}"
+                   TextColor="White"
+                   TextTransform="Uppercase"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   BackgroundColor="{StaticResource BioDivGrey}"
+                   HorizontalOptions="FillAndExpand"
+                   HeightRequest="40"
+                   />
+            <local:ConnectionView/>
+        </StackLayout>
+    </ContentPage.Content>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converter:StringNullOrEmptyBoolConverter x:Key="stringToBool" />
+            <converter:ObjectNullBoolConverter x:Key="objectToBool" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+</ContentPage>

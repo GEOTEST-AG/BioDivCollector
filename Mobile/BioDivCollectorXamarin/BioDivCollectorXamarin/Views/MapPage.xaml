@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BioDivCollectorXamarin.Views.MapPage"
+             xmlns:mapsui="clr-namespace:Mapsui.UI.Forms;assembly=Mapsui.UI.Forms"
+             xmlns:local="clr-namespace:BioDivCollectorXamarin"
+             xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
+             xmlns:vm="clr-namespace:BioDivCollectorXamarin.ViewModels"
+             xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views"
+             Shell.NavBarIsVisible="false"
+             Title="Karte"
+             BackgroundColor = "{StaticResource BioDivGrey}"
+             ios:Page.UseSafeArea="true">
+    
+    <ContentPage.Content>
+         <StackLayout Spacing="0">   
+                <Grid VerticalOptions="FillAndExpand">
+                    <mapsui:MapView x:Name="MapsuiMapView" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" BackgroundColor="Gray" MapLongClicked="MapsuiMapView_MapLongClicked" MapClicked="MapsuiMapView_MapClicked" />
+                    <StackLayout WidthRequest="50" Padding="10,20,10,20" VerticalOptions="End" HorizontalOptions="End">
+                        <Button x:Name="AddMapGeometryButton" ImageSource="baseline_add_location_alt_white_24dp.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding AddMapGeometryCommand}"  BackgroundColor="{Binding AddMapGeometryButtonBackgroundColour}" />
+                        <Button x:Name="GPSButton" ImageSource="outline_gps_fixed_white_24dp.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding GPSButtonCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
+                        <Button x:Name="LayersButton" ImageSource="outline_layers_white_24dp.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding LayersButtonCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
+                        <Button x:Name="SaveButton" ImageSource="outline_save_white_24dp.png" Style="{StaticResource mapButtonStyle}"  Command ="{Binding SaveMapCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
+                    </StackLayout>
+                </Grid>
+            
+            <FlexLayout Direction="Row" WidthRequest="500" AlignContent="SpaceAround" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="1,2,1,0" Margin="0" BackgroundColor="{StaticResource BioDivGrey}" HeightRequest="55" IsVisible="{Binding CanAddMapGeometry}">
+                <Button x:Name="CancelGeomButton" Text="Abbrechen" TextTransform="Uppercase" VerticalOptions="Center" FlexLayout.Basis="50%" Margin="0,0,1,0" CornerRadius="0" HeightRequest="53" Command="{Binding CancelGeomCommand}"/>
+                <Button x:Name="SaveGeomButton" Text="Speichern" TextTransform="Uppercase" VerticalOptions="Center" FlexLayout.Basis="50%" Margin="1,0,0,0" CornerRadius="0" HeightRequest="53" Command="{Binding SaveGeomCommand}"/>
+            </FlexLayout>
+            <StackLayout Orientation="Horizontal" WidthRequest="500" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="0" Margin="0" BackgroundColor="White" HeightRequest="50"  IsVisible="{Binding SaveCountText, Converter={StaticResource stringToBool}}">
+                <Label x:Name="SaveCount" Text="{Binding SaveCountText}" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Margin="0" HeightRequest="50" BackgroundColor="White" Opacity="1" TextColor="Black" HorizontalOptions="FillAndExpand"/>
+                <Button x:Name="CancelSaveButton" Text="Abbrechen" TextColor="White" TextTransform="Uppercase" VerticalOptions="Center" WidthRequest="120" Margin="5" CornerRadius="10" HeightRequest="40" Style="{StaticResource CancelButtonStyle}" Command="{Binding CancelSaveCommand}" HorizontalOptions="End"/>
+            </StackLayout>
+            <local:ConnectionView/>
+        </StackLayout>
+    </ContentPage.Content>
+
+        <ContentPage.Resources>
+        <ResourceDictionary>
+            <converter:StringNullOrEmptyBoolConverter x:Key="stringToBool" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+</ContentPage>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+
+  <style name="MainTheme" parent="MainTheme.Base">
+
+    <item name="android:statusBarColor">#36404A</item>
+    <item name="android:navigationBarColor">#36404A</item>
+    <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+    <item name="colorControlNormal">#FFFFFF</item>
+    <!-- As of Xamarin.Forms 4.6 the theme has moved into the Forms binary -->
+    <!-- If you want to override anything you can do that here. -->
+    <!-- Underneath are a couple of entries to get you started. -->
+
+    <!-- Set theme colors from https://aka.ms/material-colors -->
+    <!-- colorPrimary is used for the default action bar background -->
+    <!--<item name="colorPrimary">#2196F3</item>-->
+    <!-- colorPrimaryDark is used for the status bar -->
+    <!--<item name="colorPrimaryDark">#1976D2</item>-->
+    <!-- colorAccent is used as the default value for colorControlActivated
+         which is used to tint widgets -->
+    <item name="colorAccent">#3BB50B</item>
+    <item name="android:datePickerDialogTheme">@style/AppCompatDialogStyle</item>
+  </style>
+  <style name="DrawerArrowStyle" parent="@style/Widget.AppCompat.DrawerArrowToggle">
+    <item name="spinBars">true</item>
+    <item name="color">#FFFFFF</item>
+  </style>
+
+  <style name="MainTheme.Splash" parent ="Theme.AppCompat.Light.NoActionBar">
+    <item name="android:windowBackground">@drawable/Splash</item>
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowFullscreen">true</item>
+    <item name="android:windowContentOverlay">@null</item>
+    <item name="android:windowActionBar">true</item>
+  </style>
+
+  <style name="AppCompatDialogStyle" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorAccent">#3BB50B</item>
+  </style>
+
+</resources>
