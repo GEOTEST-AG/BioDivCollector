@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:BioDivCollectorXamarin" 
+             x:Class="BioDivCollectorXamarin.MainPage"
+             BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">
+
+    <StackLayout x:Name="LoginStackLayout" VerticalOptions="Center" Margin="20,0,20,200" WidthRequest="300">
+        <Image x:Name="Logo" Source="LogoV1small.png" Aspect="AspectFit" Margin="0,10" WidthRequest="300" HeightRequest="100" HorizontalOptions="CenterAndExpand" />
+    </StackLayout>
+</ContentPage>

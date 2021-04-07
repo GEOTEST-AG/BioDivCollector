@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BioDivCollectorXamarin.Views.FormSelectionPage"
+             xmlns:local="clr-namespace:BioDivCollectorXamarin" 
+             xmlns:model="clr-namespace:BioDivCollectorXamarin.Models.DatabaseModel"
+             BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">
+
+    <ContentPage.Content>
+        <StackLayout>
+            <ListView x:Name="FormListView"
+            ItemsSource="{Binding Forms}"
+            ItemTapped="FormListView_ItemTapped"
+            RowHeight="80"
+            SeparatorColor="Gray"
+            SelectionMode="None">
+
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="model:Form">
+                        <ViewCell>
+                            <StackLayout VerticalOptions="Center" Margin="20">
+                                <Label Text="{Binding title}"  Style="{DynamicResource ListItemTextStyle}" />
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+
+            </ListView>
+
+            <local:ConnectionView/>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

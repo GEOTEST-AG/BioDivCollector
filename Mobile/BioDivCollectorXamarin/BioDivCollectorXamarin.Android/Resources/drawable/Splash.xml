@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item>
+    <color android:color="@color/launcher_background"/>
+  </item>
+  <item>
+    <bitmap
+        android:src="@drawable/Background"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:gravity="fill_vertical"
+        android:padding="0dp"
+        android:adjustViewBounds="true" />
+  </item>
+  <item>
+    <bitmap
+        android:src="@drawable/logov1small"
+        android:tileMode="disabled"
+        android:gravity="center"/>
+  </item>
+</layer-list>
+

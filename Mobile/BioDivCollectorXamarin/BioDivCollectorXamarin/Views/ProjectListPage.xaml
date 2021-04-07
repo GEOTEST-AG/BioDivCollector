@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:BioDivCollectorXamarin"
+             xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
+             xmlns:xct="clr-namespace:Xamarin.CommunityToolkit.UI.Views;assembly=Xamarin.CommunityToolkit"
+             x:Class="BioDivCollectorXamarin.Views.ProjectListPage"
+             xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views"
+             x:Name ="ProjectListObject"
+             ios:Page.UseSafeArea="true">
+    <ContentPage.Content>
+        <StackLayout Spacing="0">
+            <Label Text="Projekte erstellen und verwalten unter https://biodivcollector.ch" FontSize="Caption" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" Padding="5" TextColor="White" BackgroundColor="{StaticResource BioDivGrey}">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Projekte erstellen und verwalten unter " />
+                        <Span Text="https://biodivcollector.ch" TextColor="White" TextDecorations="Underline">
+                            <Span.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding UrlCommand}" CommandParameter="https://biodivcollector.ch" />
+                            </Span.GestureRecognizers>
+                        </Span>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            <CollectionView x:Name="ProjectList"
+                                ItemsSource="{Binding Projects}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}"
+                                SelectionMode="None" 
+                                VerticalOptions="FillAndExpand">
+
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="1"/>
+                </CollectionView.ItemsLayout>
+
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout>
+                            <StackLayout Orientation="Vertical"
+                                         HorizontalOptions="FillAndExpand"
+                                         IsEnabled="False"
+                                         CompressedLayout.IsHeadless="True"
+                                         Opacity="1"
+                                         Margin="10">
+                                <Label HeightRequest="30"
+                                       Text="{Binding projectName}"
+                                       FontSize="Large"
+                                       FontAttributes="Bold"
+                                       Opacity="1" />
+                                <Label HeightRequest="30"
+                                       Text="{Binding projectNumber}"
+                                       TextColor="Gray"
+                                       Opacity="1" 
+                                       FontSize="Medium"/>
+
+                                <xct:Expander HorizontalOptions="Fill">
+                                    <xct:Expander.Header HorizontalOptions="Fill">
+                                        <Label Text="Klick hier für weitere Infos ..." FontSize="Body" HeightRequest="40" TextColor="{StaticResource BioDivGreen}" HorizontalOptions="Fill"/>
+                                    </xct:Expander.Header>
+                                    <FlexLayout Margin="0,10,0,30" Wrap="Wrap" JustifyContent="Start">
+                                        <StackLayout Margin="0,5,30,0">
+                                            <Label Text="Beschreibung:" FontAttributes="Bold" FontSize="Body"/>
+                                            <Label Text="{Binding description}" FontSize="Body" LineBreakMode="WordWrap" HeightRequest="80"/>
+                                        </StackLayout>
+                                        <StackLayout Margin="0,5,30,0">
+                                            <Label Text="Projektleiter:" FontAttributes="Bold" FontSize="Body"/>
+                                            <Label Text="{Binding projectManager}" FontSize="Body" HeightRequest="80"/>
+                                        </StackLayout>
+                                        <StackLayout Margin="0,5,30,0">
+                                            <Label Text="Projektkonfigurator:" FontAttributes="Bold" FontSize="Body"/>
+                                            <Label Text ="{Binding projectConfigurator}" FontSize="Body" HeightRequest="80"/>
+                                        </StackLayout>
+                                        <StackLayout Margin="0,5,0,0">
+                                            <Label Text="BDC GUID:" FontAttributes="Bold" FontSize="Body"/>
+                                            <StackLayout Orientation="Vertical">
+                                                <Label Text="{Binding projectId,StringFormat='&lt;&lt;BDC&gt;&lt;{0}&gt;&gt;'}" FontSize="Small" LineBreakMode="CharacterWrap" Margin="0"/>
+                                                <Button x:Name="BDCGUID_Button" Text="BDC Guid kopieren" TextTransform="Uppercase" MinimumHeightRequest="40" CornerRadius="10" HorizontalOptions="Fill" HeightRequest="40" Command="{Binding BindingContext.CopyBDCGUIDCommand, Source={x:Reference ProjectListObject}}" CommandParameter="{Binding .}"/>
+                                            </StackLayout>
+                                        </StackLayout>
+                                    </FlexLayout>
+                                </xct:Expander>
+                                <FlexLayout Direction="Row" >
+                                    <Button x:Name="ProjectDeleteButton" Style="{StaticResource DangerButtonStyle}" ImageSource="delete.png" Margin="5" TextTransform="Uppercase" CornerRadius="10" HeightRequest="50" WidthRequest="20" HorizontalOptions="FillAndExpand"  Command="{Binding BindingContext.DeleteProjectCommand, Source={x:Reference ProjectListObject}}" CommandParameter="{Binding .}" FlexLayout.Grow="0" FlexLayout.Basis="20%"/>
+                                    <Button x:Name="ProjectOptionsButton" Margin="5" Text="Verwenden" TextTransform="Uppercase" CornerRadius="10" HeightRequest="50" HorizontalOptions="FillAndExpand" Command="{Binding BindingContext.SyncProjectCommand, Source={x:Reference ProjectListObject}}" CommandParameter="{Binding .}" FlexLayout.Grow="1" FlexLayout.Basis="80%"/>
+                                </FlexLayout>
+                            </StackLayout>
+                            <!-- Separator -->
+                            <BoxView HeightRequest="1" BackgroundColor="Gray" Grid.ColumnSpan="2" Grid.Row="2" VerticalOptions="End"/>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Label x:Name="ActivityLabel"
+                   IsVisible="{Binding Activity, Converter={StaticResource stringToBool}}"
+                   Text="{Binding Activity}"
+                   TextColor="White"
+                   TextTransform="Uppercase"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   BackgroundColor="{StaticResource BioDivGrey}"
+                   HorizontalOptions="FillAndExpand"
+                   HeightRequest="40"
+                   />
+            <local:ConnectionView/>
+        </StackLayout>
+    </ContentPage.Content>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converter:StringNullOrEmptyBoolConverter x:Key="stringToBool" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+</ContentPage>

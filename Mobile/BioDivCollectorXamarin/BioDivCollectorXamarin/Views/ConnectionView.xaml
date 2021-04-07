@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<StackLayout xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+             xmlns:local="clr-namespace:BioDivCollectorXamarin"
+             xmlns:model="clr-namespace:BioDivCollectorXamarin.Models"
+             x:Class="BioDivCollectorXamarin.ConnectionView"
+             IsVisible="{Binding IsNotConnected}" 
+             BackgroundColor="{StaticResource BioDivGrey}"
+             Padding="0"
+             Margin="0">
+
+    <Label Text="Keine Datenverbindung"
+           TextTransform="Uppercase"
+           TextColor="White"
+           BackgroundColor="{StaticResource BioDivGrey}"
+           VerticalTextAlignment="Center"
+           HorizontalOptions="CenterAndExpand"
+           VerticalOptions="FillAndExpand"
+           Margin="0"
+           HeightRequest="30"/>
+</StackLayout>

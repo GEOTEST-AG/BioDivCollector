@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BioDivCollectorXamarin.Views.Offline">
+    <ContentPage.Content>
+        <StackLayout Margin="40" VerticalOptions="Center">
+            <Image Source="LogoV1.png" WidthRequest="400" Margin="20"/>
+            <Label Text="Die App erfordert eine Datenverbindung, um sich anzumelden. Bitte stellen Sie sicher, dass Sie online sind und starten Sie die App neu."
+                VerticalOptions="CenterAndExpand" 
+                HorizontalOptions="CenterAndExpand" HorizontalTextAlignment="Center"/>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

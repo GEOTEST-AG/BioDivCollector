@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:BioDivCollectorXamarin"
+             x:Class="BioDivCollectorXamarin.Views.ObjectsListPage"
+             xmlns:model="clr-namespace:BioDivCollectorXamarin.Models.DatabaseModel"  
+             xmlns:models="clr-namespace:BioDivCollectorXamarin.Models"
+             x:Name="Geometries"
+             Title="Geometrien"
+             BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">
+    <NavigationPage.TitleView>
+        <Label Text="Geometrien" FontSize="Medium" Padding="20,10" BackgroundColor="{StaticResource BioDivGrey}" TextColor="White" VerticalTextAlignment="Center" VerticalOptions="CenterAndExpand" HorizontalOptions="StartAndExpand"/>
+    </NavigationPage.TitleView>
+
+    <StackLayout Orientation="Vertical" Spacing="0">
+        <ListView x:Name="ObjectList"
+            ItemsSource="{Binding Objects}"
+            ItemTapped ="ObjectList_ItemTapped"
+            CachingStrategy="RecycleElement"
+            SelectionMode="None"
+            RowHeight="80"
+            SeparatorColor="Gray"
+            FlexLayout.Grow="1"
+            FlexLayout.Basis="45%"
+            FlexLayout.AlignSelf="Stretch"
+            IsPullToRefreshEnabled="true"
+            RefreshControlColor="{DynamicResource BioDivGreen}">
+
+            <ListView.ItemTemplate>
+                <DataTemplate  x:DataType="model:ReferenceGeometry">
+                    <ViewCell>
+                        <ViewCell.ContextActions>
+                            <MenuItem 
+                                      Text="Entfernen"
+                                      IsDestructive="True"
+                                      Command="{Binding Path=BindingContext.GeometryDeleteCommand, Source={x:Reference Geometries}}"
+                                      CommandParameter="{Binding .}"/>
+                            <MenuItem 
+                                      Text="BDC GUID kopieren"
+                                      Command="{Binding Path=BindingContext.CopyBDCGUIDCommand, Source={x:Reference Geometries}}"
+                                      CommandParameter="{Binding .}"/>
+                        </ViewCell.ContextActions>
+                        <StackLayout VerticalOptions="Center" Margin="20,0,0,0">
+                            <Label Text="{Binding geometryName}" Style="{DynamicResource ListItemTextStyle}" />
+                        </StackLayout>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+
+        </ListView>
+        <local:ConnectionView/>
+    </StackLayout>
+</ContentPage>
