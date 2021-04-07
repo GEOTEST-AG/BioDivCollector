@@ -128,8 +128,8 @@
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary">Speichern</button>
 
-                        <button class="btn btn-danger" onclick="location.href='@Url.Action("Delete", "Users", new { @id = Model.UserId }); return;'"><i class="icofont-ui-delete"></i> Löschen</button>
-                        <button class="btn btn-secondary" onclick="location.href = '@Url.Action("Dashboard","Home")'; return;">Abbrechen</button>
+                        <button class="btn btn-danger" onclick="location.href='@Url.Action("Delete", "Users", new { @id = Model.UserId })'; return false;"><i class="icofont-ui-delete"></i> Löschen</button>
+                        <button class="btn btn-secondary" onclick="location.href = '@Url.Action("Dashboard","Home")'; return false;">Abbrechen</button>
                     </div>
                         </div>
                 </form>
