@@ -86,7 +86,7 @@
                                             @Html.DisplayFor(modelItem => item.Group.GroupStatus.Description)
                                         </td>
                                         <td>
-                                            @foreach (ProjectGroup gp in item.Group.GroupProjects)
+                                            @foreach (ProjectGroup gp in item.Group.GroupProjects.Where(m=>m.Project.StatusId != StatusEnum.deleted))
                                             {
                                                 <text>@Html.ActionLink(gp.Project.ProjectName, "Details","Projects", new { @id = gp.ProjectId })<br /></text>
                                             }
