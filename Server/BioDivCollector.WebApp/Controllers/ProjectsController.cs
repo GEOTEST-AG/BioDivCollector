@@ -595,7 +595,7 @@ namespace BioDivCollector.WebApp.Controllers
                                                     string importColumnName = null;
                                                     foreach (string columnname in names)
                                                     {
-                                                        if (columnname.StartsWith(fff.FormFieldId.ToString())) importColumnName = columnname;
+                                                        if (columnname.StartsWith("f_" + fff.FormFieldId.ToString())) importColumnName = columnname;
 
                                                     }
                                                     if ((importColumnName != null) && (!result.IsDBNull(importColumnName)))
@@ -781,7 +781,7 @@ namespace BioDivCollector.WebApp.Controllers
 
             string db = Configuration["Environment:DB"];
             string host = Configuration["Environment:DBHost"];
-            string dbuser = Configuration["Environment:DBUSer"];
+            string dbuser = Configuration["Environment:DBUser"];
             string dbpassword = Configuration["Environment:DBPassword"];
 
             string pgstring = " PG:\"dbname = '" + db + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
@@ -802,7 +802,7 @@ namespace BioDivCollector.WebApp.Controllers
             if (format == ".gpkg")
             {
                 // TODO: Move db info out of here
-                psi.Arguments = "-F \"PostgreSQL\" PG:\"dbname = '" + db + "' user = 'biodiv' password = '2VBpTfTC64' host = 'feldapp.ch'\" -nln \"" + prefix + "_points\" \"" + filePath + "\" -sql \"select* from points\"";
+                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + " -nln \"" + prefix + "_points\" \"" + filePath + "\" -sql \"select* from points\"";
                 var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.ToString() });
                 string returnMessage = await ImportTable(prefix + "_points", "point", erfassendeProjects, user);
@@ -810,7 +810,7 @@ namespace BioDivCollector.WebApp.Controllers
                 changes += returnMessage;
                 await this.db.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS " + prefix + "_points;");
 
-                psi.Arguments = "-F \"PostgreSQL\" PG:\"dbname = '" + db + "' user = 'biodiv' password = '2VBpTfTC64' host = 'feldapp.ch'\" -nln \"" + prefix + "_lines\" \"" + filePath + "\" -sql \"select* from lines\"";
+                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + "-nln \"" + prefix + "_lines\" \"" + filePath + "\" -sql \"select* from lines\"";
                 OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.ToString() });
                 returnMessage = await ImportTable(prefix + "_lines", "line", erfassendeProjects, user);
@@ -818,7 +818,7 @@ namespace BioDivCollector.WebApp.Controllers
                 changes += returnMessage;
                 await this.db.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS " + prefix + "_lines;");
 
-                psi.Arguments = "-F \"PostgreSQL\" PG:\"dbname = '" + db + "' user = 'biodiv' password = '2VBpTfTC64' host = 'feldapp.ch'\" -nln \"" + prefix + "_polygones\" \"" + filePath + "\" -sql \"select* from polygones\"";
+                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + "-nln \"" + prefix + "_polygones\" \"" + filePath + "\" -sql \"select* from polygones\"";
                 OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.ToString() });
                 returnMessage = await ImportTable(prefix + "_polygones", "polygon", erfassendeProjects, user);
@@ -826,7 +826,7 @@ namespace BioDivCollector.WebApp.Controllers
                 changes += returnMessage;
                 await this.db.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS " + prefix + "_polygones;");
 
-                psi.Arguments = "-F \"PostgreSQL\" PG:\"dbname = '" + db + "' user = 'biodiv' password = '2VBpTfTC64' host = 'feldapp.ch'\" -nln \"" + prefix + "_nogeometry\" \"" + filePath + "\" -sql \"select* from records_without_geometries\"";
+                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + "-nln \"" + prefix + "_nogeometry\" \"" + filePath + "\" -sql \"select* from records_without_geometries\"";
                 OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.ToString() });
                 returnMessage = await ImportTable(prefix + "_nogeometry", "", erfassendeProjects, user);
@@ -836,7 +836,7 @@ namespace BioDivCollector.WebApp.Controllers
             }
             else if ((format == ".xlsx") || (format == ".csv"))
             {
-                psi.Arguments = "-F \"PostgreSQL\" PG:\"dbname = '" + db + "' user = 'biodiv' password = '2VBpTfTC64' host = 'feldapp.ch'\" -nln \"" + prefix + "_nogeometry\" \"" + filePath + "\" --config OGR_XLSX_HEADERS FORCE";
+                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + "-nln \"" + prefix + "_nogeometry\" \"" + filePath + "\" --config OGR_XLSX_HEADERS FORCE";
                 var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.ToString() });
                 string returnMessage = await ImportTable(prefix + "_nogeometry", "", erfassendeProjects, user);
