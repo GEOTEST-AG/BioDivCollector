@@ -117,7 +117,7 @@
 
                         <div class="card-footer">
                             <button type="submit" class="btn btn-primary">Exportieren</button>
-                            <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index","Projects")'">Abbrechen</button>
+                            <button class="btn btn-secondary" onclick="location.href = '@Url.Action("Index","Projects")'; return false;">Abbrechen</button>
                         </div>
 
                     </form>
