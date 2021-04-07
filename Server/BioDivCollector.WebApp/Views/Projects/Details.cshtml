@@ -207,25 +207,23 @@
         </div>
         <!-- End Overview -->
         <!-- Layers -->
-        @if ((User.IsInRole("DM")) || (Model.ProjectConfigurator?.UserId == ViewData["Username"]?.ToString()) || (Model.ProjectManager?.UserId == ViewData["Username"]?.ToString()))
-            {
-            <div class="card">
-                <div class="card-header">
-                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#projects_collapse_2" aria-expanded="false" aria-controls="projects_collapse_2">
-                        <i class="material-icons dp48">map</i>Kartenebenen
-                    </button>
-                </div>
-                <div id="projects_collapse_2" class="collapse" aria-labelledby="collapseicon" style="">
-                    <div class="card-body">
 
-                        <div class="span6" style="float: none; margin: 0 auto; padding-top:10px; padding-bottom: 10px;">
-                            <div id="layerselector" class="transfer-demo"></div>
-                        </div>
+        <div class="card">
+            <div class="card-header">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#projects_collapse_2" aria-expanded="false" aria-controls="projects_collapse_2">
+                    <i class="material-icons dp48">map</i>Kartenebenen
+                </button>
+            </div>
+            <div id="projects_collapse_2" class="collapse" aria-labelledby="collapseicon" style="">
+                <div class="card-body">
 
+                    <div class="span6" style="float: none; margin: 0 auto; padding-top:10px; padding-bottom: 10px;">
+                        <div id="layerselector" class="transfer-demo"></div>
                     </div>
+
                 </div>
             </div>
-        }
+        </div>
         <!-- End Layers -->
         <!-- Project Groups -->
         <div class="card">
