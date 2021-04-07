@@ -810,7 +810,7 @@ namespace BioDivCollector.WebApp.Controllers
                 changes += returnMessage;
                 await this.db.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS " + prefix + "_points;");
 
-                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + "-nln \"" + prefix + "_lines\" \"" + filePath + "\" -sql \"select* from lines\"";
+                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + " -nln \"" + prefix + "_lines\" \"" + filePath + "\" -sql \"select* from lines\"";
                 OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.ToString() });
                 returnMessage = await ImportTable(prefix + "_lines", "line", erfassendeProjects, user);
@@ -818,7 +818,7 @@ namespace BioDivCollector.WebApp.Controllers
                 changes += returnMessage;
                 await this.db.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS " + prefix + "_lines;");
 
-                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + "-nln \"" + prefix + "_polygones\" \"" + filePath + "\" -sql \"select* from polygones\"";
+                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + " -nln \"" + prefix + "_polygones\" \"" + filePath + "\" -sql \"select* from polygones\"";
                 OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.ToString() });
                 returnMessage = await ImportTable(prefix + "_polygones", "polygon", erfassendeProjects, user);
@@ -826,7 +826,7 @@ namespace BioDivCollector.WebApp.Controllers
                 changes += returnMessage;
                 await this.db.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS " + prefix + "_polygones;");
 
-                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + "-nln \"" + prefix + "_nogeometry\" \"" + filePath + "\" -sql \"select* from records_without_geometries\"";
+                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + " -nln \"" + prefix + "_nogeometry\" \"" + filePath + "\" -sql \"select* from records_without_geometries\"";
                 OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.ToString() });
                 returnMessage = await ImportTable(prefix + "_nogeometry", "", erfassendeProjects, user);
@@ -836,9 +836,9 @@ namespace BioDivCollector.WebApp.Controllers
             }
             else if ((format == ".xlsx") || (format == ".csv"))
             {
-                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + "-nln \"" + prefix + "_nogeometry\" \"" + filePath + "\" --config OGR_XLSX_HEADERS FORCE";
+                psi.Arguments = "-F \"PostgreSQL\" " + pgstring + " -nln \"" + prefix + "_nogeometry\" \"" + filePath + "\" --config OGR_XLSX_HEADERS FORCE";
                 var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
-                if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.ToString() });
+                if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.FirstOrDefault().ToString() + " ("+ psi.Arguments+")" });
                 string returnMessage = await ImportTable(prefix + "_nogeometry", "", erfassendeProjects, user);
                 if (!returnMessage.StartsWith("OK")) return Json(new ExportProcess() { Error = returnMessage });
                 changes += returnMessage;

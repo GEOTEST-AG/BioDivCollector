@@ -11,7 +11,7 @@
     <PackageLicenseExpression>Apache Licence 2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://www.biodivcollector.ch</PackageProjectUrl>
     <AssemblyVersion>1.0.0.1</AssemblyVersion>
-    <Version>1.0.0.0-rc1</Version>
+    <Version>1.0.0.1-rc1</Version>
     <FileVersion>0.5.0.0</FileVersion>
   </PropertyGroup>
 
