@@ -541,7 +541,38 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 _context.Groups.Remove(mgroup);
                 _context.Entry(mgroup).State = EntityState.Deleted;
-            } 
+            }
+            else if (mgroup.GroupProjects.Count > 0)
+            {
+                // maybe we have deleted projects that have still references (only status of deleted project is changed). So we clean all this references
+                foreach (ProjectGroup pg in mgroup.GroupProjects)
+                {
+                    if (pg.Project.StatusId == StatusEnum.deleted)
+                    {
+                        _context.Entry(pg).Collection(m => m.Geometries).Load();
+                        foreach (ReferenceGeometry rg in pg.Geometries)
+                        {
+                            _context.Entry(rg).Collection(m => m.Records).Load();
+                            rg.Records.RemoveAll(m => m.ProjectGroupProjectId == pg.ProjectId && m.ProjectGroupGroupId == pg.GroupId);
+                        }
+                        pg.Geometries.RemoveAll(m => m.ProjectGroupProjectId == pg.ProjectId && m.ProjectGroupGroupId == pg.GroupId);
+                        _context.Entry(pg).Collection(m => m.Records).Load();
+                        pg.Records.RemoveAll(m => m.ProjectGroupProjectId == pg.ProjectId && m.ProjectGroupGroupId == pg.GroupId);
+                    }
+                }
+                // try to delete the group
+                try
+                {
+                    _context.Groups.Remove(mgroup);
+                    _context.Entry(mgroup).State = EntityState.Deleted;
+                    await _context.SaveChangesAsync();
+                }
+                finally
+                {
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
             else if (mgroup != null)
             {
                 mgroup.StatusId = StatusEnum.deleted;
