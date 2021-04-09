@@ -732,6 +732,18 @@ namespace BioDivCollector.WebApp.Controllers
                         //int max = sameNames.Select(m => m.number).Max();
                         //ffnfv.number = max + 1;
                     }
+                    // Super Short Version - only id's. Handle Allgemein too
+                    else if ((sameNames.Count > 0) && (maxLength == -1))
+                    {
+                        foreach (FormFieldNamesForView same in sameNames)
+                        {
+                            same.isGeneral = true;
+                        }
+
+                        ffnfv.isGeneral = true;
+                        //int max = sameNames.Select(m => m.number).Max();
+                        //ffnfv.number = max + 1;
+                    }
                     else ffnfvs.Add(ffnfv);
 
                 }
@@ -827,7 +839,8 @@ namespace BioDivCollector.WebApp.Controllers
             await db.Database.ExecuteSqlRawAsync("DROP VIEW IF EXISTS wfs_ogd_point_view; DROP VIEW IF EXISTS wfs_ogd_line_view; DROP VIEW IF EXISTS wfs_ogd_polygon_view;");
             await db.Database.ExecuteSqlRawAsync("DROP VIEW IF EXISTS records_without_geometries;");
 
-            await CreateViews(db, forms, true);
+            //await CreateViews(db, forms, true);
+            await CreateViews(db, forms, true, "wfs", true, -1);
 
             // refresh the geoserver
             var client = new RestClient(Configuration["Environment:Geoserver"] + "rest/reset");
@@ -935,6 +948,21 @@ namespace BioDivCollector.WebApp.Controllers
                 // the first f is sponsored by jack dangermond. He doesn't like the numbers in the front...
                 string name = "f_"+FormField.FormFieldId + fot + "_" + fit + numbers; 
                 name = name.ToLower();
+
+                // super short version when MaxLength = -1: only f_number
+                if (MaxLength == -1)
+                {
+                    if (isGeneral)
+                    {
+                        if (FormField.PublicMotherFormFieldFormFieldId != null) return "a_" + FormField.PublicMotherFormFieldFormFieldId;
+                        else return "a_" + FormField.FormFieldId;
+                    }
+
+                    return "f_" + FormField.FormFieldId;
+
+
+                }
+
                 return name.Length <= MaxLength ? name : name.Substring(0, MaxLength);
 
             }
