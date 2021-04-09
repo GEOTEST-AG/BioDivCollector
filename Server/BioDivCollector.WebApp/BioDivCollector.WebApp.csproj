@@ -10,10 +10,17 @@
     <Copyright>2021 GEOTEST AG</Copyright>
     <PackageLicenseExpression>Apache Licence 2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://www.biodivcollector.ch</PackageProjectUrl>
-    <AssemblyVersion>1.0.0.1</AssemblyVersion>
-    <Version>1.0.0.1-rc1</Version>
+    <AssemblyVersion>1.0.0.2</AssemblyVersion>
+    <Version>1.0.0.0-rc2</Version>
     <FileVersion>0.5.0.0</FileVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="App_Data\Import\**" />
+    <Content Remove="App_Data\Import\**" />
+    <EmbeddedResource Remove="App_Data\Import\**" />
+    <None Remove="App_Data\Import\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Remove="C:\Users\Suter\.nuget\packages\formfactory.templates\5.0.71\contentFiles\any\netstandard1.6\bootstrap3-typeahead.js" />
@@ -96,6 +103,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="App_Data\" />
     <Folder Include="plugins\BioDivCollector.SamplePlugin\" />
     <Folder Include="wwwroot\app\" />
     <Folder Include="wwwroot\img\" />

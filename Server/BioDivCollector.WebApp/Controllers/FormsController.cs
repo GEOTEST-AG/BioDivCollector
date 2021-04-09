@@ -946,7 +946,7 @@ namespace BioDivCollector.WebApp.Controllers
                 string numbers = number > 0 ? "-" + number.ToString() : "";
                 //string name = FormField.FormFieldId + "_" + fot + "_" + fit + numbers;
                 // the first f is sponsored by jack dangermond. He doesn't like the numbers in the front...
-                string name = "f_"+FormField.FormFieldId + fot + "_" + fit + numbers; 
+                string name = "f_"+FormField.FormFieldId + "_" + fot + "_" + fit + numbers; 
                 name = name.ToLower();
 
                 // super short version when MaxLength = -1: only f_number
