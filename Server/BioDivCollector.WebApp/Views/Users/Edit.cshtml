@@ -97,12 +97,17 @@
                                             @{
                                                 bool isDM = false;
                                                 bool isEF = false;
+                                                bool isPL = false;
+                                                bool isPM = false;
                                             }
 
                                             @foreach (string role in Model.roles)
                                             {
                                                 if (role == "Erfassende") isEF = true;
                                                 if (role == "Datenmanagement") isDM = true;
+
+                                                if (role == "Projektkonfigurator") isPM = true;
+                                                if (role == "Projektleiter") isPL = true;
                                                 <text>@role<br /></text>
                                             }
 
@@ -119,6 +124,16 @@
                                             {
                                                 <button type="button" class="btn btn-primary" onclick="removeRole('DM')">Datenmanagement entfernen</button>
                                             }
+
+                                            @if (isPM)
+                                            {
+                                                <button type="button" class="btn btn-primary" onclick="removeRole('PK')">Projektkonfigurator entfernen</button>
+                                            }
+                                            @if (isPL)
+                                            {
+                                                <button type="button" class="btn btn-primary" onclick="removeRole('PL')">Projektleiter entfernen</button>
+                                            }
+
 
                                         </div>
                                     </div>
@@ -267,7 +282,6 @@
                     exit: 'animated bounceOutRight'
                 }
             });
-        location.reload();
         $.ajax({
             type: "GET",
             url: '@Url.Action("RemoveRoleFromUser", "Users")?UserId=@Model.UserId&Role='+role,
@@ -300,6 +314,8 @@
                                 exit: 'animated bounceOutRight'
                             }
                         });
+
+                    location.reload();
                 }
                 else {
                     $.notify({
