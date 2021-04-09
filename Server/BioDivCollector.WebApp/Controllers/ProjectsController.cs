@@ -772,11 +772,11 @@ namespace BioDivCollector.WebApp.Controllers
 
 
             /* local */
-            psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
+            /*psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\gdal\bin\gdal\apps";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\gdal\bin\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\gdal\bin\gdal\plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];
+            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];*/
 
 
             string db = Configuration["Environment:DB"];
@@ -786,11 +786,11 @@ namespace BioDivCollector.WebApp.Controllers
 
             string pgstring = " PG:\"dbname = '" + db + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
 
-            /*psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
+            psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\Program Files\GDAL";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files\GDAL\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files\GDAL\gdal-plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];*/
+            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];
 
             psi.CreateNoWindow = false;
             psi.UseShellExecute = false;
@@ -906,11 +906,11 @@ namespace BioDivCollector.WebApp.Controllers
 
 
             /* local */
-            psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
+            /*psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\gdal\bin\gdal\apps";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\gdal\bin\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\gdal\bin\gdal\plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];
+            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];*/
 
             string db = Configuration["Environment:DB"];
             string host = Configuration["Environment:DBHost"];
@@ -918,11 +918,11 @@ namespace BioDivCollector.WebApp.Controllers
             string dbpassword = Configuration["Environment:DBPassword"];
 
 
-            /*psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
+            psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\Program Files\GDAL";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files\GDAL\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files\GDAL\gdal-plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];*/
+            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];
 
             psi.CreateNoWindow = false;
             psi.UseShellExecute = false;

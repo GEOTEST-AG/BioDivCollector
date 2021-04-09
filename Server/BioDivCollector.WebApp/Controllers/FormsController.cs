@@ -57,6 +57,37 @@ namespace BioDivCollector.WebApp.Controllers
 
         }
 
+        /// <summary>
+        /// Shows a table with all form fields and Id's for the wfs
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> LookupTable()
+        {
+            List<FormField> formFields = await db.FormFields.Include(m => m.FormFieldForms).ThenInclude(m => m.Form).ToListAsync();
+
+            List<LookupTableViewModel> ltvms = new List<LookupTableViewModel>();
+            foreach (FormField ff in formFields)
+            {
+                LookupTableViewModel ltvm = new LookupTableViewModel() { FormField = ff };
+                ltvm.UsedInForms = new List<Form>();
+                ltvm.UsedInForms.AddRange(ff.FormFieldForms?.Select(m => m.Form));
+
+                // formfield is public mother, so add all children formfields-forms
+                if ((ff.Public==true) && (ff.PublicMotherFormFieldFormFieldId==null))
+                {
+                    List<FormField> children = await db.FormFields.Where(m => m.PublicMotherFormFieldFormFieldId == ff.FormFieldId).ToListAsync();
+                    foreach (FormField child in children)
+                    {
+                        ltvm.UsedInForms.AddRange(child.FormFieldForms.Select(m => m.Form));
+                    }
+                }
+
+                ltvms.Add(ltvm);
+            }
+
+            return View(ltvms);
+        }
+
         public async Task<IActionResult> Create(string name)
         {
             if ((!User.IsInRole("DM")) && (!User.IsInRole("PL")) && (!User.IsInRole("PK"))) return RedirectToAction("NotAllowed", "Home");
@@ -1089,6 +1120,12 @@ namespace BioDivCollector.WebApp.Controllers
     {
         public string item { get; set; }
         public string value { get; set; }
+    }
+
+    public class LookupTableViewModel
+    {
+        public FormField FormField { get; set; }
+        public List<Form> UsedInForms { get; set; }
     }
 
 }

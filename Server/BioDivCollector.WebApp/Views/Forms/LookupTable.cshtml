@@ -1,0 +1,110 @@
+﻿@using System.Security.Claims
+@using BioDivCollector.DB.Models.Domain
+
+@model IEnumerable<BioDivCollector.WebApp.Controllers.LookupTableViewModel>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Formulare Lookup Table";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Formular-Felder Lookup Table
+                    <small>Liste der Formularfelder-Id's für WFS Tabelle</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item">Formulare</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card height-equal" style="min-height: 685px;">
+                <div class="card-header">
+                    <h5>Alle Formularfelder</h5>
+
+                </div>
+                <div class="card-body">
+                    <div class="user-status table-responsive product-chart">
+                         <table id="grouplist" class="table table-bordernone">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        ID
+                                    </th>
+                                    <th>
+                                        Feld
+                                    </th>
+                                    <th>
+                                        Verwendet in
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (BioDivCollector.WebApp.Controllers.LookupTableViewModel ltvm in Model.Where(m=>m.UsedInForms.Count>0))
+                                {
+                                    @if (((ltvm.FormField.Public == true) && (ltvm.FormField.PublicMotherFormField == null)) || (ltvm.FormField.Public == false))
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if ((ltvm.FormField.Public == true) && (ltvm.FormField.PublicMotherFormField == null))
+                                                {
+                                                    <text>a_@ltvm.FormField.FormFieldId</text>
+                                                }
+                                                else if (ltvm.FormField.Public == false)
+                                                {
+
+                                                    <text>f_@ltvm.FormField.FormFieldId</text>
+                                                }
+                                            </td>
+
+                                            <td>
+                                                @ltvm.FormField.Title
+                                            </td>
+                                            <td>
+                                                @foreach (Form f in ltvm.UsedInForms)
+                                                {
+                                                    <text>@f.Title<br /></text>
+                                                }
+
+                                                
+                                            </td>
+                                        </tr>
+                                        }
+
+                                    }
+
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#grouplist').DataTable({
+            "language": {
+                "url": "/js/datatables/datatables.german.lang.json"
+            }
+        });
+    });
+</script>
+
+
