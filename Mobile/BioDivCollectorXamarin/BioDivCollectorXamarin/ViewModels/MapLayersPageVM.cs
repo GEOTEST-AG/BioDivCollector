@@ -85,7 +85,7 @@ namespace BioDivCollectorXamarin.ViewModels
             PixelkarteButtonCommand = new Command(PixelkarteButtonPressed, CanPressPixelkarteButton);
             OrthofotoButtonCommand = new Command(OrthofotoButtonPressed, CanPressOrthofotoButton);
             MapLayers = MapModel.MakeArrayOfLayers();
-            BaseLayerName = "Test";
+            BaseLayerName = "Base";
 
             MessagingCenter.Subscribe<MapLayer>(this, "RefreshLayerList", (sender) =>
             {

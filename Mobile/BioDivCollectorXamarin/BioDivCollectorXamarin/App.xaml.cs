@@ -135,6 +135,21 @@ namespace BioDivCollectorXamarin
             }
         }
 
+        /// <summary>
+        /// Disable buttons when app is busy
+        /// </summary>
+        private static bool busy;
+        public static bool Busy
+        {
+            get
+            {
+                return busy;
+            }
+            set
+            {
+                busy = value;
+            }
+        }
         
         /// <summary>
         /// Initialisation without furhter parameters
@@ -159,6 +174,7 @@ namespace BioDivCollectorXamarin
             DatabaseLocation = databaseLocation;
             TileLocation = tileLocation;
             CurrentProjectId = Preferences.Get("currentProject", "");
+            Busy = false;
             CheckConnection();
 
             VersionTracking.Track();

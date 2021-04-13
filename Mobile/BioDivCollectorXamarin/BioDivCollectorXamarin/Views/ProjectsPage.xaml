@@ -15,7 +15,7 @@
     <ContentPage.Content>
 
 
-        <StackLayout BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HorizontalOptions="Fill"  Margin="0,0,0,0">
+        <StackLayout BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HorizontalOptions="Fill"  Margin="0,0,0,0" Spacing="0">
             <Grid   BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HeightRequest="160" MinimumHeightRequest="160" >
                     <Frame BorderColor="{StaticResource BioDivGrey}"
                            OutlineColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
@@ -123,6 +123,9 @@
                    HorizontalOptions="FillAndExpand"
                    HeightRequest="40"
                    />
+            <StackLayout Padding="10" BackgroundColor="{StaticResource BioDivGrey}" IsVisible="{Binding Activity, Converter={StaticResource stringToBool}}" Spacing="0">
+                <ActivityIndicator IsRunning="{Binding Activity, Converter={StaticResource stringToBool}}" BackgroundColor="{StaticResource BioDivGrey}" IsVisible="{Binding Activity, Converter={StaticResource stringToBool}}" Color="{StaticResource BioDivGreen}"/>
+            </StackLayout>
             <local:ConnectionView/>
         </StackLayout>
     </ContentPage.Content>

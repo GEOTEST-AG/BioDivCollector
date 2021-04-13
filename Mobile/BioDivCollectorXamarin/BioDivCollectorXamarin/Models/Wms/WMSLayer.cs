@@ -130,7 +130,7 @@ namespace BioDivCollectorXamarin.Models.Wms
         {
             try
             {
-                ITileSource layerSource = new MbTilesTileSource(new SQLiteConnectionString(filePath, true));
+                ITileSource layerSource = new MbTilesTileSource(new SQLiteConnectionString(filePath, true), null, MbTilesType.Overlay,true);
                 return layerSource;
             }
             catch

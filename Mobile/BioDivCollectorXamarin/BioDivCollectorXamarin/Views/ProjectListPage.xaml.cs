@@ -21,24 +21,6 @@ namespace BioDivCollectorXamarin.Views
             ViewModel = new ProjectListVM();
             BindingContext = ViewModel;
 
-            MessagingCenter.Subscribe<SyncListProjectCommand, ProjectSimple>(this, "ProjectSelected", (sender,arg) =>
-            {
-                MessagingCenter.Unsubscribe<SyncListProjectCommand, ProjectSimple>(this, "ProjectSelected");
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    Navigation.PopAsync();
-                });
-            });
-            MessagingCenter.Subscribe<SyncListProjectCommand, ProjectSimple>(this, "DataDownloaded", (sender, arg) =>
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    Navigation.PopAsync();
-                });
-
-            });
-
-
             MessagingCenter.Subscribe<DataDAO, string>(this, "SyncComplete", (sender, message) =>
             {
                 if (message == "Data successfully downloaded" || message.Contains("Data successfully downloaded"))
