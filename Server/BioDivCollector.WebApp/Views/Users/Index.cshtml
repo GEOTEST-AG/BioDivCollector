@@ -101,7 +101,11 @@
                                         {
                                             foreach (BioDivCollector.WebApp.Controllers.UserProjectPoco upp in item.projects)
                                             {
+                                                @if (upp.Project.StatusId != StatusEnum.deleted)
+                                                {
                                                 <text>@upp.Project.ProjectName (@upp.Role)</text><br />
+
+                                                }
                                             }
                                         }
                                     </td>
