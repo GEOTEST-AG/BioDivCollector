@@ -206,9 +206,21 @@ namespace BioDivCollector.WebApp.Controllers
         public async Task Logout()
         {
 
+            await MyCustomSignOut("/Home/Index");
+            //await HttpContext.SignOutAsync("Cookies");
+            //await HttpContext.SignOutAsync("OpenIdConnect");
+        }
 
+        public async Task MyCustomSignOut(string redirectUri)
+        {
+            // inject the HttpContextAccessor to get "context"
             await HttpContext.SignOutAsync("Cookies");
-            await HttpContext.SignOutAsync("OpenIdConnect");
+            var prop = new AuthenticationProperties()
+            {
+                RedirectUri = redirectUri
+            };
+            // after signout this will redirect to your provided target
+            await HttpContext.SignOutAsync("OpenIdConnect", prop);
         }
 
     }

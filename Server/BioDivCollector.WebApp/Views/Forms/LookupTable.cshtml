@@ -30,14 +30,34 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
+            <div class="card height-equal">
+                <div class="card-header">
+                    <h5>WFS Dienste</h5>
+
+                </div>
+                <div class="card-body">
+                    Die Beobachtungsdaten mit den zugehörigen Geometrien können mittels OGC WFS Dienst in GIS Systeme übernommen werden.
+                    Die WFS Dienste stehen unter folgenden URLs zur Verfügung:
+                    <ul>
+                        <li><a href="https://wfs.biodivcollector.ch/wfs?request=GetCapabilities" target="_blank">https://wfs.biodivcollector.ch/wfs?request=GetCapabilities</a> (Mit Anmeldung)</li>
+                        <li><a href="https://wfs.biodivcollector.ch/ogd/wfs?request=GetCapabilities" target="_blank">https://wfs.biodivcollector.ch/wfs?request=GetCapabilities</a> (Alle OGD Daten ohne Anmeldung)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="col-md-12">
             <div class="card height-equal" style="min-height: 685px;">
                 <div class="card-header">
                     <h5>Alle Formularfelder</h5>
 
                 </div>
                 <div class="card-body">
+
                     <div class="user-status table-responsive product-chart">
-                         <table id="grouplist" class="table table-bordernone">
+                        <table id="grouplist" class="table table-bordernone">
                             <thead>
                                 <tr>
                                     <th>
@@ -52,7 +72,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (BioDivCollector.WebApp.Controllers.LookupTableViewModel ltvm in Model.Where(m=>m.UsedInForms.Count>0))
+                                @foreach (BioDivCollector.WebApp.Controllers.LookupTableViewModel ltvm in Model.Where(m => m.UsedInForms.Count > 0))
                                 {
                                     @if (((ltvm.FormField.Public == true) && (ltvm.FormField.PublicMotherFormField == null)) || (ltvm.FormField.Public == false))
                                     {
@@ -78,12 +98,12 @@
                                                     <text>@f.Title<br /></text>
                                                 }
 
-                                                
+
                                             </td>
                                         </tr>
-                                        }
-
                                     }
+
+                                }
 
 
 

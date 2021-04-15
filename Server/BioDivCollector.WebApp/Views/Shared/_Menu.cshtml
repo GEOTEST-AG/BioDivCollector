@@ -21,6 +21,8 @@
 
         <li><a href="@Url.Action("Import", "Projects")" class="@Html.IsSelected(actions: "Import", controllers: "Projects")"><i class="fa fa-angle-right"></i>Daten importieren</a></li>
 
+        <li><a href="@Url.Action("LookupTable", "Forms")" class="@Html.IsSelected(actions: "", controllers: "Forms")"><i class="fa fa-angle-right"></i>Übersicht Felder-Ids für WFS</a></li>
+
         @if (User.IsInRole("DM"))
         {
             <li><a href="@Url.Action("Create", "Projects")" class="@Html.IsSelected(actions: "Create", controllers: "Projects")"><i class="fa fa-angle-right"></i>Neues Projekt erstellen</a></li>
@@ -40,7 +42,6 @@
         </a>
         <ul class="sidebar-submenu">
             <li><a href="@Url.Action("Index", "Forms")" class="@Html.IsSelected(actions: "", controllers: "Forms")"><i class="fa fa-angle-right"></i>Beobachtungsformulare</a></li>
-            <li><a href="@Url.Action("LookupTable", "Forms")" class="@Html.IsSelected(actions: "", controllers: "Forms")"><i class="fa fa-angle-right"></i>Übersicht Felder-Ids für WFS</a></li>
         </ul>
     </li>
 }
