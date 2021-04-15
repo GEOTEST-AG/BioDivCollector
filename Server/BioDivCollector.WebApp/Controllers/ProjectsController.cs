@@ -605,16 +605,16 @@ namespace BioDivCollector.WebApp.Controllers
                                                             TextData t = r.TextData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
                                                             if (t != null)
                                                             {
-                                                                if (t.Value != result.GetString(importColumnName))
+                                                                if (t.Value != result.GetValue(importColumnName).ToString())
                                                                 {
-                                                                    t.Value = result.GetString(importColumnName);
+                                                                    t.Value = result.GetValue(importColumnName).ToString();
                                                                     db.Entry(t).State = EntityState.Modified;
                                                                     isChanged = true;
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                t = new TextData() { FormField = fff.FormField, Record = r, Value = result.GetString(importColumnName), Id = Guid.NewGuid() };
+                                                                t = new TextData() { FormField = fff.FormField, Record = r, Value = result.GetValue(importColumnName).ToString(), Id = Guid.NewGuid() };
                                                                 db.TextData.Add(t);
                                                                 db.Entry(t).State = EntityState.Added;
                                                                 isChanged = true;
@@ -626,9 +626,9 @@ namespace BioDivCollector.WebApp.Controllers
                                                             TextData t = r.TextData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
                                                             if (t != null)
                                                             {
-                                                                if (t.Value != result.GetString(importColumnName))
+                                                                if (t.Value != result.GetValue(importColumnName).ToString())
                                                                 {
-                                                                    t.Value = result.GetString(importColumnName);
+                                                                    t.Value = result.GetValue(importColumnName).ToString();
                                                                     FieldChoice fc = await db.FieldChoices.Where(m => m.Text == t.Value && m.FormField == fff.FormField).FirstOrDefaultAsync();
                                                                     //if (fff.FormField.FieldChoices.Any(m => m.Text == t.Value)) t.FieldChoice = fff.FormField.FieldChoices.Where(m => m.Text == t.Value).First();
                                                                     if (fc != null) t.FieldChoice = fc;
@@ -638,7 +638,7 @@ namespace BioDivCollector.WebApp.Controllers
                                                             }
                                                             else
                                                             {
-                                                                t = new TextData() { FormField = fff.FormField, Record = r, Value = result.GetString(importColumnName), Id = Guid.NewGuid() };
+                                                                t = new TextData() { FormField = fff.FormField, Record = r, Value = result.GetValue(importColumnName).ToString(), Id = Guid.NewGuid() };
                                                                 db.TextData.Add(t);
                                                                 db.Entry(t).State = EntityState.Added;
                                                                 isChanged = true;
@@ -772,11 +772,11 @@ namespace BioDivCollector.WebApp.Controllers
 
 
             /* local */
-            /*psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
+            psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\gdal\bin\gdal\apps";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\gdal\bin\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\gdal\bin\gdal\plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];*/
+            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];
 
 
             string db = Configuration["Environment:DB"];
@@ -786,11 +786,11 @@ namespace BioDivCollector.WebApp.Controllers
 
             string pgstring = " PG:\"dbname = '" + db + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
 
-            psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
+            /*psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\Program Files\GDAL";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files\GDAL\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files\GDAL\gdal-plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];
+            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];*/
 
             psi.CreateNoWindow = false;
             psi.UseShellExecute = false;
