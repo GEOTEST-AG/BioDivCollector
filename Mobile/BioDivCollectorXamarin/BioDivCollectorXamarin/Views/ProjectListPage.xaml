@@ -101,6 +101,9 @@
                    HorizontalOptions="FillAndExpand"
                    HeightRequest="40"
                    />
+            <StackLayout Padding="10" BackgroundColor="{StaticResource BioDivGrey}" IsVisible="{Binding Activity, Converter={StaticResource stringToBool}}" Spacing="0" >
+                <ActivityIndicator IsRunning="{Binding Activity, Converter={StaticResource stringToBool}}" BackgroundColor="{StaticResource BioDivGrey}" IsVisible="{Binding Activity, Converter={StaticResource stringToBool}}" Color="{StaticResource BioDivGreen}"/>
+            </StackLayout>
             <local:ConnectionView/>
         </StackLayout>
     </ContentPage.Content>

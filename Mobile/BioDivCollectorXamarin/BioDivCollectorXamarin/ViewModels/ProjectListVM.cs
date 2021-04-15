@@ -54,6 +54,8 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     activity = value;
                     OnPropertyChanged("Activity");
+                    App.Busy = (activity != String.Empty);
+                    MessagingCenter.Send<Application>(App.Current, "RefreshProjectList");
                 });
             }
         }
@@ -112,6 +114,7 @@ namespace BioDivCollectorXamarin.ViewModels
             DeleteProjectCommand = new DeleteListProjectCommand(this);
             CopyBDCGUIDCommand = new BDCGUIDListCommand(this);
 
+            Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
             Activity = "";
             MessagingCenter.Subscribe<Application, string>(App.Current, "SyncMessage", (sender, arg) =>
             {
@@ -181,6 +184,16 @@ namespace BioDivCollectorXamarin.ViewModels
             App.SetProject(projectGUID);
             App.ZoomMapOut = true;
         }
+
+        /// <summary>
+        /// Refresh list on changes in connectivity to reflect what actions are possible
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
+        {
+            MessagingCenter.Send<Application>(App.Current, "RefreshProjectList");
+        }
     }
 
     /// <summary>
@@ -225,12 +238,14 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     Debug.WriteLine("Deleting ");
                     bool success = Project.DeleteProject(project);
-                    MessagingCenter.Send<Application>(App.Current, "RefreshProjectList");
+                    
                     if (App.CurrentProjectId == project.projectId)
                     {
                         App.SetProject(String.Empty);
                         Preferences.Set("FilterGeometry", String.Empty);
                     }
+
+                    MessagingCenter.Send<Application>(App.Current, "RefreshProjectList");
                 }
             });
         }
@@ -258,7 +273,10 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public bool CanExecute(object parameter)
         {
-            return true;
+            if (parameter == null) { return false; }
+            ProjectSimple proj = parameter as ProjectSimple;
+            bool existsAlready = Project.LocalProjectExists(proj.projectId);
+            return !App.Busy && (existsAlready || App.IsConnected);
         }
 
         public async void Execute(object parameter)
@@ -273,23 +291,6 @@ namespace BioDivCollectorXamarin.ViewModels
             else
             {
                 Debug.WriteLine("Syncing: ");
-
-                
-                MessagingCenter.Subscribe<DataDAO, string>(new DataDAO(), "DataDownloadSuccess", (sender, arg) =>
-                {
-                    if (arg != "Error downloading data" && arg != "DataDownloadError")
-                    {
-                        App.SetProject(proj.projectId);
-                        MessagingCenter.Send<SyncListProjectCommand, ProjectSimple>(this, "ProjectSelected", proj);
-                    }
-                    MessagingCenter.Unsubscribe<DataDAO, string>(new DataDAO(), "DataDownloadSuccess");
-                });
-
-                MessagingCenter.Subscribe<DataDAO, string>(new DataDAO(), "DataDownloadError", (sender, arg) =>
-                {
-                    MessagingCenter.Unsubscribe<DataDAO, string>(new DataDAO(), "DataDownloadError");
-                });
-
                 await Project.DownloadProjectData(proj.projectId);
             }
             App.ZoomMapOut = true;

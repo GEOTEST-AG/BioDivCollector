@@ -80,11 +80,11 @@ namespace BioDivCollectorXamarin.Models
                         if (json.ToLower() != "error downloading data" && json.ToLower() != "error parsing data")
                         {
                             
-                                success = DataDAO.GetProjectDataFromJSON(json);
-                                App.CurrentProjectId = projectId;
-                                App.SetProject(projectId);
-
-                                MessagingCenter.Send(new Project(), "DataDownloadSuccess", success);
+                            success = DataDAO.GetProjectDataFromJSON(json);
+                            App.CurrentProjectId = projectId;
+                            App.SetProject(projectId);
+                            ShowSyncCompleteMessage(success);
+                            MessagingCenter.Send(new Project(), "DataDownloadSuccess", success);
                         }
 
                         MessagingCenter.Send(new DataDAO(), "DownloadComplete",json);
@@ -272,7 +272,7 @@ namespace BioDivCollectorXamarin.Models
                 };
                 var projectRoot = JsonConvert.DeserializeObject<Project>(json, settings);
 
-                Task.Run(() => { DataDAO.ProcessJSON((Project)projectRoot); return Task.CompletedTask; }); ;
+                DataDAO.ProcessJSON((Project)projectRoot);
 
                 return "Data successfully downloaded";
             }
@@ -689,15 +689,11 @@ namespace BioDivCollectorXamarin.Models
                         }
                         try
                         {
-                            //var proj = conn.Table<Project>().Select(g => g).FirstOrDefault();
                             project.geometries = conn.Table<ReferenceGeometry>().Select(g => g).Where(g => g.project_fk == project.Id).ToList();
                             project.records = conn.Table<Record>().Select(g => g).Where(g => g.project_fk == project.Id).ToList();
                             project.forms = conn.Table<Form>().Select(g => g).Where(g => g.project_fk == project.Id).ToList();
                             project.layers = conn.Table<Layer>().Select(g => g).Where(g => g.project_fk == project.Id).ToList();
                             conn.UpdateWithChildren(project);
-
-                            ShowSyncCompleteMessage("Data successfully downloaded");
-                            MessagingCenter.Send(new DataDAO(), "SyncComplete", "Data successfully downloaded");
                         }
                         catch (Exception e)
                         {

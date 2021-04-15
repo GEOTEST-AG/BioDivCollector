@@ -158,9 +158,7 @@ namespace BioDivCollectorXamarin.Models.MBTiles
             var tileId = Guid.NewGuid().ToString().ToLower();
 
             var connection = new SQLiteConnection(dbpath);
-            // Enable write-ahead logging
-            var walCommand = connection.CreateCommand(@" PRAGMA journal_mode = 'wal' ");
-            walCommand.ExecuteNonQuery();
+
             using (SQLiteConnection conn = connection)
             {
                 var imageTable = new Images();
