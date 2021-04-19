@@ -88,11 +88,22 @@ namespace BioDivCollector.WebApp.Controllers
             List<Project> projects = new List<Project>();
             List<Project> erfassendeProjects = new List<Project>();
             List<Project> editProjectSetting = new List<Project>();
-            if (User.IsInRole("DM")) projects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.DM);
-
-            if (User.IsInRole("EF")) erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.EF);
-            if (User.IsInRole("PK")) projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PK));
-            if (User.IsInRole("PL")) projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PL));
+            if (User.IsInRole("DM"))
+            {
+                projects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.DM);
+                erfassendeProjects = projects;
+            }
+            else if (User.IsInRole("EF")) erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.EF);
+            if (User.IsInRole("PK"))
+            {
+                projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PK));
+                erfassendeProjects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PK));
+            }
+            if (User.IsInRole("PL"))
+            {
+                projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PL));
+                erfassendeProjects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PL));
+            }
             editProjectSetting = projects;
             List<Project> nurLesendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.LE);
             nurLesendeProjects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.LE_OGD));

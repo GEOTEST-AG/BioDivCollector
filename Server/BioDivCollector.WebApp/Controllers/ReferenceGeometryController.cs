@@ -161,13 +161,25 @@ namespace BioDivCollector.WebApp.Controllers
 
             List<Project> projects = new List<Project>();
             List<Project> erfassendeProjects = new List<Project>();
-            if (User.IsInRole("DM")) projects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.DM);
+            if (User.IsInRole("DM"))
+            {
+                projects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.DM);
+                erfassendeProjects = projects;
+            }
+            else if (User.IsInRole("EF")) erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.EF);
+            if (User.IsInRole("PK"))
+            {
+                projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PK));
+                erfassendeProjects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PK));
+            }
+            if (User.IsInRole("PL"))
+            {
+                projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PL));
+                erfassendeProjects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PL));
+            }
 
-                if (User.IsInRole("EF")) erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.EF);
-                if (User.IsInRole("PK")) projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PK));
-                if (User.IsInRole("PL")) projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PL));
-            
             projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.LE));
+            projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.LE_OGD));
             projects.AddRange(erfassendeProjects);
 
             if (!projects.Any(m=>m.ProjectId == g.ProjectGroupProjectId)) return StatusCode(StatusCodes.Status403Forbidden);
@@ -177,7 +189,16 @@ namespace BioDivCollector.WebApp.Controllers
             GeometrieViewModel gvm = new GeometrieViewModel() { Geometry = g };
             gvm.Records = new List<RecordViewModel>();
 
-            List<Group> myGroups = await db.Groups.Where(m => m.GroupUsers.Any(u => u.UserId == user.UserId)).ToListAsync();
+            List<Group> myGroups;
+            if (User.IsInRole("DM")) myGroups = await db.Groups.ToListAsync();
+            else if ((User.IsInRole("PK")) || (User.IsInRole("PL")))
+            {
+                Project p = await db.Projects.Where(m => m.ProjectId == g.ProjectGroupProjectId).Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).FirstAsync();
+
+                if ((p.ProjectConfigurator.UserId == user.UserId) || (p.ProjectManager.UserId == user.UserId)) myGroups = await db.Groups.ToListAsync();
+                else myGroups = await db.Groups.Where(m => m.GroupUsers.Any(u => u.UserId == user.UserId)).ToListAsync();
+            }
+            else myGroups = await db.Groups.Where(m => m.GroupUsers.Any(u => u.UserId == user.UserId)).ToListAsync();
 
             await RecordsController.CreateDynamicView(db, g, g.ProjectGroup, myGroups, gvm);
 
