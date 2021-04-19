@@ -96,7 +96,22 @@
                                         <td>@pp.Project.ProjectNumber</td>
 
                                         <td>@pp.Project.ID_Extern</td>
-                                        <td>@pp.Project.Description</td>
+                                        <td>
+                                            @if ((pp.Project.Description != null) && (pp.Project.Description.Length > 150))
+                                            {
+                                                <div data-container="body" data-toggle="tooltip" data-placement="top" title="@pp.Project.Description">
+
+                                                    <text>@pp.Project.Description.Substring(0, 150)</text><text>...</text>
+                                                </div>
+
+
+
+                                            }
+                                            else
+                                            {
+                                                @pp.Project.Description
+                                            }
+                                                                            </td>
                                         <td>
                                             @if (pp.Project.OGD)
                                             {
