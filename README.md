@@ -5,6 +5,14 @@ BioDivCollector ermöglicht deine Erfassungsprojekte mit eigenen Parametern einz
 
 Kopiere jede beliebige BioDiv-Datensatz-ID in von dir gewünschte Drittanwendungen, um diese Drittdaten in Echtzeit (über Geo-Services) oder bei Bedarf (über Download-Service) mit den BioDiv-Informationen zusammenzuführen. 
 
+## Lizenz
+
+Der BioDivCollector steht unter der Apache 2.0 Lizenz zur Verfügung. Bei sämtlichen Anpassungen muss das Copyright angegeben werden:
+
+Copyright (c) 2021, Baudirektion Kanton Zürich
+Alle Rechte vorbehalten.
+
+
 ## Aufbau GIT
 Das Projekt ist in zwei Teile aufgeteilt:
 - Server: Sämtliche Teile, welche auf dem Server laufen: Datenbank-Anbindung, Connector, WFS-Dienst und die WebApp selbst
