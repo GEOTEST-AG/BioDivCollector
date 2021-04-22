@@ -733,12 +733,12 @@ namespace BioDivCollector.WebApp.Controllers
             string sqlCreateViews2 = "FROM projects p " +
                                         "LEFT JOIN geometries g ON g.projectid = p.projectid " +
                                         "LEFT JOIN records r2 ON r2.geometryid = g.geometryid " +
-                                        "WHERE g.statusid <> 3 AND g.{geometry} IS NOT NULL AND (r2.statusid <> 3 or r2.statusid is null) {ogd_true}" +
+                                        "WHERE p.statusid <> 3 AND g.statusid <> 3 AND g.{geometry} IS NOT NULL AND (r2.statusid <> 3 or r2.statusid is null) {ogd_true}" +
                                         "ORDER BY g.geometryname; ";
 
             string sqlCreateViewsGeneral2 = "FROM projects p " +
                                         "LEFT JOIN records r2 ON r2.projectid = p.projectid " +
-                                        "WHERE (r2.statusid <> 3 or r2.statusid is null) and r2.groupid is not null {ogd_true};";
+                                        "WHERE p.statusid <> 3 AND (r2.statusid <> 3 or r2.statusid is null) and r2.groupid is not null {ogd_true};";
 
             string sqlGeometrieView = sqlCreateViews1;
             string sqlGeneralView = sqlCreateViewsGeneral;
