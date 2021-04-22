@@ -85,7 +85,7 @@
 
     function renameGeometry() {
         modalokclick = false;
-        $('#newRenameGeometryTitle').val('@Html.Raw(Model.Geometry.GeometryName.Replace("'","\'"))');
+        $('#newRenameGeometryTitle').val('@Html.Raw(Model.Geometry.GeometryName?.Replace("'","\'"))');
         $('#renameGeometryModal').modal('show');
         $('#renameGeometryModal').on('hide.bs.modal', function (event) {
             if (modalokclick) {
