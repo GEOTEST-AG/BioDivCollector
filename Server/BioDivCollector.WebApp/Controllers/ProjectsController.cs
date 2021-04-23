@@ -328,7 +328,7 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 try
                 {
-                    Project pOld = db.Projects.Find(project.ProjectId);
+                    Project pOld = await db.Projects.Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).Where(m => m.ProjectId == project.ProjectId).FirstOrDefaultAsync();
                     pOld.ProjectName = project.ProjectName;
                     pOld.ProjectNumber = project.ProjectNumber;
                     pOld.Description = project.Description;
@@ -337,7 +337,8 @@ namespace BioDivCollector.WebApp.Controllers
 
                     if (project.ProjectConfigurator != null)
                     {
-                        pOld.ProjectConfigurator = await db.Users.FindAsync(project.ProjectConfigurator);
+                        User newPC = await db.Users.FindAsync(project.ProjectConfigurator);
+                        pOld.ProjectConfigurator = newPC;
                         UsersController uc = new UsersController(Configuration);
                         await uc.AddRoleToUser(pOld.ProjectConfigurator.UserId, "PK");
                     }

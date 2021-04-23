@@ -184,7 +184,7 @@
                                         }
                                     </td>
                                     <td>
-                                        @foreach (ProjectForm pf in item.FormProjects)
+                                        @foreach (ProjectForm pf in item.FormProjects.Where(m=>m.Project.StatusId!=StatusEnum.deleted))
                                         {
                                             <text>@pf.Project.ProjectName</text><br />
                                         }
