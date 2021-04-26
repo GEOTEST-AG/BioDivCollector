@@ -14,7 +14,7 @@
   </item>
   <item>
     <bitmap
-        android:src="@drawable/logov1small"
+        android:src="@drawable/logov1350"
         android:tileMode="disabled"
         android:gravity="center"/>
   </item>
