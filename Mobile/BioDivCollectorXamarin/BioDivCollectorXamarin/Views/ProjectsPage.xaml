@@ -16,7 +16,7 @@
 
 
         <StackLayout BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HorizontalOptions="Fill"  Margin="0,0,0,0" Spacing="0">
-            <Grid   BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HeightRequest="160" MinimumHeightRequest="160" >
+            <Grid BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HeightRequest="160" MinimumHeightRequest="160" >
                     <Frame BorderColor="{StaticResource BioDivGrey}"
                            OutlineColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
                            BackgroundColor="Transparent"
@@ -35,7 +35,7 @@
                     <Frame Margin ="0,10,0,0" Padding="0" WidthRequest="40" HeightRequest="40" IsClippedToBounds="True" HorizontalOptions="Center" VerticalOptions="Start" BorderColor="{StaticResource BioDivGrey}" CornerRadius="20" BackgroundColor="White" HasShadow="False" >
                         <Image HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="25" HeightRequest="25" Source="LogoSmall.png"/>
                     </Frame>
-                </Grid>
+            </Grid>
                 <!-- Current Project Information -->
             <ScrollView Margin="0" VerticalOptions="FillAndExpand" IsVisible="{Binding CurrentProject, Converter={StaticResource objectToBool}}">
                 <FlexLayout Direction="Column" JustifyContent="SpaceEvenly" >

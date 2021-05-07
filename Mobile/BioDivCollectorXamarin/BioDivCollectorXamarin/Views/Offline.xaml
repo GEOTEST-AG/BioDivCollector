@@ -4,7 +4,7 @@
              x:Class="BioDivCollectorXamarin.Views.Offline">
     <ContentPage.Content>
         <StackLayout Margin="40" VerticalOptions="Center">
-            <Image Source="LogoV1.png" WidthRequest="400" Margin="20"/>
+            <Image Source="LogoV1small.png" WidthRequest="400" Margin="20"/>
             <Label Text="Die App erfordert eine Datenverbindung, um sich anzumelden. Bitte stellen Sie sicher, dass Sie online sind und starten Sie die App neu."
                 VerticalOptions="CenterAndExpand" 
                 HorizontalOptions="CenterAndExpand" HorizontalTextAlignment="Center"/>
