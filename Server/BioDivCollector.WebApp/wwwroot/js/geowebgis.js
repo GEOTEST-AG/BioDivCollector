@@ -35,7 +35,7 @@
             draw_interaction: null,
             clusterselect: null,
             showLabels: false,
-            isDrawing: false, 
+            isDrawing: false,
             workspace: '',
             selectedfeature: null
         };
@@ -237,7 +237,7 @@
 
                             GeoWebGIS.map.getView().setCenter(newCoordinates);
                             GeoWebGIS.map.getView().setZoom(GeoWebGIS.map.getView().getZoom() - 1);
-                            
+
                         }
                         catch (fehler) {
                             console.error(fehler);
@@ -526,7 +526,7 @@
             GeoWebGIS.drawsource = new ol.source.Vector({
                 format: new ol.format.GeoJSON(),
                 url: function (extent) {
-                    var wfsurl = '/proxy/' + GeoWebGIS.workspace + '/ows?service=WFS&version=2.0.0&request=GetFeature&SRSNAME=EPSG:21781&typeName=' + GeoWebGIS.workspace + ':geometries_' + sqlcolumn + '&outputFormat=application/json&cql_filter=statusid<3 and projectid=\'' + projectid +'\'';
+                    var wfsurl = '/proxy/' + GeoWebGIS.workspace + '/ows?service=WFS&version=2.0.0&request=GetFeature&SRSNAME=EPSG:21781&typeName=' + GeoWebGIS.workspace + ':geometries_' + sqlcolumn + '&outputFormat=application/json&cql_filter=statusid<3 and projectid=\'' + projectid + '\'';
                     return wfsurl;
 
                 },
@@ -614,67 +614,67 @@
                     ol.Observable.unByKey(GeoWebGIS.listener);
 
 
-                        if (projectid != 0) {
-                            // Parameter setzen
-                            e.feature.setProperties({ 'projectid': projectid });
-                            e.feature.setProperties({ 'statusid': '1' });
-                            e.feature.setProperties({ 'groupid': groupid });
-                            var parser = new jsts.io.OL3Parser();
+                    if (projectid != 0) {
+                        // Parameter setzen
+                        e.feature.setProperties({ 'projectid': projectid });
+                        e.feature.setProperties({ 'statusid': '1' });
+                        e.feature.setProperties({ 'groupid': groupid });
+                        var parser = new jsts.io.OL3Parser();
 
-                            // convert the OpenLayers geometry to a JSTS geometry
-                            var jstsGeom = parser.read(e.feature.getGeometry());
+                        // convert the OpenLayers geometry to a JSTS geometry
+                        var jstsGeom = parser.read(e.feature.getGeometry());
 
-                            if (jstsGeom.isValid()) {
-                                modalokclick = false;
+                        if (jstsGeom.isValid()) {
+                            modalokclick = false;
 
-                                $('#newGeometryModal').on('shown.bs.modal', function () {
-                                    $('#newGeometryTitle').focus();
-                                })
+                            $('#newGeometryModal').on('shown.bs.modal', function () {
+                                $('#newGeometryTitle').focus();
+                            })
 
-                                $('#newGeometryModal').modal('show');
-                                
-
-                                $('#newGeometryTitle').on('keyup keypress', function (e) {
-                                    var keyCode = e.keyCode || e.which;
-                                    if (keyCode === 13) {
-                                        e.preventDefault();
-                                        modalokclick = true;
-                                        $('#newGeometryModal').modal('hide');
-                                    }
-                                });
-
-                                var newFeature = e.feature;
-                                $('#newGeometryModal').on('hide.bs.modal', function (event) {
-                                    if (modalokclick) {
-                                        newFeature.setProperties({ 'geometryname': $('#newGeometryTitle').val() });
-                                        self.saveData('insert', newFeature);
-                                    }
-                                    GeoWebGIS.endDrawInteraction()
-                                    $(this).off('hide.bs.modal');
-                                    $(this).off('shown.bs.modal');
-                                })
+                            $('#newGeometryModal').modal('show');
 
 
-
-                            }
-                            else {
-                                /*BootstrapDialog.show({
-                            type: BootstrapDialog.TYPE_DANGER,
-                            title: GeoWebGIS.translator.get("wrongPolyTitle"),
-                            message: GeoWebGIS.translator.get("wrongPolyText") + '<img src="/Content/themes/invalid_polygon.png" width="560" />',
-                            buttons: [{
-                                label: 'OK',
-                                action: function (dialogItself) {
-                                    dialogItself.close();
+                            $('#newGeometryTitle').on('keyup keypress', function (e) {
+                                var keyCode = e.keyCode || e.which;
+                                if (keyCode === 13) {
+                                    e.preventDefault();
+                                    modalokclick = true;
+                                    $('#newGeometryModal').modal('hide');
                                 }
-                            }]
-                        });*/
-                                // TODO Fehlermeldung invalid Polygon
+                            });
 
-                            }
+                            var newFeature = e.feature;
+                            $('#newGeometryModal').on('hide.bs.modal', function (event) {
+                                if (modalokclick) {
+                                    newFeature.setProperties({ 'geometryname': $('#newGeometryTitle').val() });
+                                    self.saveData('insert', newFeature);
+                                }
+                                GeoWebGIS.endDrawInteraction()
+                                $(this).off('hide.bs.modal');
+                                $(this).off('shown.bs.modal');
+                            })
 
-                            //self.map.removeInteraction(self.draw_interaction);
+
+
                         }
+                        else {
+                            /*BootstrapDialog.show({
+                        type: BootstrapDialog.TYPE_DANGER,
+                        title: GeoWebGIS.translator.get("wrongPolyTitle"),
+                        message: GeoWebGIS.translator.get("wrongPolyText") + '<img src="/Content/themes/invalid_polygon.png" width="560" />',
+                        buttons: [{
+                            label: 'OK',
+                            action: function (dialogItself) {
+                                dialogItself.close();
+                            }
+                        }]
+                    });*/
+                            // TODO Fehlermeldung invalid Polygon
+
+                        }
+
+                        //self.map.removeInteraction(self.draw_interaction);
+                    }
 
                 });
 
@@ -684,7 +684,7 @@
                 this.map.addInteraction(snap);
             }
             else if (mode == "Modify") {
-                                
+
                 var modifystyles = [
                     /* We are using two different styles for the polygons:
                      *  - The first style is for the polygons themselves.
@@ -749,7 +749,7 @@
                             });
                         }
                         else return modifystyles;
-                        
+
                     }
                 });
                 this.interactionSelect.getFeatures().clear();
@@ -772,7 +772,7 @@
 
                 var self = this;
                 this.drawsource.once('change', function (e) {
-                    
+
 
                     if (GeoWebGIS.drawsource.getFeatures().length == 1) {
                         var selectedfeatures;
@@ -910,12 +910,12 @@
                             // Update --> 
                             $.get("/ReferenceGeometry/AddChangelog/" + newFeature.getId() + "?update=true");
                         }
-                        else  $.get("/ReferenceGeometry/AddChangelog/" + geometryid);
+                        else $.get("/ReferenceGeometry/AddChangelog/" + geometryid);
                     }
                     finally {
                         GeoWebGIS.reloadGeoJSON();
                     }
-                    
+
                 }
             });
 

@@ -345,7 +345,8 @@ namespace BioDivCollector.WebApp.Controllers
 
                     if (project.ProjectManager != null)
                     {
-                        pOld.ProjectManager = await db.Users.FindAsync(project.ProjectManager);
+                        User newPM = await db.Users.FindAsync(project.ProjectManager);
+                        pOld.ProjectManager = newPM;
                         UsersController uc = new UsersController(Configuration);
                         await uc.AddRoleToUser(pOld.ProjectManager.UserId, "PL");
                     }
@@ -518,242 +519,260 @@ namespace BioDivCollector.WebApp.Controllers
                                                         db.ChangeLogsGeometries.Add(clr);
                                                     }
                                                 }
+
+                                                // was it deleted? Then make it new again
+                                                if (rg.StatusId==StatusEnum.deleted)
+                                                {
+                                                    changes += "<li>Geometrie " + rg.GeometryName + " wieder aktiviert (undelete)</li>";
+                                                    rg.StatusId = StatusEnum.unchanged;
+                                                    db.Entry(rg).State = EntityState.Modified;
+                                                    ChangeLog cl = new ChangeLog() { ChangeDate = DateTime.Now, Log = "Geometry undeleted by Importing", User = user };
+                                                    ChangeLogGeometry clr = new ChangeLogGeometry() { Geometry = rg, ChangeLog = cl };
+                                                    db.ChangeLogsGeometries.Add(clr);
+                                                }
                                             }
                                             if ((result[recordIndex] != null) && (!result.IsDBNull(recordIndex)))
                                             {
-                                                if ((rg != null) && (rg.Records.Any(m => m.RecordId == Guid.Parse(result.GetString(recordIndex)))))
+                                                string recordIDString = result.GetString(recordIndex);
+                                                Guid parsedGuid2;
+                                                if (Guid.TryParse(result.GetString(recordIndex), out parsedGuid2))
                                                 {
-                                                    r = rg.Records.Where(m => m.RecordId == Guid.Parse(result.GetString(recordIndex))).FirstOrDefault();
-                                                }
-                                                else
-                                                {
-                                                    foreach (ProjectGroup checkpg in p.ProjectGroups)
+                                                    if ((rg != null) && (rg.Records.Any(m => m.RecordId == Guid.Parse(result.GetString(recordIndex)))))
                                                     {
-                                                        r = checkpg.Records.Where(m => m.RecordId == Guid.Parse(result.GetString(recordIndex))).FirstOrDefault();
-                                                        if (r != null) break;
+                                                        r = rg.Records.Where(m => m.RecordId == Guid.Parse(result.GetString(recordIndex))).FirstOrDefault();
                                                     }
+                                                    else
+                                                    {
+                                                        foreach (ProjectGroup checkpg in p.ProjectGroups)
+                                                        {
+                                                            r = checkpg.Records.Where(m => m.RecordId == Guid.Parse(result.GetString(recordIndex))).FirstOrDefault();
+                                                            if (r != null) break;
+                                                        }
 
+                                                    }
                                                 }
                                             }
-
-                                            // create a new Record)
-                                            if ((r == null) && (result[recordIndex] != null) && (!result.IsDBNull(recordIndex)))
+                                            Guid parsedGuid;
+                                            if ((!result.IsDBNull(recordIndex)) && ((Guid.TryParse(result.GetString(recordIndex), out parsedGuid))))
                                             {
-
-                                                //ProjectGroup pg = p.ProjectGroups.Where(m => m.ReadOnly == false && m.Group.GroupUsers.Any(u => u.UserId == user.UserId)).FirstOrDefault();
-                                                if (rg != null)
+                                                // create a new Record)
+                                                if ((r == null) && (result[recordIndex] != null) && (!result.IsDBNull(recordIndex)))
                                                 {
-                                                    r = new Record() { Geometry = rg, ProjectGroup = pg, StatusId = StatusEnum.unchanged, RecordId = Guid.Parse(result.GetString(recordIndex)) };
 
-                                                }
-                                                else
-                                                {
-                                                    r = new Record() { ProjectGroup = pg, StatusId = StatusEnum.unchanged, RecordId = Guid.Parse(result.GetString(recordIndex)) };
-                                                }
-
-                                                // search first import field == get the form. But first ignore the allgemein columns, because they could be from an other form
-                                                bool formfound = false;
-                                                foreach (string columnname in names.Where(m => m.Contains("_") && !m.Contains("Allgemein")).ToList())
-                                                {
-                                                    if ((!result.IsDBNull(columnname)) && (!formfound))
+                                                    //ProjectGroup pg = p.ProjectGroups.Where(m => m.ReadOnly == false && m.Group.GroupUsers.Any(u => u.UserId == user.UserId)).FirstOrDefault();
+                                                    if (rg != null)
                                                     {
-                                                        // ignore default boolean values... We don't know if this is filled out or default...
-                                                        if (result.GetFieldType(columnname) != typeof(Boolean))
-                                                        {
-
-                                                            string[] getID = columnname.Split("_");
-                                                            try
-                                                            {
-                                                                int fieldId;
-                                                                Int32.TryParse(getID[0], out fieldId);
-                                                                if (fieldId == 0) Int32.TryParse(getID[1], out fieldId);
-
-                                                                FormField ff = await db.FormFields.Include(m => m.FormFieldForms).ThenInclude(m => m.Form).Where(m => m.FormFieldId == fieldId).FirstOrDefaultAsync();
-                                                                if (ff != null)
-                                                                {
-                                                                    r.Form = ff.FormFieldForms.First().Form;
-                                                                    formfound = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            catch (Exception e)
-                                                            {
-
-                                                            }
-                                                        }
+                                                        r = new Record() { Geometry = rg, ProjectGroup = pg, StatusId = StatusEnum.unchanged, RecordId = Guid.Parse(result.GetString(recordIndex)) };
 
                                                     }
-                                                }
-                                                //if nothing found try it with the allgemein
-                                                if (r.Form == null)
-                                                {
-                                                    foreach (string columnname in names.Where(m => m.Contains("_") && m.Contains("Allgemein")).ToList())
+                                                    else
                                                     {
-                                                        if (!result.IsDBNull(columnname))
-                                                        {
-                                                            string[] getID = columnname.Split("_");
-                                                            try
-                                                            {
-                                                                int fieldId;
-                                                                Int32.TryParse(getID[0], out fieldId);
-                                                                if (fieldId == 0) Int32.TryParse(getID[1], out fieldId);
-                                                                FormField ff = await db.FormFields.Include(m => m.FormFieldForms).ThenInclude(m => m.Form).Where(m => m.FormFieldId == fieldId).FirstOrDefaultAsync();
-                                                                if (ff != null)
-                                                                {
-                                                                    r.Form = ff.FormFieldForms.First().Form;
-                                                                }
-                                                            }
-                                                            catch (Exception e)
-                                                            {
-
-                                                            }
-
-                                                        }
+                                                        r = new Record() { ProjectGroup = pg, StatusId = StatusEnum.unchanged, RecordId = Guid.Parse(result.GetString(recordIndex)) };
                                                     }
-                                                }
-                                                db.Entry(r).State = EntityState.Added;
-                                                db.Records.Add(r);
 
-                                                changes += "<li>Beobachtung mit Guid " + r.RecordId + " erstellt</li>";
-                                                ChangeLog cl = new ChangeLog() { ChangeDate = DateTime.Now, Log = "Created Record by Importing", User = user };
-                                                ChangeLogRecord clr = new ChangeLogRecord() { Record = r, ChangeLog = cl };
-                                                db.ChangeLogsRecords.Add(clr);
-
-
-                                            }
-
-                                            // there is already a record, update the content
-                                            if ((r != null) && (r.Form != null))
-                                            {
-                                                foreach (FormFormField fff in r.Form.FormFormFields)
-                                                {
-                                                    string importColumnName = null;
-                                                    foreach (string columnname in names)
+                                                    // search first import field == get the form. But first ignore the allgemein columns, because they could be from an other form
+                                                    bool formfound = false;
+                                                    foreach (string columnname in names.Where(m => m.Contains("_") && !m.Contains("Allgemein")).ToList())
                                                     {
-                                                        if (columnname.StartsWith("f_" + fff.FormFieldId.ToString())) importColumnName = columnname;
-
-                                                    }
-                                                    if ((importColumnName != null) && (!result.IsDBNull(importColumnName)))
-                                                    {
-                                                        if ((fff.FormField.FieldTypeId == FieldTypeEnum.Text) || (fff.FormField.FieldTypeId == FieldTypeEnum.DateTime))
+                                                        if ((!result.IsDBNull(columnname)) && (!formfound))
                                                         {
-                                                            TextData t = r.TextData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
-                                                            if (t != null)
+                                                            // ignore default boolean values... We don't know if this is filled out or default...
+                                                            if (result.GetFieldType(columnname) != typeof(Boolean))
                                                             {
-                                                                if (t.Value != result.GetValue(importColumnName).ToString())
-                                                                {
-                                                                    t.Value = result.GetValue(importColumnName).ToString();
-                                                                    db.Entry(t).State = EntityState.Modified;
-                                                                    isChanged = true;
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                t = new TextData() { FormField = fff.FormField, Record = r, Value = result.GetValue(importColumnName).ToString(), Id = Guid.NewGuid() };
-                                                                db.TextData.Add(t);
-                                                                db.Entry(t).State = EntityState.Added;
-                                                                isChanged = true;
-                                                            }
-                                                        }
 
-                                                        if (fff.FormField.FieldTypeId == FieldTypeEnum.Choice)
-                                                        {
-                                                            TextData t = r.TextData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
-                                                            if (t != null)
-                                                            {
-                                                                if (t.Value != result.GetValue(importColumnName).ToString())
-                                                                {
-                                                                    t.Value = result.GetValue(importColumnName).ToString();
-                                                                    FieldChoice fc = await db.FieldChoices.Where(m => m.Text == t.Value && m.FormField == fff.FormField).FirstOrDefaultAsync();
-                                                                    //if (fff.FormField.FieldChoices.Any(m => m.Text == t.Value)) t.FieldChoice = fff.FormField.FieldChoices.Where(m => m.Text == t.Value).First();
-                                                                    if (fc != null) t.FieldChoice = fc;
-                                                                    db.Entry(t).State = EntityState.Modified;
-                                                                    isChanged = true;
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                t = new TextData() { FormField = fff.FormField, Record = r, Value = result.GetValue(importColumnName).ToString(), Id = Guid.NewGuid() };
-                                                                db.TextData.Add(t);
-                                                                db.Entry(t).State = EntityState.Added;
-                                                                isChanged = true;
-                                                            }
-                                                        }
-
-                                                        if (fff.FormField.FieldTypeId == FieldTypeEnum.Boolean)
-                                                        {
-                                                            BooleanData b = r.BooleanData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
-                                                            if (b != null)
-                                                            {
-                                                                bool convertedBoolean = false;
+                                                                string[] getID = columnname.Split("_");
                                                                 try
                                                                 {
-                                                                    string buuli = result.GetString(importColumnName);
-                                                                    if ((buuli.ToLower() == "true") || (buuli == "1") || (buuli.ToLower() == "wahr")) convertedBoolean = true;
+                                                                    int fieldId;
+                                                                    Int32.TryParse(getID[0], out fieldId);
+                                                                    if (fieldId == 0) Int32.TryParse(getID[1], out fieldId);
+
+                                                                    FormField ff = await db.FormFields.Include(m => m.FormFieldForms).ThenInclude(m => m.Form).Where(m => m.FormFieldId == fieldId).FirstOrDefaultAsync();
+                                                                    if (ff != null)
+                                                                    {
+                                                                        r.Form = ff.FormFieldForms.First().Form;
+                                                                        formfound = true;
+                                                                        break;
+                                                                    }
                                                                 }
                                                                 catch (Exception e)
                                                                 {
-                                                                    convertedBoolean = result.GetBoolean(importColumnName);
-                                                                }
 
-                                                                if (b.Value != convertedBoolean)
-                                                                {
-                                                                    b.Value = convertedBoolean;
-                                                                    db.Entry(b).State = EntityState.Modified;
-                                                                    isChanged = true;
                                                                 }
                                                             }
-                                                            else
+
+                                                        }
+                                                    }
+                                                    //if nothing found try it with the allgemein
+                                                    if (r.Form == null)
+                                                    {
+                                                        foreach (string columnname in names.Where(m => m.Contains("_") && m.Contains("Allgemein")).ToList())
+                                                        {
+                                                            if (!result.IsDBNull(columnname))
                                                             {
-                                                                bool convertedBoolean = false;
+                                                                string[] getID = columnname.Split("_");
                                                                 try
                                                                 {
-                                                                    string buuli = result.GetString(importColumnName);
-                                                                    if ((buuli == "true") || (buuli == "1")) convertedBoolean = true;
+                                                                    int fieldId;
+                                                                    Int32.TryParse(getID[0], out fieldId);
+                                                                    if (fieldId == 0) Int32.TryParse(getID[1], out fieldId);
+                                                                    FormField ff = await db.FormFields.Include(m => m.FormFieldForms).ThenInclude(m => m.Form).Where(m => m.FormFieldId == fieldId).FirstOrDefaultAsync();
+                                                                    if (ff != null)
+                                                                    {
+                                                                        r.Form = ff.FormFieldForms.First().Form;
+                                                                    }
                                                                 }
                                                                 catch (Exception e)
                                                                 {
-                                                                    convertedBoolean = result.GetBoolean(importColumnName);
-                                                                }
-                                                                b = new BooleanData() { FormField = fff.FormField, Record = r, Value = convertedBoolean, Id = Guid.NewGuid() };
-                                                                db.BooleanData.Add(b);
-                                                                db.Entry(b).State = EntityState.Added;
-                                                                isChanged = true;
-                                                            }
-                                                        }
 
-                                                        if (fff.FormField.FieldTypeId == FieldTypeEnum.Number)
-                                                        {
-                                                            NumericData n = r.NumericData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
-                                                            if (n != null)
-                                                            {
-                                                                if (n.Value != result.GetDouble(importColumnName))
-                                                                {
-                                                                    n.Value = result.GetDouble(importColumnName);
-                                                                    db.Entry(n).State = EntityState.Modified;
-                                                                    isChanged = true;
                                                                 }
-                                                            }
-                                                            else
-                                                            {
-                                                                n = new NumericData() { FormField = fff.FormField, Record = r, Value = result.GetDouble(importColumnName), Id = Guid.NewGuid() };
-                                                                db.NumericData.Add(n);
-                                                                db.Entry(n).State = EntityState.Added;
-                                                                isChanged = true;
+
                                                             }
                                                         }
                                                     }
-                                                }
+                                                    db.Entry(r).State = EntityState.Added;
+                                                    db.Records.Add(r);
 
-                                                if (isChanged)
-                                                {
-                                                    changes += "<li>Beobachtung (" + r.Form.Title + ") mit Guid " + r.RecordId + " angepasst</li>";
-                                                    ChangeLog cl = new ChangeLog() { ChangeDate = DateTime.Now, Log = "Modified Record by Importing", User = user };
+                                                    changes += "<li>Beobachtung mit Guid " + r.RecordId + " erstellt</li>";
+                                                    ChangeLog cl = new ChangeLog() { ChangeDate = DateTime.Now, Log = "Created Record by Importing", User = user };
                                                     ChangeLogRecord clr = new ChangeLogRecord() { Record = r, ChangeLog = cl };
                                                     db.ChangeLogsRecords.Add(clr);
+
+
+                                                }
+
+                                                // there is already a record, update the content
+                                                if ((r != null) && (r.Form != null))
+                                                {
+                                                    foreach (FormFormField fff in r.Form.FormFormFields)
+                                                    {
+                                                        string importColumnName = null;
+                                                        foreach (string columnname in names)
+                                                        {
+                                                            if (columnname.StartsWith("f_" + fff.FormFieldId.ToString())) importColumnName = columnname;
+
+                                                        }
+                                                        if ((importColumnName != null) && (!result.IsDBNull(importColumnName)))
+                                                        {
+                                                            if ((fff.FormField.FieldTypeId == FieldTypeEnum.Text) || (fff.FormField.FieldTypeId == FieldTypeEnum.DateTime))
+                                                            {
+                                                                TextData t = r.TextData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
+                                                                if (t != null)
+                                                                {
+                                                                    if (t.Value != result.GetValue(importColumnName).ToString())
+                                                                    {
+                                                                        t.Value = result.GetValue(importColumnName).ToString();
+                                                                        db.Entry(t).State = EntityState.Modified;
+                                                                        isChanged = true;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    t = new TextData() { FormField = fff.FormField, Record = r, Value = result.GetValue(importColumnName).ToString(), Id = Guid.NewGuid() };
+                                                                    db.TextData.Add(t);
+                                                                    db.Entry(t).State = EntityState.Added;
+                                                                    isChanged = true;
+                                                                }
+                                                            }
+
+                                                            if (fff.FormField.FieldTypeId == FieldTypeEnum.Choice)
+                                                            {
+                                                                TextData t = r.TextData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
+                                                                if (t != null)
+                                                                {
+                                                                    if (t.Value != result.GetValue(importColumnName).ToString())
+                                                                    {
+                                                                        t.Value = result.GetValue(importColumnName).ToString();
+                                                                        FieldChoice fc = await db.FieldChoices.Where(m => m.Text == t.Value && m.FormField == fff.FormField).FirstOrDefaultAsync();
+                                                                        //if (fff.FormField.FieldChoices.Any(m => m.Text == t.Value)) t.FieldChoice = fff.FormField.FieldChoices.Where(m => m.Text == t.Value).First();
+                                                                        if (fc != null) t.FieldChoice = fc;
+                                                                        db.Entry(t).State = EntityState.Modified;
+                                                                        isChanged = true;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    t = new TextData() { FormField = fff.FormField, Record = r, Value = result.GetValue(importColumnName).ToString(), Id = Guid.NewGuid() };
+                                                                    db.TextData.Add(t);
+                                                                    db.Entry(t).State = EntityState.Added;
+                                                                    isChanged = true;
+                                                                }
+                                                            }
+
+                                                            if (fff.FormField.FieldTypeId == FieldTypeEnum.Boolean)
+                                                            {
+                                                                BooleanData b = r.BooleanData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
+                                                                if (b != null)
+                                                                {
+                                                                    bool convertedBoolean = false;
+                                                                    try
+                                                                    {
+                                                                        string buuli = result.GetString(importColumnName);
+                                                                        if ((buuli.ToLower() == "true") || (buuli == "1") || (buuli.ToLower() == "wahr")) convertedBoolean = true;
+                                                                    }
+                                                                    catch (Exception e)
+                                                                    {
+                                                                        convertedBoolean = result.GetBoolean(importColumnName);
+                                                                    }
+
+                                                                    if (b.Value != convertedBoolean)
+                                                                    {
+                                                                        b.Value = convertedBoolean;
+                                                                        db.Entry(b).State = EntityState.Modified;
+                                                                        isChanged = true;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    bool convertedBoolean = false;
+                                                                    try
+                                                                    {
+                                                                        string buuli = result.GetString(importColumnName);
+                                                                        if ((buuli == "true") || (buuli == "1")) convertedBoolean = true;
+                                                                    }
+                                                                    catch (Exception e)
+                                                                    {
+                                                                        convertedBoolean = result.GetBoolean(importColumnName);
+                                                                    }
+                                                                    b = new BooleanData() { FormField = fff.FormField, Record = r, Value = convertedBoolean, Id = Guid.NewGuid() };
+                                                                    db.BooleanData.Add(b);
+                                                                    db.Entry(b).State = EntityState.Added;
+                                                                    isChanged = true;
+                                                                }
+                                                            }
+
+                                                            if (fff.FormField.FieldTypeId == FieldTypeEnum.Number)
+                                                            {
+                                                                NumericData n = r.NumericData.Where(m => m.FormFieldId == fff.FormFieldId).FirstOrDefault();
+                                                                if (n != null)
+                                                                {
+                                                                    if (n.Value != result.GetDouble(importColumnName))
+                                                                    {
+                                                                        n.Value = result.GetDouble(importColumnName);
+                                                                        db.Entry(n).State = EntityState.Modified;
+                                                                        isChanged = true;
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    n = new NumericData() { FormField = fff.FormField, Record = r, Value = result.GetDouble(importColumnName), Id = Guid.NewGuid() };
+                                                                    db.NumericData.Add(n);
+                                                                    db.Entry(n).State = EntityState.Added;
+                                                                    isChanged = true;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (isChanged)
+                                                    {
+                                                        changes += "<li>Beobachtung (" + r.Form.Title + ") mit Guid " + r.RecordId + " angepasst</li>";
+                                                        ChangeLog cl = new ChangeLog() { ChangeDate = DateTime.Now, Log = "Modified Record by Importing", User = user };
+                                                        ChangeLogRecord clr = new ChangeLogRecord() { Record = r, ChangeLog = cl };
+                                                        db.ChangeLogsRecords.Add(clr);
+                                                    }
                                                 }
                                             }
-
                                         }
                                     }
                                     await db.SaveChangesAsync();
@@ -813,11 +832,11 @@ namespace BioDivCollector.WebApp.Controllers
 
 
             /* local */
-            /*psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
+            psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\gdal\bin\gdal\apps";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\gdal\bin\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\gdal\bin\gdal\plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];*/
+            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];
 
 
             string db = Configuration["Environment:DB"];
@@ -827,11 +846,11 @@ namespace BioDivCollector.WebApp.Controllers
 
             string pgstring = " PG:\"dbname = '" + db + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
 
-            psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
+            /*psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\Program Files\GDAL";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files\GDAL\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files\GDAL\gdal-plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];
+            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];*/
 
             psi.CreateNoWindow = false;
             psi.UseShellExecute = false;
@@ -947,11 +966,11 @@ namespace BioDivCollector.WebApp.Controllers
 
 
             /* local */
-            /*psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
+            psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\gdal\bin\gdal\apps";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\gdal\bin\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\gdal\bin\gdal\plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];*/
+            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];
 
             string db = Configuration["Environment:DB"];
             string host = Configuration["Environment:DBHost"];
@@ -959,11 +978,11 @@ namespace BioDivCollector.WebApp.Controllers
             string dbpassword = Configuration["Environment:DBPassword"];
 
 
-            psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
+            /*psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
             psi.WorkingDirectory = @"C:\Program Files\GDAL";
             psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files\GDAL\gdal-data";
             psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files\GDAL\gdal-plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];
+            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];*/
 
             psi.CreateNoWindow = false;
             psi.UseShellExecute = false;
