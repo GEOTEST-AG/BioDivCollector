@@ -337,6 +337,13 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 AssociatedGeometry = new CustomPicker();
                 Geoms = ReferenceGeometry.GetAllGeometries().Where(g => g.status < 3).OrderBy(g => g.geometryName).ToList();
+                foreach (var gm in Geoms)
+                {
+                    if (gm.geometryName == null)
+                    {
+                        gm.geometryName = String.Empty; //Avoid a crash on android from null strings
+                    }
+                }
                 var general = new ReferenceGeometry() { geometryName = "Allgemeine Beobachtung" };
                 AssociatedGeometry.ItemsSource = Geoms;
                 AssociatedGeometry.ItemsSource.Insert(0, general);

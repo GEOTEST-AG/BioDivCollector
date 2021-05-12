@@ -50,33 +50,39 @@ namespace BioDivCollectorXamarin.Models
             {
                 var prevZ = layerZ;
                 layerZ = value;
-                
-                if (prevZ != layerZ)
+
+                try
                 {
-                    var dic = new Dictionary<string, int>();
-                    dic.Add("oldZ", prevZ);
-                    dic.Add("newZ", value);
-
-                    if (Name != null)
+                    var project = Project.FetchCurrentProject();
+                    if (prevZ != layerZ && value > 0 && prevZ > 0)
                     {
-                        using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                        var dic = new Dictionary<string, int>();
+                        dic.Add("oldZ", prevZ);
+                        dic.Add("newZ", value);
+
+                        if (Name != null)
                         {
-                            var layerInPostionAlready = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.order == value).FirstOrDefault();
-                            if (layerInPostionAlready != null)
+                            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
                             {
-                                layerInPostionAlready.order = prevZ;
-
-
-                                var layerToMove = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.title == Name).Where(Layer => Layer.order == prevZ).FirstOrDefault();
-                                if (layerToMove != null)
+                                var layerInPostionAlready = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.order == value).Where(Layer => Layer.project_fk == project.Id).FirstOrDefault();
+                                if (layerInPostionAlready != null)
                                 {
-                                    layerToMove.order = value;
-                                    conn.Update(layerToMove);
-                                    conn.Update(layerInPostionAlready);
+                                    var layerToMove = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.title == Name).Where(Layer => Layer.order == prevZ).Where(Layer => Layer.project_fk == project.Id).FirstOrDefault();
+                                    if (layerToMove != null)
+                                    {
+                                        layerInPostionAlready.order = prevZ;
+                                        layerToMove.order = value;
+                                        conn.Update(layerToMove);
+                                        conn.Update(layerInPostionAlready);
+                                    }
                                 }
                             }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
             }
         }

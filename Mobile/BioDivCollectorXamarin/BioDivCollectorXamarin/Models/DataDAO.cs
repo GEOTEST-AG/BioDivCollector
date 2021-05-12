@@ -87,14 +87,14 @@ namespace BioDivCollectorXamarin.Models
                             MessagingCenter.Send(new Project(), "DataDownloadSuccess", success);
                         }
 
-                        MessagingCenter.Send(new DataDAO(), "DownloadComplete",json);
+                        MessagingCenter.Send(Application.Current, "DownloadComplete",json);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e);
                         if (through == false)
                         {
-                            MessagingCenter.Send(new DataDAO(), "DownloadComplete", "Error Downloading Data");
+                            MessagingCenter.Send(Application.Current, "DownloadComplete", "Error Downloading Data");
                             MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
                         }
                     }
@@ -188,7 +188,9 @@ namespace BioDivCollectorXamarin.Models
                                     var skippedGeometries = returnedObject.geometries.skipped;
 
                                     if (error == null || error == String.Empty)
-                                    { error = "Data successfully downloaded"; }
+                                    {
+                                        error = "Data successfully downloaded";
+                                    }
 
                                     foreach (var deletedRecord in deletedRecords)
                                     {
@@ -670,6 +672,21 @@ namespace BioDivCollectorXamarin.Models
                             }
                         }
                         //Add project related layers
+                        try
+                        {
+                            //Delete existing layers
+                            var existingLayers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == project.Id);
+                            foreach (var existingLayer in existingLayers)
+                            {
+                                conn.Delete(existingLayer);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+
+                        //add new layers
                         foreach (var layer in projectRoot.layers)
                         {
                             try
