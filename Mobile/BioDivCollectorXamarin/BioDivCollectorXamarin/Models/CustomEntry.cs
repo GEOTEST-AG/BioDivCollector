@@ -75,7 +75,8 @@ namespace BioDivCollectorXamarin.Controls
 
 		public DateTime? NullableDate
 		{
-			get { return (DateTime?)GetValue(NullableDateProperty); }
+			get {
+				return (DateTime?)GetValue(NullableDateProperty); }
 			set { SetValue(NullableDateProperty, value); UpdateDate(); }
 		}
 
@@ -107,12 +108,14 @@ namespace BioDivCollectorXamarin.Controls
 
 		protected override void OnPropertyChanged(string propertyName = null)
 		{
+
 			base.OnPropertyChanged(propertyName);
 
 			if (propertyName == DateProperty.PropertyName || (propertyName == IsFocusedProperty.PropertyName && !IsFocused && (Date.ToString("d") == DateTime.Now.ToString("d"))))
 			{
 				AssignValue();
 			}
+			
 
 			if (propertyName == NullableDateProperty.PropertyName && NullableDate.HasValue)
 			{
@@ -184,10 +187,9 @@ namespace BioDivCollectorXamarin.Controls
 			else
 			{
 				Format = PlaceHolder;
-
 			}
-
 		}
+
 		protected override void OnBindingContextChanged()
 		{
 			base.OnBindingContextChanged();
@@ -200,6 +202,7 @@ namespace BioDivCollectorXamarin.Controls
 
 		protected override void OnPropertyChanged(string propertyName = null)
 		{
+			
 			base.OnPropertyChanged(propertyName);
 
 			if (propertyName == TimeProperty.PropertyName || (propertyName == IsFocusedProperty.PropertyName && !IsFocused && ((Time.Hours.ToString() + ":" + Time.Minutes.ToString()) == (DateTime.Now.TimeOfDay.Hours.ToString() + ":" + DateTime.Now.TimeOfDay.Minutes.ToString()))))

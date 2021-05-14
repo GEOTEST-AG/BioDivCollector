@@ -618,6 +618,19 @@ namespace BioDivCollectorXamarin.Models
                             }
                         }
                         // Add project related forms
+                        try
+                        {
+                            //Delete existing forms (need to delete all forms to start, as we are not informed when a form is removed from the project)
+                            var existingForms = conn.Table<Form>().Select(g => g).Where(Form => Form.project_fk == project.Id);
+                            foreach (var existingForm in existingForms)
+                            {
+                                conn.Delete(existingForm);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
                         foreach (var form in projectRoot.forms)
                         {
                             try
@@ -674,7 +687,7 @@ namespace BioDivCollectorXamarin.Models
                         //Add project related layers
                         try
                         {
-                            //Delete existing layers
+                            //Delete existing layers (need to delete all layers to start, as we are not informed when a layer is removed from the project)
                             var existingLayers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == project.Id);
                             foreach (var existingLayer in existingLayers)
                             {

@@ -227,11 +227,19 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                         try
                         {
                             var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == dateField.ValueId).FirstOrDefault();
-                            var oldDate = DateTime.ParseExact(text.value, "yyyy-MM-ddTHH:mm:sszzz", null);
-                            var time = new TimeSpan(oldDate.TimeOfDay.Hours, oldDate.TimeOfDay.Minutes, 0);
-                            var newDate = dateField.Date + time;
-                            text.value = newDate.ToString();
+                            if (dateField.NullableDate != null)
+                            {
+                                var newDate = (DateTime)dateField.NullableDate;
+                                text.value = newDate.ToString();
+                                
+                            }
+                            else
+                            {
+                                text.value = null;
+                            }
                             conn.Update(text);
+
+
                             Record.UpdateRecord(text.record_fk);
                         }
                         catch (Exception e)
@@ -250,15 +258,24 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                 try
                                 {
                                     var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == dateField.ValueId).FirstOrDefault();
-                                    var oldDate = DateTime.Now;
-                                    if (text.value != null && text.value != string.Empty)
+                                    
+                                    if (dateField.NullableDate != null)
                                     {
-                                        oldDate = DateTime.ParseExact(text.value, "yyyy-MM-ddTHH:mm:sszzz", null);
-                                    }
+                                        var oldDate = DateTime.Now;
+                                        if (text.value != null && text.value != string.Empty)
+                                        {
+                                            oldDate = DateTime.ParseExact(text.value, "yyyy-MM-ddTHH:mm:sszzz", null);
+                                        }
 
-                                    var time = new TimeSpan(oldDate.TimeOfDay.Hours, oldDate.TimeOfDay.Minutes, 0);
-                                    var newDate = dateField.Date + time;
-                                    text.value = newDate.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                                        var time = new TimeSpan(oldDate.TimeOfDay.Hours, oldDate.TimeOfDay.Minutes, 0);
+                                        var newDate = (DateTime)dateField.NullableDate;
+                                        var newDateTime = newDate.Date + time;
+                                        text.value = newDateTime.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                                    }
+                                    else
+                                    {
+                                        text.value = String.Empty;
+                                    }
                                     conn.Update(text);
                                     Record.UpdateRecord(text.record_fk);
                                 }
@@ -273,15 +290,23 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                 try
                                 {
                                     var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == timeField.ValueId).FirstOrDefault();
-                                    var oldDate = DateTime.Now;
-                                    if (text.value != null && text.value != string.Empty)
+                                    if (timeField.NullableDate != null)
                                     {
-                                        oldDate = DateTime.ParseExact(text.value, "yyyy-MM-ddTHH:mm:sszzz", null);
+                                        var oldDate = DateTime.Now;
+                                        if (text.value != null && text.value != string.Empty)
+                                        {
+                                            oldDate = DateTime.ParseExact(text.value, "yyyy-MM-ddTHH:mm:sszzz", null);
+                                        }
+
+                                        var time = new TimeSpan(oldDate.TimeOfDay.Hours, oldDate.TimeOfDay.Minutes, 0);
+                                        var newDate = oldDate.Date + timeField.Time;
+                                        text.value = newDate.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                                    }
+                                    else
+                                    {
+                                        text.value = String.Empty;
                                     }
 
-                                    var time = new TimeSpan(oldDate.TimeOfDay.Hours, oldDate.TimeOfDay.Minutes, 0);
-                                    var newDate = oldDate.Date + timeField.Time;
-                                    text.value = newDate.ToString("yyyy-MM-ddTHH:mm:sszzz");
                                     conn.Update(text);
                                     Record.UpdateRecord(text.record_fk);
                                 }

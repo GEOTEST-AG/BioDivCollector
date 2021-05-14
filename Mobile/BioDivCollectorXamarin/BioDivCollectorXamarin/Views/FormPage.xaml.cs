@@ -50,5 +50,10 @@ namespace BioDivCollectorXamarin.Views
                 Navigation.PopToRootAsync();
             });
         }
+
+        protected override bool OnBackButtonPressed()
+        {
+            return base.OnBackButtonPressed();
+        }
     }
 }
