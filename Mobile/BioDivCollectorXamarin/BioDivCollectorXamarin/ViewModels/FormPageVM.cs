@@ -177,8 +177,9 @@ namespace BioDivCollectorXamarin.ViewModels
                             dateField.Format = "dd MMMM yyyy";
                             dateField.IsEnabled = !ReadOnly;
                             dateField.WidthRequest = 170;
-                            dateField.HeightRequest = 30;
+                            dateField.HeightRequest = 40;
                             dateField.Mandatory = formField.mandatory;
+                            dateField.VerticalOptions = LayoutOptions.StartAndExpand;
                             dateField.PropertyChanged += DateFieldChanged;
                             var empty = (dateField.NullableDate == null);
                             if (formField.mandatory) { Validation.Add((int)dateField.ValueId, !empty); }
@@ -192,7 +193,8 @@ namespace BioDivCollectorXamarin.ViewModels
                             timeField.Format = "HH:mm";
                             timeField.IsEnabled = !ReadOnly;
                             timeField.WidthRequest = 60;
-                            timeField.HeightRequest = 30;
+                            timeField.HeightRequest = 40;
+                            timeField.VerticalOptions = LayoutOptions.StartAndExpand;
                             timeField.Mandatory = formField.mandatory;
                             timeField.PropertyChanged += TimeFieldChanged;
                             if (ReadOnly)
@@ -209,15 +211,17 @@ namespace BioDivCollectorXamarin.ViewModels
 
                                 NowCommand = new Command(FillOutDate);
                                 
-                                nowButton.Text = "Jetzt";
+                                nowButton.Text = "JETZT";
+                                nowButton.TextTransform = TextTransform.Uppercase;
                                 nowButton.FontSize = 12;
                                 nowButton.BackgroundColor = Color.Transparent;
                                 nowButton.Command = NowCommand;
                                 nowButton.CommandParameter = dic;
                                 nowButton.TextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
-                                nowButton.Margin = new Thickness(10, 0);
+                                nowButton.Margin = new Thickness(10, 0, 0 ,0);
                                 nowButton.WidthRequest = 40;
-                                nowButton.HeightRequest = 30;
+                                nowButton.HeightRequest = 40;
+                                nowButton.VerticalOptions = LayoutOptions.StartAndExpand;
 
                                 ClearCommand = new Command(ClearDate);
                                 
@@ -227,9 +231,10 @@ namespace BioDivCollectorXamarin.ViewModels
                                 clearButton.Command = ClearCommand;
                                 clearButton.CommandParameter = dic;
                                 clearButton.TextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
-                                clearButton.Margin = new Thickness(0, 10);
+                                clearButton.Margin = new Thickness(10, 0, 10, 0);
                                 clearButton.WidthRequest = 30;
-                                clearButton.HeightRequest = 30;
+                                clearButton.HeightRequest = 40;
+                                clearButton.VerticalOptions = LayoutOptions.StartAndExpand;
                             }
                             stack.Margin = new Thickness(0, 0, 0, 10);
                             stack.ValueId = text.Id;
@@ -586,7 +591,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Fill out the date field with today's date
         /// </summary>
-        public async void FillOutDate(object parameter)
+        public void FillOutDate(object parameter)
         {
             var dic = (Dictionary<String, Object>)parameter;
             dic.TryGetValue("text", out var textData);
@@ -603,7 +608,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Clears the date field
         /// </summary>
-        public async void ClearDate(object parameter)
+        public void ClearDate(object parameter)
         {
             var dic = (Dictionary<String,Object>)parameter;
             dic.TryGetValue("text", out var textData);

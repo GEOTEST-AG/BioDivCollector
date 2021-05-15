@@ -110,8 +110,11 @@ namespace BioDivCollectorXamarin.Controls
 		{
 
 			base.OnPropertyChanged(propertyName);
-
-			if (propertyName == DateProperty.PropertyName || (propertyName == IsFocusedProperty.PropertyName && !IsFocused && (Date.ToString("d") == DateTime.Now.ToString("d"))))
+			var dateString = Date.ToString("d");
+			var dateStringNow = DateTime.Now.ToString("d");
+			var timeString = Date.ToString("t");
+			var timeStringNow = DateTime.Now.ToString("t");
+			if (propertyName == DateProperty.PropertyName || (propertyName == IsFocusedProperty.PropertyName && !IsFocused && dateString == dateStringNow))
 			{
 				AssignValue();
 			}
@@ -127,6 +130,7 @@ namespace BioDivCollectorXamarin.Controls
 				}
 			}
 		}
+
 
 		public void CleanDate()
 		{
