@@ -187,12 +187,12 @@ namespace BioDivCollectorXamarin.ViewModels
                             {
                                 dateField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                             }
-                            timeField.Margin = new Thickness(0, 0, 0, 10);
+                            timeField.Margin = new Thickness(0, 0, 0, 0);
                             timeField.ValueId = text.Id;
                             timeField.TypeId = formField.typeId;
                             timeField.Format = "HH:mm";
                             timeField.IsEnabled = !ReadOnly;
-                            timeField.WidthRequest = 60;
+                            timeField.WidthRequest = 70;
                             timeField.HeightRequest = 40;
                             timeField.VerticalOptions = LayoutOptions.StartAndExpand;
                             timeField.Mandatory = formField.mandatory;
@@ -202,40 +202,39 @@ namespace BioDivCollectorXamarin.ViewModels
                                 timeField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                             }
 
-                            if (!ReadOnly)
-                            {
-                                Dictionary<String, Object> dic = new Dictionary<string, object>();
-                                dic.Add("text", text);
-                                dic.Add("date", dateField);
-                                dic.Add("time", timeField);
 
-                                NowCommand = new Command(FillOutDate);
-                                
-                                nowButton.Text = "JETZT";
-                                nowButton.TextTransform = TextTransform.Uppercase;
-                                nowButton.FontSize = 12;
-                                nowButton.BackgroundColor = Color.Transparent;
-                                nowButton.Command = NowCommand;
-                                nowButton.CommandParameter = dic;
-                                nowButton.TextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
-                                nowButton.Margin = new Thickness(10, 0, 0 ,0);
-                                nowButton.WidthRequest = 40;
-                                nowButton.HeightRequest = 40;
-                                nowButton.VerticalOptions = LayoutOptions.StartAndExpand;
+                            Dictionary<String, Object> dic = new Dictionary<string, object>();
+                            dic.Add("text", text);
+                            dic.Add("date", dateField);
+                            dic.Add("time", timeField);
 
-                                ClearCommand = new Command(ClearDate);
-                                
-                                clearButton.Text = "ⓧ";
-                                clearButton.FontSize = 20;
-                                clearButton.BackgroundColor = Color.Transparent;
-                                clearButton.Command = ClearCommand;
-                                clearButton.CommandParameter = dic;
-                                clearButton.TextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
-                                clearButton.Margin = new Thickness(10, 0, 10, 0);
-                                clearButton.WidthRequest = 30;
-                                clearButton.HeightRequest = 40;
-                                clearButton.VerticalOptions = LayoutOptions.StartAndExpand;
-                            }
+                            NowCommand = new Command(FillOutDate);
+
+                            nowButton.Text = "JETZT";
+                            nowButton.TextTransform = TextTransform.Uppercase;
+                            nowButton.FontSize = 12;
+                            nowButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
+                            nowButton.Command = NowCommand;
+                            nowButton.CommandParameter = dic;
+                            nowButton.Margin = new Thickness(10, 0, 0, 0);
+                            nowButton.WidthRequest = 40;
+                            nowButton.HeightRequest = 40;
+                            nowButton.VerticalOptions = LayoutOptions.StartAndExpand;
+                            nowButton.IsVisible = !ReadOnly;
+
+                            ClearCommand = new Command(ClearDate);
+
+                            clearButton.Text = "ⓧ";
+                            clearButton.FontSize = 20;
+                            clearButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
+                            clearButton.Command = ClearCommand;
+                            clearButton.CommandParameter = dic;
+                            clearButton.Margin = new Thickness(10, 0, 10, 0);
+                            clearButton.WidthRequest = 30;
+                            clearButton.HeightRequest = 40;
+                            clearButton.VerticalOptions = LayoutOptions.StartAndExpand;
+                            clearButton.IsVisible = !ReadOnly;
+
                             stack.Margin = new Thickness(0, 0, 0, 10);
                             stack.ValueId = text.Id;
                             stack.TypeId = formField.typeId;
@@ -463,6 +462,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
         }
 
+
         public void OnAppearing()
         {
 
@@ -591,7 +591,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Fill out the date field with today's date
         /// </summary>
-        public void FillOutDate(object parameter)
+        private void FillOutDate(object parameter)
         {
             var dic = (Dictionary<String, Object>)parameter;
             dic.TryGetValue("text", out var textData);
@@ -605,10 +605,11 @@ namespace BioDivCollectorXamarin.ViewModels
             timeField.NullableDate = new TimeSpan(dt.TimeOfDay.Hours, dt.TimeOfDay.Minutes, 0);
         }
 
+
         /// <summary>
         /// Clears the date field
         /// </summary>
-        public void ClearDate(object parameter)
+        private void ClearDate(object parameter)
         {
             var dic = (Dictionary<String,Object>)parameter;
             dic.TryGetValue("text", out var textData);
@@ -635,7 +636,6 @@ namespace BioDivCollectorXamarin.ViewModels
                 Record.UpdateRecord(text.record_fk);
             }
         }
-
 
 
         /// <summary>
