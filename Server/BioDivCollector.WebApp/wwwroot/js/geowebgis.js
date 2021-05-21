@@ -765,11 +765,11 @@
                     geometryName: sqlcolumn,
                 });
                 // if the user already selected a element, start to edit with this
-                if (this.selectedfeature != null) {
+                /*if (this.selectedfeature != null) {
                     var features = self.interactionSelect.getFeatures();
                     features.push(this.selectedfeature);
                 }
-
+                */
                 var self = this;
                 this.drawsource.once('change', function (e) {
 

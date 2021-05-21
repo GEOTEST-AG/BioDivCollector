@@ -349,9 +349,12 @@ namespace BioDivCollector.WebApp.Controllers
                 //foreach (ReferenceGeometry g in myProject.Geometries.Where(m => m.StatusId != StatusEnum.deleted))
                 foreach (ReferenceGeometry g in myProject.ProjectGroups.SelectMany(pg=>pg.Geometries).Where(g => g.StatusId != StatusEnum.deleted))
                 {
-                    if (g.Point != null) featureCollection.Add(getFeature(g, GeomType.Point));
-                    if (g.Line != null) featureCollection.Add(getFeature(g, GeomType.Line));
-                    if (g.Polygon != null) featureCollection.Add(getFeature(g, GeomType.Polygon));
+                    NetTopologySuite.Features.Feature f = null; 
+                    if (g.Point != null) f = getFeature(g, GeomType.Point);
+                    if (g.Line != null) f = getFeature(g, GeomType.Line);
+                    if (g.Polygon != null) f = getFeature(g, GeomType.Polygon);
+                    if (f != null) featureCollection.Add(f);
+
                 }
 
 
@@ -397,8 +400,16 @@ namespace BioDivCollector.WebApp.Controllers
                 attribute.Add("id", g.GeometryId);
                 attribute.Add("name", g.GeometryName);
 
+                /*if (coordinates.Count() > 20)
+                {
+                    Geometry simplG = NetTopologySuite.Simplify.DouglasPeuckerSimplifier.Simplify(polygonSwissGrid, 1);
+                    polygonSwissGrid = simplG;
+                }*/
+
+                if (!polygonSwissGrid.IsValid) return null;
 
                 NetTopologySuite.Features.Feature i = new NetTopologySuite.Features.Feature(polygonSwissGrid, attribute);
+                
                 return i;
             }
             catch (Exception e)
