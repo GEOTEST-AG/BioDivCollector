@@ -90,11 +90,11 @@ namespace BioDivCollectorXamarin
             {
                 if (IsTest)
                 {
-                    return logoutURL = "https://test.biodivcollector.ch/Home/Logout";
+                    return logoutURL = "https://id.biodivcollector.ch/auth/realms/BioDivCollector/protocol/openid-connect/logout";
                 }
                 else
                 {
-                    return logoutURL = "https://biodivcollector.ch/Home/Logout";
+                    return logoutURL = "https://id.biodivcollector.ch/auth/realms/BioDivCollector/protocol/openid-connect/logout";
                 }
             }
         }

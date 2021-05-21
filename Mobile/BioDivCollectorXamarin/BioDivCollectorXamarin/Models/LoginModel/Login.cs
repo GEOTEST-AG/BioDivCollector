@@ -1,7 +1,9 @@
 ﻿using BioDivCollectorXamarin.Views;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -152,6 +154,68 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                     await Authentication.RequestRefreshTokenAsync();
                 }
             }
+        }
+
+        /// <summary>
+        /// Log the user out (delete the session on the auth server) and delete the authentication cookies
+        /// </summary>
+        public static async void Logout()
+        {
+            try
+            {
+                
+                var auth = Authentication.AuthParams;
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(10); // 10 seconds
+                    var token = Preferences.Get("AccessToken", "");
+                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+
+                    var values = new Dictionary<string, string>
+                    {
+                        { "client_id", auth.ClientId },
+                        { "client_secret", auth.ClientSecret },
+                        { "refresh_token", Preferences.Get("RefreshToken", "") }
+                    };
+                    var content = new FormUrlEncodedContent(values);
+
+                    var response = await client.PostAsync(new Uri(App.LogoutURL), content);  //UPLOAD
+                    var jsonbytes = await response.Content.ReadAsByteArrayAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            Preferences.Set("AccessToken", "");
+            Preferences.Set("AccessTokenExpiry", DateTime.UtcNow.ToString());
+            Preferences.Set("RefreshToken", "");
+            Preferences.Set("RefreshTokenExpiry", DateTime.UtcNow.ToString());
+
+            //Delete cookies
+#if __IOS__
+            // iOS-specific code
+            //Delete Cookies
+            var cookieJar = NSHttpCookieStorage.SharedStorage;
+            cookieJar.AcceptPolicy = NSHttpCookieAcceptPolicy.Always;
+            foreach (var aCookie in cookieJar.Cookies)
+            {
+                cookieJar.DeleteCookie(aCookie);
+            }
+#endif
+#if __ANDROID__
+            // Android-specific code
+
+                //Delete cookies
+                Android.Webkit.CookieManager.Instance.RemoveSessionCookie();
+                Android.Webkit.CookieManager.Instance.RemoveAllCookie();
+                Android.Webkit.CookieManager.Instance.Flush();
+#endif
+
+            Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful");
         }
     }
 }

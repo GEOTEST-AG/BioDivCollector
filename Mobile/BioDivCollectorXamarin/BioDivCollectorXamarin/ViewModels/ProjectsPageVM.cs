@@ -192,64 +192,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Log the user out
         /// </summary>
-        public void Logout ()
+        public void Logout()
         {
-            try
-            {
-                SetProject("");
-                using (HttpClient client = new HttpClient())
-                {
-                    var request = new HttpRequestMessage()
-                    {
-                        RequestUri = new Uri(App.LogoutURL),
-                        Method = HttpMethod.Get,
-                    };
-
-                    var token = Preferences.Get("AccessToken", "");
-
-
-                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                    var task = client.SendAsync(request).ContinueWith((taskwithmsg) =>
-                    {
-                        var response = taskwithmsg.Result;
-
-                        var jsonTask = response.Content.ReadAsStringAsync();
-                        jsonTask.Wait();
-                    });
-
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-
-            Preferences.Set("AccessToken", "");
-            Preferences.Set("AccessTokenExpiry", DateTime.UtcNow.ToString());
-            Preferences.Set("RefreshToken", "");
-            Preferences.Set("RefreshTokenExpiry", DateTime.UtcNow.ToString());
-
-            //Delete cookies
-#if __IOS__
-            // iOS-specific code
-            //Delete Cookies
-            var cookieJar = NSHttpCookieStorage.SharedStorage;
-            cookieJar.AcceptPolicy = NSHttpCookieAcceptPolicy.Always;
-            foreach (var aCookie in cookieJar.Cookies)
-            {
-                cookieJar.DeleteCookie(aCookie);
-            }
-#endif
-#if __ANDROID__
-            // Android-specific code
-
-                //Delete cookies
-                Android.Webkit.CookieManager.Instance.RemoveSessionCookie();
-                Android.Webkit.CookieManager.Instance.RemoveAllCookie();
-                Android.Webkit.CookieManager.Instance.Flush();
-#endif
-
-            Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful");
+            SetProject("");
+            Login.Logout();
         }
     }
 
