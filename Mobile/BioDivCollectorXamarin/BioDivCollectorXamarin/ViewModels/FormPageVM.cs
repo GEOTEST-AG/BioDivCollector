@@ -33,7 +33,8 @@ namespace BioDivCollectorXamarin.ViewModels
         public Command CancelCommand { get; }
         public Command GUIDCommand { get; }
         public Command DeleteCommand { get; }
-
+        public Command NowCommand { get; }
+        public Command ClearCommand { get; }
 
         /// <summary>
         /// On creating the view controller for a specific recordId, the form is checked to see which parameters are required, and the relevant input fields are queued up for adding to the page.
@@ -42,7 +43,6 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="recId">recordID</param>
         public FormPageVM(int recId)
         {
-
 
             using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
             {
@@ -130,14 +130,20 @@ namespace BioDivCollectorXamarin.ViewModels
                             var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
                             var dateField = new CustomDatePicker();
                             var timeField = new CustomTimePicker();
+                            var nowButton = new Button();
+                            var clearButton = new Button();
+                            
                             var stack = new CustomStackLayout()
                             {
                                 Orientation = StackOrientation.Horizontal,
                                 Children =
                                 {
-                                    dateField,timeField
+                                    dateField, timeField, nowButton, clearButton
                                 }
                             };
+                            stack.WidthRequest = 350;
+                            stack.HorizontalOptions = LayoutOptions.Start;
+
                             if (text == null)
                             {
                                 //CreateNew
@@ -153,8 +159,12 @@ namespace BioDivCollectorXamarin.ViewModels
                             try
                             {
                                 var dt = DateTime.ParseExact(text.value, "yyyy-MM-ddTHH:mm:sszzz", null);
-                                timeField.Time = new TimeSpan(dt.TimeOfDay.Hours,dt.TimeOfDay.Minutes,0);
-                                dateField.Date = dt.Date;
+                                
+                                if (text.value != null && text.value != String.Empty)
+                                {
+                                    dateField.NullableDate = dt.Date;
+                                    timeField.NullableDate = new TimeSpan(dt.TimeOfDay.Hours, dt.TimeOfDay.Minutes, 0);
+                                }
                             }
                             catch (Exception exp)
                             {
@@ -166,25 +176,65 @@ namespace BioDivCollectorXamarin.ViewModels
                             dateField.TypeId = formField.typeId;
                             dateField.Format = "dd MMMM yyyy";
                             dateField.IsEnabled = !ReadOnly;
-                            dateField.WidthRequest = 200;
+                            dateField.WidthRequest = 170;
+                            dateField.HeightRequest = 40;
                             dateField.Mandatory = formField.mandatory;
-                            dateField.DateSelected += DateFieldChanged;
+                            dateField.VerticalOptions = LayoutOptions.StartAndExpand;
+                            dateField.PropertyChanged += DateFieldChanged;
                             var empty = (dateField.NullableDate == null);
                             if (formField.mandatory) { Validation.Add((int)dateField.ValueId, !empty); }
                             if (ReadOnly)
                             {
                                 dateField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                             }
-                            timeField.Margin = new Thickness(0, 0, 0, 10);
+                            timeField.Margin = new Thickness(0, 0, 0, 0);
                             timeField.ValueId = text.Id;
                             timeField.TypeId = formField.typeId;
                             timeField.Format = "HH:mm";
                             timeField.IsEnabled = !ReadOnly;
+                            timeField.WidthRequest = 70;
+                            timeField.HeightRequest = 40;
+                            timeField.VerticalOptions = LayoutOptions.StartAndExpand;
                             timeField.Mandatory = formField.mandatory;
+                            timeField.PropertyChanged += TimeFieldChanged;
                             if (ReadOnly)
                             {
                                 timeField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                             }
+
+
+                            Dictionary<String, Object> dic = new Dictionary<string, object>();
+                            dic.Add("text", text);
+                            dic.Add("date", dateField);
+                            dic.Add("time", timeField);
+
+                            NowCommand = new Command(FillOutDate);
+
+                            nowButton.Text = "JETZT";
+                            nowButton.TextTransform = TextTransform.Uppercase;
+                            nowButton.FontSize = 12;
+                            nowButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
+                            nowButton.Command = NowCommand;
+                            nowButton.CommandParameter = dic;
+                            nowButton.Margin = new Thickness(10, 0, 0, 0);
+                            nowButton.WidthRequest = 40;
+                            nowButton.HeightRequest = 40;
+                            nowButton.VerticalOptions = LayoutOptions.StartAndExpand;
+                            nowButton.IsVisible = !ReadOnly;
+
+                            ClearCommand = new Command(ClearDate);
+
+                            clearButton.Text = "ⓧ";
+                            clearButton.FontSize = 20;
+                            clearButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
+                            clearButton.Command = ClearCommand;
+                            clearButton.CommandParameter = dic;
+                            clearButton.Margin = new Thickness(10, 0, 10, 0);
+                            clearButton.WidthRequest = 30;
+                            clearButton.HeightRequest = 40;
+                            clearButton.VerticalOptions = LayoutOptions.StartAndExpand;
+                            clearButton.IsVisible = !ReadOnly;
+
                             stack.Margin = new Thickness(0, 0, 0, 10);
                             stack.ValueId = text.Id;
                             stack.TypeId = formField.typeId;
@@ -337,6 +387,13 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 AssociatedGeometry = new CustomPicker();
                 Geoms = ReferenceGeometry.GetAllGeometries().Where(g => g.status < 3).OrderBy(g => g.geometryName).ToList();
+                foreach (var gm in Geoms)
+                {
+                    if (gm.geometryName == null)
+                    {
+                        gm.geometryName = String.Empty; //Avoid a crash on android from null strings
+                    }
+                }
                 var general = new ReferenceGeometry() { geometryName = "Allgemeine Beobachtung" };
                 AssociatedGeometry.ItemsSource = Geoms;
                 AssociatedGeometry.ItemsSource.Insert(0, general);
@@ -405,6 +462,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
         }
 
+
         public void OnAppearing()
         {
 
@@ -471,7 +529,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (response == "Entfernen")
                 {
                     var rec = conn.GetWithChildren<Record>(RecId);
-                    conn.Delete(rec);
+                    Record.DeleteRecord(rec.Id);
                     await Shell.Current.GoToAsync("//Records");
                 }
             }
@@ -531,6 +589,56 @@ namespace BioDivCollectorXamarin.ViewModels
         }
 
         /// <summary>
+        /// Fill out the date field with today's date
+        /// </summary>
+        private void FillOutDate(object parameter)
+        {
+            var dic = (Dictionary<String, Object>)parameter;
+            dic.TryGetValue("text", out var textData);
+            TextData text = (TextData)textData;
+            dic.TryGetValue("date", out var dateObj);
+            CustomDatePicker dateField = (CustomDatePicker)dateObj;
+            dic.TryGetValue("time", out var timeObj);
+            CustomTimePicker timeField = (CustomTimePicker)timeObj;
+            var dt = DateTime.Now;
+            dateField.NullableDate = dt.Date;
+            timeField.NullableDate = new TimeSpan(dt.TimeOfDay.Hours, dt.TimeOfDay.Minutes, 0);
+        }
+
+
+        /// <summary>
+        /// Clears the date field
+        /// </summary>
+        private void ClearDate(object parameter)
+        {
+            var dic = (Dictionary<String,Object>)parameter;
+            dic.TryGetValue("text", out var textData);
+            TextData text = (TextData)textData;
+            dic.TryGetValue("date", out var dateObj);
+            CustomDatePicker dateField = (CustomDatePicker)dateObj;
+            dic.TryGetValue("time", out var timeObj);
+            CustomTimePicker timeField = (CustomTimePicker)timeObj;
+            dateField.NullableDate = null;
+            timeField.NullableDate = null;
+            DateTime? date = (DateTime?)dateField.NullableDate;
+            int valueId = (int)dateField.ValueId;
+            if (dateField.Mandatory)
+            {
+                var empty = (date == null);
+                Validation[valueId] = !empty;
+                SaveCommand.ChangeCanExecute();
+            }
+
+            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            {
+                text.value = String.Empty;
+                //conn.Update(text);
+                Record.UpdateRecord(text.record_fk);
+            }
+        }
+
+
+        /// <summary>
         /// When text field entries change, we can trigger a reevaluation of the page here
         /// </summary>
         /// <param name="sender"></param>
@@ -580,6 +688,56 @@ namespace BioDivCollectorXamarin.ViewModels
                 Validation[valueId] = !empty;
                 SaveCommand.ChangeCanExecute();
             }
+
+            if (date != null)
+            {
+                CustomStackLayout stack = (CustomStackLayout)dateField.Parent;
+                foreach (var el in stack.Children)
+                {
+                    if (el is CustomTimePicker)
+                    {
+                        CustomTimePicker tp = (CustomTimePicker)el;
+                        if (tp.NullableDate == null)
+                        {
+                            tp.NullableDate = new TimeSpan(0);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// When time field entries change, we can trigger a reevaluation of the page here
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TimeFieldChanged(object sender, EventArgs e)
+        {
+            var timeField = (CustomTimePicker)sender;
+            TimeSpan? time = (TimeSpan?)timeField.NullableDate;
+            int valueId = (int)timeField.ValueId;
+            if (timeField.Mandatory)
+            {
+                var empty = (time == null);
+                Validation[valueId] = !empty;
+                SaveCommand.ChangeCanExecute();
+            }
+            if (time != null)
+            {
+                CustomStackLayout stack = (CustomStackLayout)timeField.Parent;
+                foreach (var el in stack.Children)
+                {
+                    if (el is CustomDatePicker)
+                    {
+                        CustomDatePicker dp = (CustomDatePicker)el;
+                        if (dp.NullableDate == null)
+                        {
+                            dp.NullableDate = DateTime.Now;
+                        }
+                    }
+                }
+            }
+            
         }
 
         /// <summary>
@@ -610,7 +768,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (chosen != null)
                 {
                     text.fieldChoiceId = chosen.choiceId;
-                    conn.Update(text);
+                    //conn.Update(text);
                 }
                 try
                 {

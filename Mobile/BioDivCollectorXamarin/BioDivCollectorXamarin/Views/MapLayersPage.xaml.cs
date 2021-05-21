@@ -58,6 +58,7 @@ namespace BioDivCollectorXamarin.Views
             
         }
 
+
         /// <summary>
         /// Set the basemap and change the UI elements when a base map button is clicked
         /// </summary>

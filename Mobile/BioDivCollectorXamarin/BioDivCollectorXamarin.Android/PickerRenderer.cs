@@ -8,6 +8,7 @@ using Android.Graphics.Drawables;
 using Android.Graphics;
 using Android.OS;
 using Android.Content.Res;
+using Android.App;
 
 [assembly: ExportRenderer(typeof(CustomPicker), typeof(CustomPickerRenderer))]
 namespace BioDivCollectorXamarin.Droid
@@ -35,4 +36,5 @@ namespace BioDivCollectorXamarin.Droid
                 Control.Background.SetColorFilter(Android.Graphics.Color.Gray, PorterDuff.Mode.SrcAtop);
         }
     }
+
 }

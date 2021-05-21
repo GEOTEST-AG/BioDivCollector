@@ -27,7 +27,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Moves the layer up in the layer stack
         /// </summary>
-        public MoveLayerUpCommand MoveLayerUpCommand { get; set; }
+        public Command MoveLayerUpCommand { get; set; }
 
         /// <summary>
         /// Deletes the local copy of the layer
@@ -77,9 +77,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// Initialise the page with the project specific map layers
         /// </summary>
         /// <param name="mapLayers"></param>
-        public MapLayersPageVM(ObservableCollection<BioDivCollectorXamarin.Models.MapLayer>mapLayers)
+        public MapLayersPageVM(ObservableCollection<BioDivCollectorXamarin.Models.MapLayer> mapLayers)
         {
-            MoveLayerUpCommand = new MoveLayerUpCommand(this);
+            //MoveLayerUpCommand1 = new MoveLayerUpCommand(this);
+            MoveLayerUpCommand = new Command(OnMoveLayerUp, ValidateMove);
             DeleteLayerCommand = new Command(OnDelete, ValidateDelete);
             OSMButtonCommand = new Command(OSMButtonPressed, CanPressOSMButton);
             PixelkarteButtonCommand = new Command(PixelkarteButtonPressed, CanPressPixelkarteButton);
@@ -98,7 +99,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             });
 
-            MessagingCenter.Subscribe<MoveLayerUpCommand>(this, "LayerOrderChanged", (sender) =>
+            MessagingCenter.Subscribe<MapLayersPageVM>(this, "LayerOrderChanged", (sender) =>
             {
 
                 Device.BeginInvokeOnMainThread(() =>
@@ -108,21 +109,22 @@ namespace BioDivCollectorXamarin.ViewModels
                     OnPropertyChanged("MapLayers");
                 });
             });
-
-        }
-
-        /// <summary>
-        /// Move a layer from 1 height in the layer stack, to another
-        /// </summary>
-        /// <param name="oldZ"></param>
-        /// <param name="newZ"></param>
-        private void ReorderLayers(int oldZ, int newZ)
-        {
-            if (oldZ != newZ)
+ 
+            MessagingCenter.Subscribe<Application,string>(App.Current, "DownloadComplete", (sender,json) =>
             {
-                MapLayers.Move( oldZ, newZ);
-                OnPropertyChanged("MapLayers");
-            }
+                MapLayers = new ObservableCollection<BioDivCollectorXamarin.Models.MapLayer>();
+                foreach (var layer in mapLayers)
+                {
+                    if (layer != null)
+                    { MapLayers.Add(layer); }
+                }
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    //var model = new MapModel();
+                    //MapLayers = MapModel.MakeArrayOfLayers();
+                    OnPropertyChanged("MapLayers");
+                });
+            });
 
         }
 
@@ -184,6 +186,34 @@ namespace BioDivCollectorXamarin.ViewModels
         }
 
         /// <summary>
+        /// Move a layer up the layer stack
+        /// </summary>
+        /// <param name="parameter"></param>
+        private async void OnMoveLayerUp(object parameter)
+        {
+            await Task.Run(() =>
+            {
+                var layer = (parameter as MapLayer);
+                if (layer != null)
+                {
+                    layer.LayerZ = layer.LayerZ + 1;
+                    MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Check if the layers can be moved up the layer stack
+        /// </summary>
+        /// <param name="parameter"></param>
+        private bool ValidateMove(object parameter)
+        {
+            var layer = (parameter as MapLayer);
+            if (layer != null && layer.LayerZ == mapLayers.Count) { return false; }
+            return true;
+        }
+
+        /// <summary>
         /// Set the base layer to OSM if the OSM button is pressed
         /// </summary>
         /// <param name="parameter"></param>
@@ -238,39 +268,6 @@ namespace BioDivCollectorXamarin.ViewModels
         private bool CanPressOrthofotoButton(object parameter)
         {
             return true;
-        }
-    }
-
-    /// <summary>
-    /// The command for moving a layer up the layerstack when clicking on the assigned button
-    /// </summary>
-    public class MoveLayerUpCommand : ICommand
-    {
-        public MapLayersPageVM MapLayersPageViewModel { get; set; }
-
-        public MoveLayerUpCommand(MapLayersPageVM mapLayersPageVM)
-        {
-            MapLayersPageViewModel = mapLayersPageVM;
-        }
-
-        public event EventHandler CanExecuteChanged;
-
-        public void RaiseCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        public bool CanExecute(object parameter)
-        {
-            return true;
-        }
-
-        public void Execute(object parameter)
-        {
-
-            var layer = (parameter as MapLayer);
-            layer.LayerZ = layer.LayerZ + 1;
-            MessagingCenter.Send<MoveLayerUpCommand>(this, "LayerOrderChanged");
         }
     }
 }

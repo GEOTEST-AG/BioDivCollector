@@ -5,7 +5,8 @@
              BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}"
              x:Name="Form"
              xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
-             ios:Page.UseSafeArea="true" >
+             ios:Page.UseSafeArea="true"
+             NavigationPage.HasBackButton="false">
 
     <ContentPage.Content>
         <StackLayout Spacing="0">

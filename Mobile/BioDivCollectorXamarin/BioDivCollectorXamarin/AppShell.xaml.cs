@@ -42,11 +42,14 @@ namespace BioDivCollectorXamarin
         /// </summary>
         public static void ClearNavigationStacks()
         {
-            var tabs = Shell.Current.Items[0].Items;
-            foreach (var tab in tabs)
+            Device.BeginInvokeOnMainThread(() =>
             {
-                tab.Navigation.PopToRootAsync();
-            }
+                var tabs = Shell.Current.Items[0].Items;
+                foreach (var tab in tabs)
+                {
+                    tab.Navigation.PopToRootAsync();
+                }
+            });
         }
     }
 }
