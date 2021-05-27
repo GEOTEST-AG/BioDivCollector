@@ -47,17 +47,17 @@
                     function radioValueChanged() {
                         radioValue = $(this).val();
                         if (radioValue == "osm") {
-                            GeoWebGIS.map.addLayer(GeoWebGIS.osmBackgroundmap);
+                            GeoWebGIS.map.getLayers().insertAt(0, GeoWebGIS.osmBackgroundmap);
                             GeoWebGIS.map.removeLayer(GeoWebGIS.backgroudmap);
                             GeoWebGIS.map.removeLayer(GeoWebGIS.satellitemap);
                         }
                         else if (radioValue == "pk25") {
-                            GeoWebGIS.map.addLayer(GeoWebGIS.backgroudmap);
+                            GeoWebGIS.map.getLayers().insertAt(0, GeoWebGIS.backgroudmap);
                             GeoWebGIS.map.removeLayer(GeoWebGIS.osmBackgroundmap);
                             GeoWebGIS.map.removeLayer(GeoWebGIS.satellitemap);
                         }
                         else if (radioValue == "sat") {
-                            GeoWebGIS.map.addLayer(GeoWebGIS.satellitemap);
+                            GeoWebGIS.map.getLayers().insertAt(0, GeoWebGIS.satellitemap);
                             GeoWebGIS.map.removeLayer(GeoWebGIS.backgroudmap);
                             GeoWebGIS.map.removeLayer(GeoWebGIS.osmBackgroundmap);
                         }
