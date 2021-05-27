@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioDivCollectorXamarin", "B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BioDivCollectorXamarin.iOS.Tests", "BioDivCollectorXamarin\BioDivCollectorXamarin.iOS.Tests\BioDivCollectorXamarin.iOS.Tests.csproj", "{39A1E303-9915-4393-B187-B803ED4A4213}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BioDivCollectorXamarin.Android.Tests", "BioDivCollectorXamarin.Android.Tests\BioDivCollectorXamarin.Android.Tests.csproj", "{7E89ABBF-1E2C-4FE7-AA1B-6599EB4856A2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BioDivCollectorXamarin.Android.Tests", "BioDivCollectorXamarin\BioDivCollectorXamarin.Android.Tests\BioDivCollectorXamarin.Android.Tests.csproj", "{7E89ABBF-1E2C-4FE7-AA1B-6599EB4856A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

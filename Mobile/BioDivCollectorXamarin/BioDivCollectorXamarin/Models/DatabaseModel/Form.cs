@@ -20,6 +20,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public int Id { get; set; }
         public int formId { get; set; }
         public string title { get; set; }
+        public int status { get; set; }
 
         [OneToMany(CascadeOperations = CascadeOperation.All)]
         public List<FormField> formFields { get; set; }

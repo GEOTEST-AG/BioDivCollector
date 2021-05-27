@@ -618,19 +618,6 @@ namespace BioDivCollectorXamarin.Models
                             }
                         }
                         // Add project related forms
-                        try
-                        {
-                            //Delete existing forms (need to delete all forms to start, as we are not informed when a form is removed from the project)
-                            var existingForms = conn.Table<Form>().Select(g => g).Where(Form => Form.project_fk == project.Id);
-                            foreach (var existingForm in existingForms)
-                            {
-                                conn.Delete(existingForm);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
                         foreach (var form in projectRoot.forms)
                         {
                             try
@@ -643,7 +630,32 @@ namespace BioDivCollectorXamarin.Models
                                     var fullForm = conn.GetWithChildren<Form>(existingform.Id,true);
                                     conn.Delete(fullForm);
                                 }
-                                conn.Insert(form);
+                                if (form.status < 3)
+                                {
+                                    try
+                                    {
+                                        conn.Insert(form);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        if (e.Message == "table Form has no column named status")
+                                        {
+                                            //MIGRATE DB - Add status
+                                            try
+                                            {
+                                                conn.BeginTransaction();
+                                                conn.Execute("ALTER TABLE Form ADD status int NOT NULL DEFAULT(0);");
+                                                conn.Commit();
+                                                conn.Insert(form);
+                                            }
+                                            catch (Exception e2)
+                                            {
+                                                App.Current.MainPage.DisplayAlert("Wir sind auf ein Problem gestossen", "Ihr Formular konnte nicht synchronisiert werden. Bitte kontaktieren Sie den Support.", "Ok");
+                                            }
+                                        }
+
+                                    }
+                                }
                                 
                                 //Add form fields
                                 foreach (var formfield in form.formFields)
