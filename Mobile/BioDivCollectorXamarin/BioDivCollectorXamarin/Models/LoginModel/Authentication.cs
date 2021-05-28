@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -78,6 +79,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
         /// </summary>
         public static async Task RequestRefreshTokenAsync()
         {
+            
             string localRefreshToken = Preferences.Get("RefreshToken", "");
 
             var auth = Authentication.AuthParams;
@@ -86,26 +88,51 @@ namespace BioDivCollectorXamarin.Models.LoginModel
             {
                 if (eventArgs.IsAuthenticated == true)
                 {
-                    Dictionary<String, String> props = eventArgs.Account.Properties;
+                    Console.WriteLine("Refreshed token");
+                    try
+                    {
+                        Dictionary<String, String> props = eventArgs.Account.Properties;
 
-                    Authentication.SaveTokens(props);
+                        Authentication.SaveTokens(props);
 
-                    Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginSuccessful");
+                        Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginSuccessful");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        Authentication.loginErrorHandler();
+                    }
+
                 }
                 else
                 {
-                    Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful");
+                    Authentication.loginErrorHandler();
                 }
             };
 
             auth.Error += (sender, eventArgs) =>
             {
-                Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful");
+                Authentication.loginErrorHandler();
             };
 
-            await auth.RequestRefreshTokenAsync(localRefreshToken);
+            try
+            {
+                var valid = await auth.RequestRefreshTokenAsync(localRefreshToken);
+                Console.WriteLine("New token valid for: " + valid);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                Authentication.loginErrorHandler();
+            }
+            
+        }
 
-         }
+        private static void loginErrorHandler()
+        {
+            Login.Logout();
+            Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful");
+        }
 
         /// <summary>
         /// Once authentication is complete, save the returned parameters to preferences
