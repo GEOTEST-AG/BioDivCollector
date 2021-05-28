@@ -96,13 +96,15 @@ namespace BioDivCollector.WebApp.Controllers
             else if (User.IsInRole("EF")) erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.EF);
             if (User.IsInRole("PK"))
             {
-                projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PK));
-                erfassendeProjects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PK));
+                List<Project> pkprojects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PK);
+                projects.AddRange(pkprojects);
+                erfassendeProjects.AddRange(pkprojects);
             }
             if (User.IsInRole("PL"))
             {
-                projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PL));
-                erfassendeProjects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PL));
+                List<Project> plprojects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.PL);
+                projects.AddRange(plprojects);
+                erfassendeProjects.AddRange(plprojects);
             }
             editProjectSetting = projects;
             List<Project> nurLesendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.LE);
@@ -118,8 +120,7 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 Project addProject = await db.Projects
                     .Include(m => m.Status)
-                    .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries).ThenInclude(l => l.Records)
-                    .Include(m => m.ProjectGroups).ThenInclude(u => u.Records)
+                    .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries)
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Group).ThenInclude(g => g.GroupUsers).ThenInclude(gu => gu.User)
                     .Include(m => m.ProjectStatus)
                     .Include(m => m.ProjectManager)
