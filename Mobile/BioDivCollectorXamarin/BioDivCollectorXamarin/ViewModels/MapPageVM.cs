@@ -271,6 +271,14 @@ namespace BioDivCollectorXamarin.ViewModels
                 });
             });
 
+            MessagingCenter.Subscribe<MapPageVM>(this, "ShapeDrawingUndone", (sender) =>
+            {
+                RefreshShapes();
+                TempLayer = MapModel.CreateTempLayer(TempCoordinates);
+                Map.Layers.Insert(Map.Layers.Count, TempLayer);
+                //SaveGeomCommand.ChangeCanExecute();
+            });
+
             DeviceDisplay.MainDisplayInfoChanged += HandleRotationChange;
 
             
@@ -947,12 +955,19 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     if (TempCoordinates.Count > 3)
                     {
-                        if (!CurrentPolygonSelfIntersecting)
+                        if (!CurrentPolygonSelfIntersecting) //Polyon was not previously self-intersecting
                         {
                             CurrentPolygonSelfIntersecting = true;
-                            Device.BeginInvokeOnMainThread(() =>
+                            Device.BeginInvokeOnMainThread(async () =>
                             {
-                                App.Current.MainPage.DisplayAlert("Das aktuelle Polygon ist selbst schneidend. Es kann nicht gespeichert werden, bis es gültig ist", "", "OK");
+                                bool ok = await App.Current.MainPage.DisplayAlert("Das aktuelle Polygon schneidet sich selbst. Solange es eine ungültige Geometrie hat kann es nicht gespeichert werden", "", "Weiter zeichnen", "Rückgängig machen");
+                                if (!ok)
+                                {
+                                    TempCoordinates.RemoveAt(TempCoordinates.Count - 2);
+                                    CurrentPolygonSelfIntersecting = false;
+                                    MessagingCenter.Send<MapPageVM>(this, "ShapeDrawingUndone");
+                                    SaveGeomCommand.ChangeCanExecute();
+                                }
                             });
                         }
                     }
@@ -962,6 +977,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 }
             }
         }
+
 
         /// <summary>
         /// Determine whether we are in edit(create) mode. If we are, disable clicking on existing layers and turn the button green
