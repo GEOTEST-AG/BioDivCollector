@@ -258,24 +258,27 @@ namespace BioDivCollector.WebApp.Controllers
                             {
                                 string newValue = parameters.GetValue("Field_" + ff.FormFieldId).ToString();
                                 DateTime myDT;
-                                myDT = DateTime.ParseExact(newValue.Replace("{0:", " ").Replace("}", ""), formats, CultureInfo.InvariantCulture, DateTimeStyles.None);
-                                
-
-                                string zulu = myDT
-                         .ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
-
-                                TextData td = r.TextData.Where(m => m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
-                                if (td == null)
+                                if (newValue != "")
                                 {
-                                    td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = zulu };
-                                    r.TextData.Add(td);
-                                    db.Entry(td).State = EntityState.Added;
-                                    db.Entry(r).State = EntityState.Modified;
-                                }
-                                else
-                                {
-                                    td.Value = zulu;
-                                    db.Entry(td).State = EntityState.Modified;
+                                        myDT = DateTime.ParseExact(newValue.Replace("{0:", " ").Replace("}", ""), formats, CultureInfo.InvariantCulture, DateTimeStyles.None);
+
+
+                                        string zulu = myDT
+                                 .ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
+
+                                        TextData td = r.TextData.Where(m => m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
+                                        if (td == null)
+                                        {
+                                            td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = zulu };
+                                            r.TextData.Add(td);
+                                            db.Entry(td).State = EntityState.Added;
+                                            db.Entry(r).State = EntityState.Modified;
+                                        }
+                                        else
+                                        {
+                                            td.Value = zulu;
+                                            db.Entry(td).State = EntityState.Modified;
+                                        }
                                 }
 
                             }
