@@ -684,13 +684,13 @@ namespace BioDivCollector.WebApp.Controllers
                             try
                             {
                                 myDT = DateTime.ParseExact(td.Value.Replace("{0:", " ").Replace("}", ""), formats, CultureInfo.InvariantCulture, DateTimeStyles.None);
+                                if (td != null) dynamicField.Value = myDT;
                             }
                             catch (Exception e)
                             {
 
                             }
 
-                            if (td != null) dynamicField.Value = myDT;
 
                             dynamicField.NotOptional = ff.Mandatory;
                             dynamicForm.Add(dynamicField);

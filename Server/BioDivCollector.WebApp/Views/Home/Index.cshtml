@@ -9,7 +9,7 @@
 
     <h1>Herzlich willkommen</h1>
 
-    @if (ViewBag.AnnouncementHeader.ToString() != "")
+    @if ((ViewBag.AnnouncementHeader!=null) && (ViewBag.AnnouncementHeader.ToString() != ""))
     {
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading">@ViewBag.AnnouncementHeader</h4>
