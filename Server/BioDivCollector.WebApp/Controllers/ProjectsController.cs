@@ -70,21 +70,33 @@ namespace BioDivCollector.WebApp.Controllers
 
             List<ProjectPocoForIndex> newProjectList = new List<ProjectPocoForIndex>();
 
+
             foreach (Project p in projects.Distinct())
             {
-                Project addProject = await db.Projects
-                    .Include(m => m.Status)
-                    .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries).ThenInclude(l => l.Records)
-                    .Include(m => m.ProjectGroups).ThenInclude(u => u.Records)
-                    .Include(m => m.ProjectGroups).ThenInclude(u => u.Group).ThenInclude(g => g.GroupUsers).ThenInclude(gu => gu.User)
-                    .Include(m => m.ProjectStatus)
-                    .Include(m => m.ProjectManager)
-                    .Include(m => m.ProjectConfigurator)
-                    .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == p.ProjectId).FirstAsync();
+                List<ProjectGroup> pgs = await db.ProjectsGroups.Include(m=>m.Geometries).ThenInclude(m=>m.Records).Include(m=>m.Records).Where(k => k.ProjectId == p.ProjectId).ToListAsync();
 
-                ProjectPocoForIndex pp = new ProjectPocoForIndex() { Project = addProject };
-                if (!erfassendeProjects.Contains(addProject)) pp.IsReadOnly = true;
-                if (editProjectSetting.Contains(addProject)) pp.IsPKOrPLOrDM = true;
+                int recordCount = 0;
+                int geometryCount = 0;
+                string myGroup = "";
+                foreach (ProjectGroup pg in pgs)
+                {
+                    geometryCount += pg.Geometries.Where(m=>m.StatusId!=StatusEnum.deleted).Count();
+                    recordCount += pg.Geometries.Where(m=>m.StatusId!=StatusEnum.deleted).Select(m => m.Records.Where(zz=>zz.StatusId!=StatusEnum.deleted).Count()).Sum();
+                    recordCount += pg.Records.Where(m => m.StatusId != StatusEnum.deleted && m.GeometryId == null).Count();
+
+                    await db.Entry(pg).Reference(zzz => zzz.Group).Query().Include(m => m.GroupUsers).LoadAsync();
+
+                    if (pg.Group.GroupUsers.Where(o => o.UserId == user.UserId).Any()) myGroup = pg.Group.GroupName;
+                }
+
+
+                await db.Entry(p).Reference(m => m.ProjectConfigurator).LoadAsync();
+                await db.Entry(p).Reference(m => m.ProjectManager).LoadAsync();
+                await db.Entry(p).Reference(m => m.ProjectStatus).LoadAsync();
+
+                ProjectPocoForIndex pp = new ProjectPocoForIndex() { Project = p, RecordCount = recordCount, GeometryCount = geometryCount, MyGroup = myGroup };
+                if (!erfassendeProjects.Contains(p)) pp.IsReadOnly = true;
+                if (editProjectSetting.Contains(p)) pp.IsPKOrPLOrDM = true;
                 else pp.IsReadOnly = false;
                 newProjectList.Add(pp);
 
@@ -1480,6 +1492,12 @@ namespace BioDivCollector.WebApp.Controllers
         public Project Project { get; set; }
         public bool IsReadOnly { get; set; }
         public bool IsPKOrPLOrDM { get; set; }
+
+        public int RecordCount { get; set; }
+        public int GeometryCount { get; set; }
+
+        public string MyGroup { get; set; }
+
     }
     public class LayersList
     {

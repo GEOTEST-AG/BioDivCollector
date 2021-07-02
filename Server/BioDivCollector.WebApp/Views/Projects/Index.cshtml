@@ -58,10 +58,6 @@
                             <tbody>
                                 @foreach (ProjectPocoForIndex pp in Model)
                                 {
-                                    int? anzGeometrien = (from ii in pp.Project.ProjectGroups select ii.Geometries?.Where(u => u.StatusId != StatusEnum.deleted).Count()).Sum();
-                                    int? anzRecords = (from iii in pp.Project.ProjectGroups select iii.Records?.Where(m => m.StatusId != StatusEnum.deleted && m.Geometry == null).Count()).Sum();
-                                    int? anz2Records = (from iiii in pp.Project.ProjectGroups select iiii.Geometries?.Where(m => m.StatusId != StatusEnum.deleted).SelectMany(m => m.Records.Where(tt => tt.StatusId != StatusEnum.deleted)).Where(z => z.StatusId != StatusEnum.deleted).Count()).Sum();
-                                    int? totalRecords = anzRecords + anz2Records;
 
                                     <tr>
                                         <td>
@@ -122,9 +118,9 @@
                                                 <text>Nein</text>
                                             }
                                         </td>
-                                        <td>@pp.Project.ProjectGroups?.Select(m => m.Group).Where(m => m.GroupUsers.Any(u => u.UserId.ToString() == ViewData["Username"].ToString()))?.FirstOrDefault()?.GroupName</td>
-                                        <td>@anzGeometrien</td>
-                                        <td>@totalRecords</td>
+                                        <td>@pp.MyGroup</td>
+                                        <td>@pp.GeometryCount</td>
+                                        <td>@pp.RecordCount</td>
                                         <td>@pp.Project.ProjectConfigurator?.FirstName @pp.Project.ProjectConfigurator?.Name</td>
                                         <td>@pp.Project.ProjectManager?.FirstName @pp.Project.ProjectManager?.Name</td>
                                         <td>@pp.Project.ProjectStatus.Description</td>
