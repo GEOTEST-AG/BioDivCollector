@@ -409,7 +409,7 @@ namespace BioDivCollector.WebApp.Controllers
             projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.LE_OGD));
             projects.AddRange(erfassendeProjects);
 
-            Project p = await db.Projects
+            /*Project p = await db.Projects
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).ThenInclude(u => u.TextData).ThenInclude(td => td.FormField)
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).ThenInclude(u => u.NumericData).ThenInclude(td => td.FormField)
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).ThenInclude(u => u.BooleanData).ThenInclude(td => td.FormField)
@@ -420,7 +420,32 @@ namespace BioDivCollector.WebApp.Controllers
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).ThenInclude(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).Where(pg => pg.StatusId != StatusEnum.deleted)
                 .Where(m => m.ProjectId == id)
-                .Where(m => m.StatusId != StatusEnum.deleted).FirstOrDefaultAsync();
+                .Where(m => m.StatusId != StatusEnum.deleted).FirstOrDefaultAsync();*/
+
+            Project p = await db.Projects
+                    .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == id).FirstOrDefaultAsync();
+
+            await db.Entry(p).Collection(m => m.ProjectGroups).LoadAsync();
+
+            foreach (ProjectGroup pg in p.ProjectGroups)
+            {
+                await db.Entry(pg).Collection(m => m.Geometries).LoadAsync();
+                await db.Entry(pg).Collection(m => m.Records).Query().
+                    Include(u => u.TextData).ThenInclude(td => td.FormField).
+                    Include(u => u.NumericData).ThenInclude(td => td.FormField).
+                    Include(u => u.BooleanData).ThenInclude(td => td.FormField).
+                    Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo => mo.PublicMotherFormField).
+                    Include(u => u.ProjectGroup.Group).
+                    Include(u => u.Geometry).
+                    Include(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
+                    .Where(pg => pg.StatusId != StatusEnum.deleted)
+                    .LoadAsync();
+
+            }
+
+
+
+
             if (p == null) return StatusCode(500);
             if (!projects.Any(m => m.ProjectId == p.ProjectId)) return RedirectToAction("NotAllowed", "Home");
 
@@ -490,7 +515,7 @@ namespace BioDivCollector.WebApp.Controllers
             projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.LE_OGD));
             projects.AddRange(erfassendeProjects);
 
-            Project p = await db.Projects
+            /*Project p = await db.Projects
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).ThenInclude(u => u.TextData).ThenInclude(td => td.FormField)
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).ThenInclude(u => u.NumericData).ThenInclude(td => td.FormField)
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).ThenInclude(u => u.BooleanData).ThenInclude(td => td.FormField)
@@ -501,7 +526,30 @@ namespace BioDivCollector.WebApp.Controllers
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).ThenInclude(u => u.RecordChangeLogs).ThenInclude(rcl=>rcl.ChangeLog).ThenInclude(cl => cl.User)
                 .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records).Where(pg=>pg.StatusId!=StatusEnum.deleted)
                 .Where(m => m.ProjectId == id)
-                .Where(m => m.StatusId != StatusEnum.deleted).FirstOrDefaultAsync();
+                .Where(m => m.StatusId != StatusEnum.deleted).FirstOrDefaultAsync();*/
+
+            Project p = await db.Projects
+                    .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == id).FirstOrDefaultAsync();
+
+            await db.Entry(p).Collection(m => m.ProjectGroups).LoadAsync();
+
+            foreach (ProjectGroup pg in p.ProjectGroups)
+            {
+                await db.Entry(pg).Collection(m => m.Geometries).LoadAsync();
+                await db.Entry(pg).Collection(m => m.Records).Query().
+                    Include(u => u.TextData).ThenInclude(td => td.FormField).
+                    Include(u => u.NumericData).ThenInclude(td => td.FormField).
+                    Include(u => u.BooleanData).ThenInclude(td => td.FormField).
+                    Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo=>mo.PublicMotherFormField).
+                    Include(u => u.ProjectGroup.Group).
+                    Include(u => u.Geometry).
+                    Include(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
+                    .Where(pg => pg.StatusId != StatusEnum.deleted)
+                    .LoadAsync();
+
+            }
+
+
             if (p == null) return StatusCode(500);
             if (!projects.Any(m => m.ProjectId == p.ProjectId)) return RedirectToAction("NotAllowed", "Home");
 
@@ -780,7 +828,7 @@ namespace BioDivCollector.WebApp.Controllers
             projects.AddRange(await DB.Helpers.ProjectManager.UserProjectsAsync(db, user, RoleEnum.LE_OGD));
             projects.AddRange(erfassendeProjects);
 
-            Project p = await db.Projects
+            /*Project p = await db.Projects
                 .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries).ThenInclude(pg => pg.Records).ThenInclude(u => u.TextData).ThenInclude(td => td.FormField)
                 .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries).ThenInclude(pg => pg.Records).ThenInclude(u => u.NumericData).ThenInclude(td => td.FormField)
                 .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries).ThenInclude(pg => pg.Records).ThenInclude(u => u.BooleanData).ThenInclude(td => td.FormField)
@@ -791,7 +839,33 @@ namespace BioDivCollector.WebApp.Controllers
                 .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries).ThenInclude(pg => pg.Records).ThenInclude(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
                 .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries).ThenInclude(pg => pg.Records).Where(pg => pg.StatusId != StatusEnum.deleted)
                 .Where(m => m.ProjectId == id)
-                .Where(m => m.StatusId != StatusEnum.deleted).FirstOrDefaultAsync();
+                .Where(m => m.StatusId != StatusEnum.deleted).FirstOrDefaultAsync();*/
+
+            Project p = await db.Projects
+                    .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == id).FirstOrDefaultAsync();
+
+            await db.Entry(p).Collection(m => m.ProjectGroups).LoadAsync();
+
+            foreach (ProjectGroup pg in p.ProjectGroups)
+            {
+                await db.Entry(pg).Collection(m => m.Geometries).LoadAsync();
+
+                foreach (ReferenceGeometry rg in pg.Geometries)
+                {
+
+                    await db.Entry(rg).Collection(m => m.Records).Query().
+                        Include(u => u.TextData).ThenInclude(td => td.FormField).
+                        Include(u => u.NumericData).ThenInclude(td => td.FormField).
+                        Include(u => u.BooleanData).ThenInclude(td => td.FormField).
+                        Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo => mo.PublicMotherFormField).
+                        Include(u => u.ProjectGroup.Group).
+                        Include(u => u.Geometry).
+                        Include(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
+                        .Where(pg => pg.StatusId != StatusEnum.deleted)
+                        .LoadAsync();
+                }
+
+            }
 
 
 

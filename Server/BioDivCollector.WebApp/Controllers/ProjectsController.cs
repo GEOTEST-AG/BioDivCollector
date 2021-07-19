@@ -170,7 +170,7 @@ namespace BioDivCollector.WebApp.Controllers
 
             if (projects.Where(m => m.ProjectId == id).Count() == 0) return StatusCode(StatusCodes.Status403Forbidden);
 
-            Project newProject = db.Projects
+            /*Project newProject = db.Projects
                     .Include(m => m.Status)
                     .Include(m => m.ProjectStatus)
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries)
@@ -180,8 +180,26 @@ namespace BioDivCollector.WebApp.Controllers
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Group).ThenInclude(g => g.Creator)
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Group).ThenInclude(g => g.GroupUsers).ThenInclude(gu => gu.User)
                     .Include(m => m.ProjectManager)
+                    .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == id).First();*/
+
+
+            Project newProject = db.Projects
                     .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == id).First();
 
+            await db.Entry(newProject).Reference(m => m.ProjectConfigurator).LoadAsync();
+            await db.Entry(newProject).Reference(m => m.ProjectManager).LoadAsync();
+            await db.Entry(newProject).Reference(m => m.ProjectStatus).LoadAsync();
+            await db.Entry(newProject).Reference(m => m.Status).LoadAsync();
+
+            await db.Entry(newProject).Collection(m => m.ProjectGroups).LoadAsync();
+
+            foreach (ProjectGroup pg in newProject.ProjectGroups)
+            {
+                await db.Entry(pg).Collection(m => m.Geometries).LoadAsync();
+                await db.Entry(pg).Collection(m => m.Records).LoadAsync();
+
+                await db.Entry(pg).Reference(m => m.Group).Query().Include(zz => zz.GroupStatus).Include(zz => zz.Creator).Include(zz => zz.GroupUsers).ThenInclude(gu => gu.User).LoadAsync();
+            }
 
             if (newProject == null) return StatusCode(500);
             HttpContext.Session.SetString("Project", id.ToString());
@@ -249,7 +267,7 @@ namespace BioDivCollector.WebApp.Controllers
 
             if (projects.Where(m => m.ProjectId == id).Count() == 0) return StatusCode(StatusCodes.Status403Forbidden);
 
-            Project newProject = db.Projects
+            /*Project newProject = db.Projects
                     .Include(m => m.Status)
                     .Include(m => m.ProjectStatus)
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries)
@@ -259,7 +277,27 @@ namespace BioDivCollector.WebApp.Controllers
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Group).ThenInclude(g => g.Creator)
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Group).ThenInclude(g => g.GroupUsers).ThenInclude(gu => gu.User)
                     .Include(m => m.ProjectManager)
+                    .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == id).First();*/
+
+            Project newProject = db.Projects
                     .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == id).First();
+
+            await db.Entry(newProject).Reference(m => m.ProjectConfigurator).LoadAsync();
+            await db.Entry(newProject).Reference(m => m.ProjectManager).LoadAsync();
+            await db.Entry(newProject).Reference(m => m.ProjectStatus).LoadAsync();
+            await db.Entry(newProject).Reference(m => m.Status).LoadAsync();
+
+            await db.Entry(newProject).Collection(m => m.ProjectGroups).LoadAsync();
+
+            foreach (ProjectGroup pg in newProject.ProjectGroups)
+            {
+                await db.Entry(pg).Collection(m => m.Geometries).LoadAsync();
+                await db.Entry(pg).Collection(m => m.Records).LoadAsync();
+
+                await db.Entry(pg).Reference(m => m.Group).Query().Include(zz=>zz.GroupStatus).Include(zz=>zz.Creator).Include(zz=>zz.GroupUsers).ThenInclude(gu => gu.User).LoadAsync();
+            }
+
+
 
 
             if (newProject == null) return StatusCode(500);
@@ -1410,12 +1448,25 @@ namespace BioDivCollector.WebApp.Controllers
 
             if (projects.Where(m => m.ProjectId == id).Count() == 0) return StatusCode(StatusCodes.Status403Forbidden);
 
-            Project newProject = db.Projects
+            /*Project newProject = db.Projects
                     .Include(m => m.Status)
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries)
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Records)
                     .Include(m => m.ProjectGroups).ThenInclude(u => u.Group).ThenInclude(g => g.GroupUsers)
+                    .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == id).First();*/
+            Project newProject = db.Projects
                     .Where(m => m.Status.Id != StatusEnum.deleted && m.ProjectId == id).First();
+
+            await db.Entry(newProject).Collection(m => m.ProjectGroups).LoadAsync();
+
+            foreach (ProjectGroup pg in newProject.ProjectGroups)
+            {
+                await db.Entry(pg).Collection(m => m.Geometries).LoadAsync();
+                await db.Entry(pg).Collection(m => m.Records).LoadAsync();
+
+                await db.Entry(pg).Reference(m => m.Group).Query().Include(zz => zz.GroupStatus).Include(zz => zz.Creator).Include(zz => zz.GroupUsers).ThenInclude(gu => gu.User).LoadAsync();
+            }
+
 
 
             if (newProject == null) return StatusCode(500);
