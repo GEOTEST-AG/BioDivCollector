@@ -244,7 +244,7 @@ namespace BioDivCollector.WebApp.Controllers
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
 
-            var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users/");
+            var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users?max=1000");
             client.Timeout = -1;
             var request = new RestRequest(Method.GET);
             request.AddHeader("Authorization", "Bearer " + accessToken);
@@ -397,7 +397,7 @@ namespace BioDivCollector.WebApp.Controllers
             string access_token = GetAdminAccessToken();
             if (access_token != "Error")
             {
-                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users");
+                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users?max=1000");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.GET);
                 request.AddHeader("Authorization", "Bearer " + access_token);

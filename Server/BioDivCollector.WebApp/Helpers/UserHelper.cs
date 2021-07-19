@@ -56,9 +56,10 @@ namespace BioDivCollector.WebApp.Helpers
             string access_token = UserHelper.GetAdminAccessToken(adminurl, adminkey, adminuser, adminpassword);
             if (access_token != "Error")
             {
-                var client = new RestClient(keycloakurl + "/clients/" + clientid + "/roles/" + Role + "/users");
+                var client = new RestClient(keycloakurl + "/clients/" + clientid + "/roles/" + Role + "/users?max=1000");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.GET);
+
                 request.AddHeader("Authorization", "Bearer " + access_token);
                 IRestResponse response = client.Execute(request);
                 JArray jArray = JArray.Parse(response.Content);
@@ -88,7 +89,7 @@ namespace BioDivCollector.WebApp.Helpers
             string access_token = UserHelper.GetAdminAccessToken(url, adminkey, adminuser, adminpassword);
             if (access_token != "Error")
             {
-                var client = new RestClient(keycloakurl + "/users");
+                var client = new RestClient(keycloakurl + "/users?max=1000");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.GET);
                 request.AddHeader("Authorization", "Bearer " + access_token);
