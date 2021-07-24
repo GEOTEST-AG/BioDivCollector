@@ -429,20 +429,26 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void ReCentreMap()
         {
-            var positionLat = Preferences.Get("LastPositionLatitude", 47.36);
-            var positionLong = Preferences.Get("LastPositionLongitude", 8.54);
-            Mapsui.Geometries.Point centre = new Mapsui.Geometries.Point(positionLong, positionLat);
-
-            var BBLLx = Double.Parse(Preferences.Get("BBLLx", "100"));
-            var BBLLy = Double.Parse(Preferences.Get("BBLLy", "100"));
-            var BBURx = Double.Parse(Preferences.Get("BBURx", "100"));
-            var BBURy = Double.Parse(Preferences.Get("BBURy", "100"));
-            if (BBLLx != 100)
+            Task.Run(() =>
             {
-                var bbox = new Mapsui.Geometries.BoundingBox(BBLLx, BBLLy, BBURx, BBURy);
-                VMMapView.Navigator.NavigateTo(bbox, ScaleMethod.Fit);
-            }
-            var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(centre.X, centre.Y);
+                var positionLat = Preferences.Get("LastPositionLatitude", 47.36);
+                var positionLong = Preferences.Get("LastPositionLongitude", 8.54);
+                Mapsui.Geometries.Point centre = new Mapsui.Geometries.Point(positionLong, positionLat);
+
+                var BBLLx = Double.Parse(Preferences.Get("BBLLx", "100"));
+                var BBLLy = Double.Parse(Preferences.Get("BBLLy", "100"));
+                var BBURx = Double.Parse(Preferences.Get("BBURx", "100"));
+                var BBURy = Double.Parse(Preferences.Get("BBURy", "100"));
+                if (BBLLx != 100)
+                {
+                    var bbox = new Mapsui.Geometries.BoundingBox(BBLLx, BBLLy, BBURx, BBURy);
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        VMMapView.Navigator.NavigateTo(bbox, ScaleMethod.Fit);
+                    });
+                }
+                var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(centre.X, centre.Y);
+            });
         }
 
 
@@ -452,40 +458,46 @@ namespace BioDivCollectorXamarin.ViewModels
         public void OnAppearing()
         {
             InitialiseGPS();
-
-            ReCentreMap();
-            if (Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
+            Task.Run(() =>
             {
-                IsNotConnected = false;
-            }
-            else
-            {
-                IsNotConnected = true;
-            }
-            RefreshAllLayers();
-            
-
-            MessagingCenter.Subscribe<MapLayer, Dictionary<string, int>>(this, "LayerOrderChanged", (sender, arg) =>
-            {
-
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    var dic = arg;
-                    dic.TryGetValue("oldZ", out int oldZ);
-                    dic.TryGetValue("newZ", out int newZ);
-                    var oldLayerZ = MapLayers.Count - oldZ;
-                    var newLayerZ = MapLayers.Count - newZ;
-                    if (newLayerZ < MapLayers.Count && newLayerZ >= 0)
+                ReCentreMap();
+                if (Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
+                    {
+                        IsNotConnected = false;
+                    }
+                    else
+                    {
+                        IsNotConnected = true;
+                    }
+                    Device.BeginInvokeOnMainThread(() =>
                     {
                         RefreshAllLayers();
-                    }
-                });
-            });
+                    });
 
-            if (App.ZoomMapOut)
-            {
-                Task.Delay(100).ContinueWith(t => ZoomMapOut());
-            }
+                
+
+                MessagingCenter.Subscribe<MapLayer, Dictionary<string, int>>(this, "LayerOrderChanged", (sender, arg) =>
+                {
+
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        var dic = arg;
+                        dic.TryGetValue("oldZ", out int oldZ);
+                        dic.TryGetValue("newZ", out int newZ);
+                        var oldLayerZ = MapLayers.Count - oldZ;
+                        var newLayerZ = MapLayers.Count - newZ;
+                        if (newLayerZ < MapLayers.Count && newLayerZ >= 0)
+                        {
+                            RefreshAllLayers();
+                        }
+                    });
+                });
+
+                if (App.ZoomMapOut)
+                {
+                    Task.Delay(100).ContinueWith(t => ZoomMapOut());
+                }
+            });
             
         }
 
@@ -529,7 +541,10 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 if (layer.Name == "Polygons"|| layer.Name == "Lines"||layer.Name == "Points")
                 {
-                    Map.Layers.Remove(layer);
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        Map.Layers.Remove(layer);
+                    });
                 }
             }
             var shapeLayers = MapModel.CreateShapes();
@@ -543,9 +558,12 @@ namespace BioDivCollectorXamarin.ViewModels
                 shapeLayers.TryGetValue("lines", out linelayer);
                 shapeLayers.TryGetValue("points", out pointlayer);
                 shapeLayers.TryGetValue("all", out allShapesLayer);
-                Map.Layers.Insert(Map.Layers.Count, polylayer);
-                Map.Layers.Insert(Map.Layers.Count, linelayer);
-                Map.Layers.Insert(Map.Layers.Count, pointlayer);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    Map.Layers.Insert(Map.Layers.Count, polylayer);
+                    Map.Layers.Insert(Map.Layers.Count, linelayer);
+                    Map.Layers.Insert(Map.Layers.Count, pointlayer);
+                });
 
             }
 
@@ -558,8 +576,11 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     try
                     {
-                        var centre = MapModel.GetCentreOfGeometry(geomId);
-                        VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
+                        Device.BeginInvokeOnMainThread(() =>
+                        {
+                            var centre = MapModel.GetCentreOfGeometry(geomId);
+                            VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
+                        });
                     }
                     catch
                     {
@@ -694,14 +715,20 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 if (layer != null && layer.GetType() != typeof(Mapsui.UI.Objects.MyLocationLayer))
                 {
-                    Map.Layers.Remove(layer);
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        Map.Layers.Remove(layer);
+                    });
                 }
             }
 
             try
             {
                 MapLayers = MapModel.MakeArrayOfLayers();
-                AddLayersToMap();
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    AddLayersToMap();
+                });
             }
             catch (Exception e)
             {
@@ -709,7 +736,10 @@ namespace BioDivCollectorXamarin.ViewModels
             }
             finally
             {
-                Map.Widgets.Add(new Mapsui.Widgets.ScaleBar.ScaleBarWidget(Map) { TextAlignment = Mapsui.Widgets.Alignment.Center, HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left, VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom });
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    Map.Widgets.Add(new Mapsui.Widgets.ScaleBar.ScaleBarWidget(Map) { TextAlignment = Mapsui.Widgets.Alignment.Center, HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left, VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom });
+                });
             }
         }
 
@@ -960,13 +990,20 @@ namespace BioDivCollectorXamarin.ViewModels
                             CurrentPolygonSelfIntersecting = true;
                             Device.BeginInvokeOnMainThread(async () =>
                             {
-                                bool ok = await App.Current.MainPage.DisplayAlert("Das aktuelle Polygon schneidet sich selbst. Solange es eine ungültige Geometrie hat kann es nicht gespeichert werden", "", "Weiter zeichnen", "Rückgängig machen");
+                                bool ok = await App.Current.MainPage.DisplayAlert("Das aktuelle Polygon schneidet sich selbst", "Solange es eine ungültige Geometrie hat kann es nicht gespeichert werden", "Weiter zeichnen", "Rückgängig machen");
                                 if (!ok)
                                 {
-                                    TempCoordinates.RemoveAt(TempCoordinates.Count - 2);
-                                    CurrentPolygonSelfIntersecting = false;
-                                    MessagingCenter.Send<MapPageVM>(this, "ShapeDrawingUndone");
-                                    SaveGeomCommand.ChangeCanExecute();
+                                    try
+                                    {
+                                        TempCoordinates.RemoveAt(TempCoordinates.Count - 2);
+                                        CurrentPolygonSelfIntersecting = false;
+                                        MessagingCenter.Send<MapPageVM>(this, "ShapeDrawingUndone");
+                                        SaveGeomCommand.ChangeCanExecute();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.WriteLine("Had a problem undoing the shape: " + e.Message);
+                                    }
                                 }
                             });
                         }

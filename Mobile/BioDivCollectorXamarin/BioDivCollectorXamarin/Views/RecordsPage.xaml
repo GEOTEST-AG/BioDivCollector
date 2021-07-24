@@ -37,7 +37,7 @@
                     </DataTemplate>
                     </ListView.GroupHeaderTemplate>
                 <ListView.ItemTemplate x:DataType="model:FormRec">
-                    <DataTemplate >
+                    <DataTemplate>
                         <ViewCell Height="120">
                             <ViewCell.ContextActions>
                                 <MenuItem 
@@ -52,18 +52,21 @@
                                       CommandParameter="{Binding .}"
                                     Clicked="GUIDItem_Clicked"/>
                             </ViewCell.ContextActions>
-                            <StackLayout VerticalOptions="Center" Margin="20,0,0,0">
-                                <Label Text="{Binding Title}" Style="{DynamicResource ListItemTextStyle}" FontAttributes="Bold" />
-                                <StackLayout Orientation="Horizontal">
-                                    <Label Text="{Binding Timestamp}" Style="{DynamicResource CaptionStyle}"/>
-                                    <Label Text="{Binding User}" Style="{DynamicResource CaptionStyle}"/>
+                                <StackLayout VerticalOptions="Center" Margin="20,0,0,0" BackgroundColor="{Binding RecId, Converter={StaticResource formFilledOut}}">
+                                    <StackLayout Orientation="Horizontal">
+                                        <Label Text = "{Binding RecId, Converter={StaticResource formFilledOut}}"/>
+                                        <Label Text="{Binding Title}" Style="{DynamicResource ListItemTextStyle}" FontAttributes="Bold" />
+                                    </StackLayout>
+                                    <StackLayout Orientation="Horizontal">
+                                        <Label Text="{Binding Timestamp}" Style="{DynamicResource CaptionStyle}"/>
+                                        <Label Text="{Binding User}" Style="{DynamicResource CaptionStyle}"/>
+                                    </StackLayout>
+                                    <StackLayout Orientation="Horizontal">
+                                        <Label Text="{Binding GeometryName}" IsVisible="{Binding GeometryName, Converter={StaticResource stringToBool}}" Style="{DynamicResource CaptionStyle}" TextColor="Gray" />
+                                        <Label Text=", " IsVisible="{Binding GeometryName, Converter={StaticResource stringToBool}}" Style="{DynamicResource CaptionStyle}" TextColor="Gray" />
+                                        <Label Text="{Binding FormType}" Style="{DynamicResource CaptionStyle}" TextColor="Gray" />
+                                    </StackLayout>
                                 </StackLayout>
-                                <StackLayout Orientation="Horizontal">
-                                    <Label Text="{Binding GeometryName}" IsVisible="{Binding GeometryName, Converter={StaticResource stringToBool}}" Style="{DynamicResource CaptionStyle}" TextColor="Gray" />
-                                    <Label Text=", " IsVisible="{Binding GeometryName, Converter={StaticResource stringToBool}}" Style="{DynamicResource CaptionStyle}" TextColor="Gray" />
-                                    <Label Text="{Binding FormType}" Style="{DynamicResource CaptionStyle}" TextColor="Gray" />
-                                </StackLayout>
-                            </StackLayout>
                         </ViewCell>
                     </DataTemplate>
                 </ListView.ItemTemplate>
@@ -81,6 +84,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <converter:StringNullOrEmptyBoolConverter x:Key="stringToBool" />
+            <converter:FormFilledOutColourConverter x:Key="formFilledOut" />
         </ResourceDictionary>
     </ContentPage.Resources>
 

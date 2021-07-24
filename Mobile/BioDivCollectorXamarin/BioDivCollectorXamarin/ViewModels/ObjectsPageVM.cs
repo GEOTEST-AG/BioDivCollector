@@ -63,7 +63,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             if (App.CurrentProjectId != null && App.CurrentProjectId != String.Empty)
             {
-                using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 {
                     var project = new Project();
                     try

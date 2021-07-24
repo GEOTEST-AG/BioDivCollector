@@ -229,7 +229,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void UpdateRecords()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -444,7 +444,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     if ( formField.typeId == 11 || formField.typeId == 51 || formField.typeId == 61 )
                     {
-                        using (SQLiteConnection txtconn = new SQLiteConnection(App.DatabaseLocation))
+                        using (SQLiteConnection txtconn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                         {
                             try
                             {

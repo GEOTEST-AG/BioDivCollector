@@ -176,14 +176,18 @@ namespace BioDivCollectorXamarin.Models
                             {
                                 DataDAO.ProcessJSON(returnedObject.projectUpdate); //Update database with downloaded data
 
-                                using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                                 {
                                     project.lastSync = DateTime.Now;
                                     conn.Update(project);
 
                                     var error = returnedObject.error;
                                     var deletedRecords = returnedObject.records.deleted;
+                                    var deletedRecords2 = returnedObject.geometries.geometryRecords.deleted;
+                                    var deletedRecordsTotal = deletedRecords.Concat(deletedRecords2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                                     var skippedRecords = returnedObject.records.skipped;
+                                    var skippedRecords2 = returnedObject.geometries.geometryRecords.skipped;
+                                    var skippedRecordsTotal = skippedRecords.Concat(skippedRecords2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                                     var deletedGeometries = returnedObject.geometries.deleted;
                                     var skippedGeometries = returnedObject.geometries.skipped;
 
@@ -192,7 +196,7 @@ namespace BioDivCollectorXamarin.Models
                                         error = "Data successfully downloaded";
                                     }
 
-                                    foreach (var deletedRecord in deletedRecords)
+                                    foreach (var deletedRecord in deletedRecordsTotal)
                                     {
                                         //Delete records from device which have been confirmed by the connector as 'deleted' in the central db
                                         var uid = deletedRecord.Key.ToString();
@@ -216,7 +220,7 @@ namespace BioDivCollectorXamarin.Models
                                         }
                                     }
 
-                                    foreach (var skippedRec in skippedRecords)
+                                    foreach (var skippedRec in skippedRecordsTotal)
                                     {
                                         error = error + System.Environment.NewLine;
                                         error = error + skippedRec.Key.ToString() + ", " + skippedRec.Value;
@@ -280,6 +284,7 @@ namespace BioDivCollectorXamarin.Models
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 return "Error parsing data" + e;
             }
 
@@ -293,7 +298,7 @@ namespace BioDivCollectorXamarin.Models
         public static void ProcessJSON(Project projectRoot)
         {
             //Insert JSON into database
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
 
                 if (projectRoot != null)
@@ -477,6 +482,7 @@ namespace BioDivCollectorXamarin.Models
                                         conn.UpdateWithChildren(queriedrec);
                                         queriedrec.booleans = rec.booleans;
                                         conn.UpdateWithChildren(queriedrec);
+                                        Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
                                     }
                                     catch (Exception e)
                                     {
@@ -491,6 +497,7 @@ namespace BioDivCollectorXamarin.Models
                                         geomWC.records.Add(r);
                                     }
                                     conn.UpdateWithChildren(geomWC);
+                                    Console.WriteLine("Added record: " + DateTime.Now.ToLongTimeString());
                                 }
 
                             }
@@ -611,6 +618,7 @@ namespace BioDivCollectorXamarin.Models
                                 conn.UpdateWithChildren(queriedrec);
                                 queriedrec.booleans = rec.booleans;
                                 conn.UpdateWithChildren(queriedrec);
+                                Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
                             }
                             catch (Exception e)
                             {
@@ -690,6 +698,7 @@ namespace BioDivCollectorXamarin.Models
                                 var queriedform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
                                 queriedform.formFields = form.formFields;
                                 conn.UpdateWithChildren(queriedform);
+                                Console.WriteLine("Added form: " + DateTime.Now.ToLongTimeString());
                             }
                             catch (Exception e)
                             {
@@ -736,6 +745,7 @@ namespace BioDivCollectorXamarin.Models
                             project.forms = conn.Table<Form>().Select(g => g).Where(g => g.project_fk == project.Id).ToList();
                             project.layers = conn.Table<Layer>().Select(g => g).Where(g => g.project_fk == project.Id).ToList();
                             conn.UpdateWithChildren(project);
+                            Console.WriteLine("Added records geometries and layers: " + DateTime.Now.ToLongTimeString());
                         }
                         catch (Exception e)
                         {
@@ -764,7 +774,7 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>List of shape objects</returns>
         public static List<Shape> getDataForMap(string projectId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -888,7 +898,7 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>List of layers</returns>
         public static List<Layer> GetLayersForMap(string projectId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -910,7 +920,7 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>Json object</returns>
         public static string PrepareJSONForUpload(DateTime lastSync)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
                 if (proj != null)
