@@ -100,6 +100,12 @@ namespace BioDivCollector.WebApp
                             
                                 db.Users.Add(u);
                                 db.SaveChanges();
+
+                                // Send Mails to all DM's
+                                Controllers.UsersController usersController = new Controllers.UsersController(Configuration);
+                                var task = usersController.SendNewUserMailToDM(u);
+                                task.Wait();
+
                             }
 
                         }
