@@ -52,9 +52,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.12" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.12" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.12" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.13" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.13" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.13" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.9" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="3.1.4" />
