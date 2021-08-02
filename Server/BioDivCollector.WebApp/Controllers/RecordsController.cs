@@ -236,7 +236,7 @@ namespace BioDivCollector.WebApp.Controllers
                             if (parameters.GetValue("Field_" + ff.FormFieldId) != null)
                             {
                                 string newValue = parameters.GetValue("Field_" + ff.FormFieldId).ToString();
-                                TextData td = r.TextData.Where(m => m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
+                                TextData td = r.TextData.Where(m => m.FormField!=null && m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
                                 if (td == null)
                                 {
                                     td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = newValue };
@@ -266,7 +266,7 @@ namespace BioDivCollector.WebApp.Controllers
                                         string zulu = myDT
                                  .ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
 
-                                        TextData td = r.TextData.Where(m => m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
+                                        TextData td = r.TextData.Where(m => m.FormField!=null && m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
                                         if (td == null)
                                         {
                                             td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = zulu };
@@ -295,7 +295,7 @@ namespace BioDivCollector.WebApp.Controllers
                                     await db.Entry(ff.PublicMotherFormField).Collection(m => m.FieldChoices).LoadAsync();
                                     fc = ff.PublicMotherFormField.FieldChoices.Where(m => m.Text == newValue).FirstOrDefault();
                                 }
-                                TextData td = r.TextData.Where(m => m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
+                                TextData td = r.TextData.Where(m => m.FormField!=null && m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
                                 if (td == null)
                                 {
                                     td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = newValue, FieldChoice = fc };
@@ -541,6 +541,7 @@ namespace BioDivCollector.WebApp.Controllers
                     Include(u => u.NumericData).ThenInclude(td => td.FormField).
                     Include(u => u.BooleanData).ThenInclude(td => td.FormField).
                     Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo=>mo.PublicMotherFormField).
+                    Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(h => h.HiddenFieldChoices).
                     Include(u => u.ProjectGroup.Group).
                     Include(u => u.Geometry).
                     Include(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
@@ -638,7 +639,9 @@ namespace BioDivCollector.WebApp.Controllers
                                     List<string> choices = new List<string>();
                                     foreach (FieldChoice fc in origFormField.FieldChoices.OrderBy(m => m.Order))
                                     {
-                                        choices.Add(fc.Text);
+                                        // only add the fieldchoice when it is not in the HiddenFieldChoiceList of the main formfield (not the public)
+                                        if (!ff.HiddenFieldChoices.Where(m=>m.FieldChoice==fc && m.FormField==ff).Any())
+                                            choices.Add(fc.Text);
                                     }
                                     dynamicField.Choices = choices;
                                 }
@@ -764,7 +767,9 @@ namespace BioDivCollector.WebApp.Controllers
                                 List<string> choices = new List<string>();
                                 foreach (FieldChoice fc in origFormField.FieldChoices.OrderBy(m => m.Order))
                                 {
-                                    choices.Add(fc.Text);
+                                    // only add the fieldchoice when it is not in the HiddenFieldChoiceList of the main formfield (not the public)
+                                    if (!ff.HiddenFieldChoices.Where(m => m.FieldChoice == fc && m.FormField == ff).Any())
+                                        choices.Add(fc.Text);
                                 }
                                 dynamicField.Choices = choices;
                             }
@@ -873,6 +878,7 @@ namespace BioDivCollector.WebApp.Controllers
                         Include(u => u.NumericData).ThenInclude(td => td.FormField).
                         Include(u => u.BooleanData).ThenInclude(td => td.FormField).
                         Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo => mo.PublicMotherFormField).
+                        Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(h => h.HiddenFieldChoices).
                         Include(u => u.ProjectGroup.Group).
                         Include(u => u.Geometry).
                         Include(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)

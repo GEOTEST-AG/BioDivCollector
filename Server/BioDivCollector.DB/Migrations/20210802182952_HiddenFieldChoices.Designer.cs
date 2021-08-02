@@ -3,6 +3,7 @@ using System;
 using BioDivCollector.DB.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -10,9 +11,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BioDivCollector.DB.Migrations
 {
     [DbContext(typeof(BioDivContext))]
-    partial class BioDivContextModelSnapshot : ModelSnapshot
+    [Migration("20210802182952_HiddenFieldChoices")]
+    partial class HiddenFieldChoices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -503,15 +505,15 @@ namespace BioDivCollector.DB.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("HiddenFieldChoiceId")
-                        .HasName("pk_hiddenfieldchoices");
+                        .HasName("pk_hiddenfieldchoice");
 
                     b.HasIndex("FieldChoiceId")
-                        .HasName("ix_hiddenfieldchoices_fieldchoiceid");
+                        .HasName("ix_hiddenfieldchoice_fieldchoiceid");
 
                     b.HasIndex("FormFieldId")
-                        .HasName("ix_hiddenfieldchoices_formfieldid");
+                        .HasName("ix_hiddenfieldchoice_formfieldid");
 
-                    b.ToTable("hiddenfieldchoices");
+                    b.ToTable("hiddenfieldchoice");
                 });
 
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.Layer", b =>
@@ -1218,12 +1220,12 @@ namespace BioDivCollector.DB.Migrations
                     b.HasOne("BioDivCollector.DB.Models.Domain.FieldChoice", "FieldChoice")
                         .WithMany("HiddenFieldChoices")
                         .HasForeignKey("FieldChoiceId")
-                        .HasConstraintName("fk_hiddenfieldchoices_fieldchoices_fieldchoiceid");
+                        .HasConstraintName("fk_hiddenfieldchoice_fieldchoices_fieldchoiceid");
 
                     b.HasOne("BioDivCollector.DB.Models.Domain.FormField", "FormField")
                         .WithMany("HiddenFieldChoices")
                         .HasForeignKey("FormFieldId")
-                        .HasConstraintName("fk_hiddenfieldchoices_formfields_formfieldid");
+                        .HasConstraintName("fk_hiddenfieldchoice_formfields_formfieldid");
                 });
 
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.NumericData", b =>

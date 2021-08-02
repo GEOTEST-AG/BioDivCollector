@@ -1,4 +1,6 @@
-﻿namespace BioDivCollector.DB.Models.Domain
+﻿using System.Collections.Generic;
+
+namespace BioDivCollector.DB.Models.Domain
 {
     public class FieldChoice
     {
@@ -9,6 +11,8 @@
         public string Text { get; set; }
 
         public int Order { get; set; }
+
+        public List<HiddenFieldChoice> HiddenFieldChoices { get; set; }
       
     }
 

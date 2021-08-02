@@ -17,6 +17,7 @@ namespace BioDivCollector.DB.Models.Domain
         public string Source { get; set; }
 
         public List<FieldChoice> FieldChoices { get; set; }
+        public List<HiddenFieldChoice> HiddenFieldChoices { get; set; }
 
         /// <summary>
         /// for sorting formfields in forms

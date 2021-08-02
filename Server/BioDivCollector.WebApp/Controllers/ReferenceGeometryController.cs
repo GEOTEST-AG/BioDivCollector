@@ -153,6 +153,7 @@ namespace BioDivCollector.WebApp.Controllers
                 .Include(m => m.Records).ThenInclude(u => u.BooleanData).ThenInclude(td => td.FormField)
                 .Include(m => m.Records).ThenInclude(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff=>fff.FormField)
                 .Include(m => m.Records).ThenInclude(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo=>mo.PublicMotherFormField)
+                .Include(m => m.Records).ThenInclude(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(h => h.HiddenFieldChoices)
                 .Include(m => m.Records).ThenInclude(u => u.ProjectGroup.Group)
                 .Include(m => m.Records).ThenInclude(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
                 .Where(m => m.GeometryId == id)

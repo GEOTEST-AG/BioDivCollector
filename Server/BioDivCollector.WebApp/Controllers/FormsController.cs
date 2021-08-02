@@ -113,6 +113,7 @@ namespace BioDivCollector.WebApp.Controllers
             if ((!User.IsInRole("PK")) && (!User.IsInRole("PL")) && (!User.IsInRole("DM"))) return RedirectToAction("NotAllowed", "Home");
 
             Form origForm = await db.Forms.Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(f => f.FieldChoices)
+                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(f => f.HiddenFieldChoices)
                 .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).ThenInclude(mo => mo.FieldChoices)
                 .Where(m => m.FormId == id).FirstOrDefaultAsync();
             if (origForm == null) return StatusCode(500);
@@ -160,6 +161,7 @@ namespace BioDivCollector.WebApp.Controllers
                     if (fff.FormField.FieldTypeId == FieldTypeEnum.Choice)
                     {
                         ff2.FieldChoices = new List<FieldChoice>();
+
                         foreach (FieldChoice fc in fff.FormField.FieldChoices)
                         {
                             FieldChoice newChoice = new FieldChoice() { FormField = ff2, Order = fc.Order, Text = fc.Text };
@@ -403,7 +405,7 @@ namespace BioDivCollector.WebApp.Controllers
 
 
             // create list of public form fields
-            List<FormField> ffs = await db.FormFields.Include(m => m.FieldChoices).Where(m => m.Public == true && m.PublicMotherFormField == null).ToListAsync();
+            List<FormField> ffs = await db.FormFields.Include(m => m.FieldChoices).Include(h => h.HiddenFieldChoices).Where(m => m.Public == true && m.PublicMotherFormField == null).ToListAsync();
             List<FormFieldPoco> pffps = new List<FormFieldPoco>();
             foreach (FormField ff in ffs.OrderBy(m => m.Title))
             {
@@ -433,7 +435,7 @@ namespace BioDivCollector.WebApp.Controllers
             return View(f);
         }
 
-        private FormFieldPoco CreateFormFieldPocosFormField(FormField ff)
+        private FormFieldPoco CreateFormFieldPocosFormField(FormField ff, FormField origFormField = null)
         {
 
 
@@ -456,6 +458,16 @@ namespace BioDivCollector.WebApp.Controllers
                 foreach (FieldChoice fc in ff.FieldChoices.OrderBy(m => m.Order))
                 {
                     OptionsPoco op = new OptionsPoco() { label = fc.Text, value = fc.FieldChoiceId.ToString() };
+                    if ((origFormField!=null))
+                    {
+                        if (!origFormField.HiddenFieldChoices.Where(m => m.FormField == origFormField && m.FieldChoice == fc).Any()) op.visible = true;
+                        else op.visible = false;
+                    }
+                    else
+                    {
+                        if (!ff.HiddenFieldChoices.Where(m => m.FormField == origFormField && m.FieldChoice == fc).Any()) op.visible = true;
+                        else op.visible = false;
+                    }
                     values.Add(op);
                 }
                 ffp.values = values;
@@ -484,6 +496,7 @@ namespace BioDivCollector.WebApp.Controllers
         public async Task<IActionResult> CreateFormBuilderJson(int id)
         {
             Form form = await db.Forms.Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.FieldChoices)
+                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.HiddenFieldChoices)
                 .Include(m=>m.FormChangeLogs).ThenInclude(m=>m.ChangeLog).ThenInclude(m=>m.User)
                 .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).ThenInclude(mo => mo.FieldChoices)
                 .Where(m => m.FormId == id).FirstOrDefaultAsync();
@@ -496,7 +509,7 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 if (ff.PublicMotherFormField != null)
                 {
-                    FormFieldPoco ffp = CreateFormFieldPocosFormField(ff.PublicMotherFormField);
+                    FormFieldPoco ffp = CreateFormFieldPocosFormField(ff.PublicMotherFormField, ff);
                     ffp.name = ff.FormFieldId.ToString();
                     ffp.mandatory = ff.Mandatory;
                     ffp.useinrecordtitle = ff.UseInRecordTitle;
@@ -546,6 +559,7 @@ namespace BioDivCollector.WebApp.Controllers
 
             Form form = await db.Forms.
                 Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.FieldChoices)
+                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.HiddenFieldChoices)
                 .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).ThenInclude(mo => mo.FieldChoices).Where(m => m.FormId == data.id).FirstOrDefaultAsync();
             if (form == null) return NotFound();
 
@@ -631,6 +645,15 @@ namespace BioDivCollector.WebApp.Controllers
 
                                 usedFieldChoices.Add(alreadyFieldChoiceExist);
                                 db.Entry(alreadyFieldChoiceExist).State = EntityState.Modified;
+
+                                // set visibility: visible -> no entry in hidden
+                                if (op.visible && ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff).Any())
+                                    db.HiddenFieldChoices.RemoveRange(ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff));
+                                else if (!op.visible && !ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff).Any())
+                                {
+                                    HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = alreadyFieldChoiceExist, FormField = ff };
+                                    db.HiddenFieldChoices.Add(hfc);
+                                }
                             }
                             else
                             {
@@ -640,6 +663,13 @@ namespace BioDivCollector.WebApp.Controllers
                                 db.FieldChoices.Add(newFieldChoice);
                                 usedFieldChoices.Add(newFieldChoice);
                                 db.Entry(newFieldChoice).State = EntityState.Added;
+
+                                // set visibility: visible -> no entry in hidden
+                                if (!op.visible )
+                                {
+                                    HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = newFieldChoice, FormField = ff };
+                                    db.HiddenFieldChoices.Add(hfc);
+                                }
                             }
                         }
                         catch (Exception e)
@@ -1086,6 +1116,7 @@ namespace BioDivCollector.WebApp.Controllers
         public string label { get; set; }
         public string value { get; set; }
         public bool selected { get; set; }
+        public bool visible { get; set; }
     }
 
     public class FormsPoco
