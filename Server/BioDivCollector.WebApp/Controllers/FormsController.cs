@@ -422,6 +422,7 @@ namespace BioDivCollector.WebApp.Controllers
 
                 pffps.Add(pffp);
             }
+
             string json = JsonConvert.SerializeObject(pffps);
             ViewData["PublicFormFields"] = json;
 
@@ -471,7 +472,11 @@ namespace BioDivCollector.WebApp.Controllers
 
                 return ffp;
             }
-
+            else if (ff.FieldTypeId == FieldTypeEnum.Header)
+            {
+                FormFieldPoco ffp = new FormFieldPoco() { type = "header", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
+                return ffp;
+            }
             return null;
 
         }
@@ -929,7 +934,10 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 ff.FieldTypeId = FieldTypeEnum.Boolean;
             }
-
+            else if (ffp.type == "header")
+            {
+                ff.FieldTypeId = FieldTypeEnum.Header;
+            }
             return ff;
         }
     }
@@ -1068,6 +1076,7 @@ namespace BioDivCollector.WebApp.Controllers
         public bool ispublic { get; set; }
         public bool isreadonly { get; set; }
         public string author { get; set; }
+        public string subtype { get; set; }
         public List<OptionsPoco> values { get; set; }
     }
 

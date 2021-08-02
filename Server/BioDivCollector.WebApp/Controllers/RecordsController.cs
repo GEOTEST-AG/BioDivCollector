@@ -655,6 +655,13 @@ namespace BioDivCollector.WebApp.Controllers
                                 dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
                                 dynamicForm.Add(dynamicField);
                             }
+                            else if (origFormField.FieldTypeId == FieldTypeEnum.Header)
+                            {
+                                PropertyVm dynamicField = new PropertyVm(typeof(string), "Field_" + ff.FormFieldId.ToString());
+                                dynamicField.DisplayName = origFormField.Title;
+                                dynamicField.GetCustomAttributes = () => new object[] { new Helpers.FormFactory.HeaderAttribute() };
+                                dynamicForm.Add(dynamicField);
+                            }
 
                         }
 
@@ -774,6 +781,13 @@ namespace BioDivCollector.WebApp.Controllers
                             dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
                             dynamicForm.Add(dynamicField);
                         }
+                        else if (origFormField.FieldTypeId == FieldTypeEnum.Header)
+                        {
+                            PropertyVm dynamicField = new PropertyVm(typeof(string), "Field_" + ff.FormFieldId.ToString());
+                            dynamicField.DisplayName = origFormField.Title;
+                            dynamicField.GetCustomAttributes = () => new object[] { new Helpers.FormFactory.HeaderAttribute() };
+                            dynamicForm.Add(dynamicField);
+                        }
 
                     }
 
@@ -782,6 +796,7 @@ namespace BioDivCollector.WebApp.Controllers
                     dynamicHiddenField.NotOptional = true;
                     dynamicHiddenField.IsHidden = true;
                     dynamicForm.Add(dynamicHiddenField);
+
 
                     if (isReadOnly)
                     {
