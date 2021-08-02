@@ -29,7 +29,6 @@ namespace BioDivCollector.WebApp.Controllers
         public async Task<IActionResult> Index()
         {
             List<Form> forms = await db.Forms.Include(m => m.FormProjects).ThenInclude(fp => fp.Project)
-                .Include(m => m.FormRecords)
                 .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
                 .Include(m=>m.FormChangeLogs).ThenInclude(m=>m.ChangeLog).ThenInclude(m=>m.User)                
                 .ToListAsync();
@@ -41,6 +40,9 @@ namespace BioDivCollector.WebApp.Controllers
                 foreach (Form f in forms)
                 {
                     FormPoco fp = new FormPoco() { Form = f, Editable = true, Author = f.FormChangeLogs?.First().ChangeLog?.User };
+
+                    fp.RecordsCount = db.Records.Where(m => m.FormId == f.FormId).Count();
+
                     fps.Add(fp);
                 }
                 return View(fps);
@@ -51,6 +53,7 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 FormPoco fp = new FormPoco() { Form = f, Editable = false, Author = f.FormChangeLogs?.First().ChangeLog?.User };
                 if (f.FormChangeLogs?.First().ChangeLog?.User == user) fp.Editable = true;
+                fp.RecordsCount = db.Records.Where(m => m.FormId == f.FormId).Count();
                 fps.Add(fp);
             }
             return View(fps);
@@ -714,10 +717,14 @@ namespace BioDivCollector.WebApp.Controllers
             string sqlCreateViews1 = "CREATE OR REPLACE VIEW public.{prefix}_{ogd}{geometry}_view " +
                                         "AS SELECT p.projectid as \"bdcguid_projekt\", p.id_extern as \"projekt_id_extern\", " +
                                         "p.projectname as \"projektname\", " +
+                                        "p.description AS \"beschreibung\", " +
+                                        "p2.description AS \"status\", " +
                                         "g.geometryid as \"bdcguid_geometrie\", " +
                                         "g.geometryname as \"geometriename\", " +
                                         "g.{geometry}, " +
-                                        "case when r2.recordid is null then uuid_generate_v4() else r2.recordid end AS \"bdcguid_beobachtung\", ";
+                                        "case when r2.recordid is null then uuid_generate_v4() else r2.recordid end AS \"bdcguid_beobachtung\", " +
+                                        "getrecordchangelogdate(r2.recordid) as changedate, " +
+                                        "getrecordchangeloguser(r2.recordid) as changeuser, ";
             sqlCreateViews1 = sqlCreateViews1.Replace("{prefix}", prefix);
 
             if (prefix == "wfs") prefix = "";
@@ -726,17 +733,23 @@ namespace BioDivCollector.WebApp.Controllers
             string sqlCreateViewsGeneral = "CREATE OR REPLACE VIEW public.{prefix}records_without_geometries " +
                                         "AS SELECT p.projectid as \"bdcguid_projekt\", p.id_extern as \"projekt_id_extern\", " +
                                         "p.projectname as \"projektname\", " +
+                                        "p.description AS \"beschreibung\", " +
+                                        "p2.description AS \"status\", " +
                                         "r2.recordid as \"bdcguid_beobachtung\", " +
+                                        "getrecordchangelogdate(r2.recordid) as changedate, " +
+                                        "getrecordchangeloguser(r2.recordid) as changeuser, " +
                                         "r2.geometryid as \"bdcguid_geometrie\", ";
             sqlCreateViewsGeneral = sqlCreateViewsGeneral.Replace("{prefix}", prefix);
 
             string sqlCreateViews2 = "FROM projects p " +
+                                        "INNER JOIN projectstatuses p2 on p2.id = p.projectstatusid " +
                                         "LEFT JOIN geometries g ON g.projectid = p.projectid " +
                                         "LEFT JOIN records r2 ON r2.geometryid = g.geometryid " +
                                         "WHERE p.statusid <> 3 AND g.statusid <> 3 AND g.{geometry} IS NOT NULL AND (r2.statusid <> 3 or r2.statusid is null) {ogd_true}" +
                                         "ORDER BY g.geometryname; ";
 
             string sqlCreateViewsGeneral2 = "FROM projects p " +
+                                        "INNER JOIN projectstatuses p2 on p2.id = p.projectstatusid " +
                                         "LEFT JOIN records r2 ON r2.projectid = p.projectid " +
                                         "WHERE p.statusid <> 3 AND (r2.statusid <> 3 or r2.statusid is null) and r2.groupid is not null {ogd_true};";
 
@@ -1024,6 +1037,8 @@ namespace BioDivCollector.WebApp.Controllers
         public Form Form { get; set; }
         public bool Editable { get; set; }
         public User Author { get; set; }
+
+        public int RecordsCount { get; set; }
     }
 
     public class FormBuilderJson
