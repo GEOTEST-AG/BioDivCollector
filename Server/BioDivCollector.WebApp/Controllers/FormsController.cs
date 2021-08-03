@@ -442,7 +442,7 @@ namespace BioDivCollector.WebApp.Controllers
 
             if (ff.FieldTypeId == FieldTypeEnum.Text)
             {
-                FormFieldPoco ffp = new FormFieldPoco() { type = "text", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
+                FormFieldPoco ffp = new FormFieldPoco() { type = "text", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public, value = ff.StandardValue };
                 return ffp;
             }
             else if (ff.FieldTypeId == FieldTypeEnum.DateTime)
@@ -609,6 +609,7 @@ namespace BioDivCollector.WebApp.Controllers
                         ff.Mandatory = ffp.mandatory;
                         ff.UseInRecordTitle = ffp.useinrecordtitle;
                         ff.Public = ffp.ispublic;
+                        ff.StandardValue = ffp.value;
                         db.Entry(ff).State = EntityState.Modified;
                     }
                 }
@@ -951,6 +952,7 @@ namespace BioDivCollector.WebApp.Controllers
             if (ffp.type == "text")
             {
                 ff.FieldTypeId = FieldTypeEnum.Text;
+                ff.StandardValue = ffp.value;
             }
             else if (ffp.type == "date")
             {
@@ -1100,6 +1102,7 @@ namespace BioDivCollector.WebApp.Controllers
         public string label { get; set; }
         public string name { get; set; }
         public string description { get; set; }
+        public string value { get; set; }
         public string source { get; set; }
         public bool mandatory { get; set; }
         public bool useinrecordtitle { get; set; }

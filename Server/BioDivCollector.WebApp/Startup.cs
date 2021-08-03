@@ -192,15 +192,20 @@ namespace BioDivCollector.WebApp
                 foreach (var pluginType in loader
                     .LoadDefaultAssembly()
                     .GetTypes()
-                    .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsAbstract))
+                    .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !typeof(IReferenceGeometryPlugin).IsAssignableFrom(t) && !t.IsAbstract))
                 {
                     // This assumes the implementation of IPlugin has a parameterless constructor
-                    //var plugin = Activator.CreateInstance(pluginType) as IPlugin;
-                    //generalPlugins.Add(plugin);
+                    try
+                    {
+                        var plugin = Activator.CreateInstance(pluginType) as IPlugin;
+                        generalPlugins.Add(plugin);
+                    }
+                    catch (Exception e)
+                    { }
                 }
             }
             services.Add(new ServiceDescriptor(typeof(ReferenceGeometryExtension), new ReferenceGeometryExtension(referenceGeometryPlugins)));
-
+            services.Add(new ServiceDescriptor(typeof(GeneralPluginExtension), new GeneralPluginExtension(generalPlugins)));
 
         }
 

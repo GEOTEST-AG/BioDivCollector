@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BioDivCollector.DB\BioDivCollector.DB.csproj" />
+    <ProjectReference Include="..\BioDivCollector.PluginContract\BioDivCollector.PluginContract.csproj" />
+    <ProjectReference Include="..\BioDivCollector.WebApp\BioDivCollector.WebApp.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -23,10 +23,12 @@ namespace BioDivCollector.WebApp.Controllers
     {
         private BioDivContext db = new BioDivContext();
         private ReferenceGeometryExtension _referenceGeometryExtension;
+        private GeneralPluginExtension _generalPluginExtension;
 
-        public ReferenceGeometryController(ReferenceGeometryExtension referenceGeometryExtension)
+        public ReferenceGeometryController(ReferenceGeometryExtension referenceGeometryExtension, GeneralPluginExtension generalPluginExtension)
         {
             _referenceGeometryExtension = referenceGeometryExtension;
+            _generalPluginExtension = generalPluginExtension;
         }
 
         public IActionResult GetUserJson()
@@ -201,7 +203,7 @@ namespace BioDivCollector.WebApp.Controllers
             }
             else myGroups = await db.Groups.Where(m => m.GroupUsers.Any(u => u.UserId == user.UserId)).ToListAsync();
 
-            await RecordsController.CreateDynamicView(db, g, g.ProjectGroup, myGroups, gvm);
+            await RecordsController.CreateDynamicView(db, g, g.ProjectGroup, myGroups, gvm, _generalPluginExtension,user);
 
             List<string> pluginslist = new List<string>();
 

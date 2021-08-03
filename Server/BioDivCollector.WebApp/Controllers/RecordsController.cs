@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using BioDivCollector.DB.Models.Domain;
+using BioDivCollector.PluginContract;
 using BioDivCollector.WebApp.Helpers;
 using FormFactory;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +17,13 @@ namespace BioDivCollector.WebApp.Controllers
     public class RecordsController : Controller
     {
         private BioDivContext db = new BioDivContext();
-        
+        private GeneralPluginExtension _generalPluginExtension;
+
+        public RecordsController(GeneralPluginExtension generalPluginExtension)
+        {
+            _generalPluginExtension = generalPluginExtension;
+        }
+
         public async Task<IActionResult> Delete(Guid id)
         {
             User user = Helpers.UserHelper.GetCurrentUser(User, db);
@@ -604,6 +611,22 @@ namespace BioDivCollector.WebApp.Controllers
                                 TextData td = r.TextData.Where(m => m.FormField == ff).FirstOrDefault();
                                 if (td != null) dynamicField.Value = td.Value;
 
+                                // Check if there is a standardvalue plugin
+                                string standardValue = "";
+                                foreach (IPlugin plugin in _generalPluginExtension.Plugins)
+                                {
+                                    if (plugin is BaseStandardValueGenerator)
+                                    {
+                                        standardValue = ((BaseStandardValueGenerator)plugin).GetStandardValue(ff, null, r, user);
+                                    }
+                                }
+                                if (standardValue != "")
+                                {
+                                    dynamicField.Value = standardValue;
+                                    if (ff.StandardValue.StartsWith("="))
+                                        dynamicField.GetCustomAttributes = () => new object[] { new Helpers.FormFactory.StandardValueAttribute() };
+                                }
+
                                 dynamicField.NotOptional = ff.Mandatory;
                                 dynamicForm.Add(dynamicField);
                             }
@@ -696,7 +719,7 @@ namespace BioDivCollector.WebApp.Controllers
             return View(pvm);
         }
 
-        public static async Task CreateDynamicView(BioDivContext db, ReferenceGeometry rg, ProjectGroup g, List<Group> myGroups, GeometrieViewModel gvm)
+        public static async Task CreateDynamicView(BioDivContext db, ReferenceGeometry rg, ProjectGroup g, List<Group> myGroups, GeometrieViewModel gvm, GeneralPluginExtension generalPluginExtension, User user)
         {
             foreach (Record r in rg.Records.Where(m => m.StatusId != StatusEnum.deleted))
             {
@@ -729,6 +752,23 @@ namespace BioDivCollector.WebApp.Controllers
                             dynamicField.DisplayName = origFormField.Title;
                             TextData td = r.TextData.Where(m => m.FormField == ff).FirstOrDefault();
                             if (td != null) dynamicField.Value = td.Value;
+
+                            // Check if there is a standardvalue plugin
+                            string standardValue = "";
+                            foreach (IPlugin p in generalPluginExtension.Plugins)
+                            {
+                                if ( p is BaseStandardValueGenerator)
+                                {
+                                    standardValue = ((BaseStandardValueGenerator)p).GetStandardValue(ff, rg, r, user);
+                                }
+                            }
+
+                            if (standardValue != "")
+                            {
+                                dynamicField.Value = standardValue;
+                                if (ff.StandardValue.StartsWith("="))
+                                    dynamicField.GetCustomAttributes = () => new object[] { new Helpers.FormFactory.StandardValueAttribute() };
+                            }
 
                             dynamicField.NotOptional = ff.Mandatory;
                             dynamicForm.Add(dynamicField);
@@ -915,7 +955,7 @@ namespace BioDivCollector.WebApp.Controllers
                     GeometrieViewModel gvm = new GeometrieViewModel() { Geometry = rg };
                     gvm.Records = new List<RecordViewModel>();
 
-                    await CreateDynamicView(db, rg, g, myGroups, gvm);
+                    await CreateDynamicView(db, rg, g, myGroups, gvm, _generalPluginExtension, user);
 
                     if (gvms.Any(m=>m.Geometry.GeometryId==gvm.Geometry.GeometryId))
                     {

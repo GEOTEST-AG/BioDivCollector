@@ -14,6 +14,7 @@ namespace BioDivCollector.DB.Models.Domain
 
         public string Title { get; set; }
         public string Description { get; set; }
+        public string StandardValue { get; set; }
         public string Source { get; set; }
 
         public List<FieldChoice> FieldChoices { get; set; }

@@ -299,12 +299,21 @@
     function onAddOptionInput(fld) {
         selectOptions(fld);
         const observer = createObserver(fld);
-        console.log(observer)
+        //console.log(observer)
     }
     function onAddOptionInputCheckbox(fld) {
         fld.label = ``;
         selectOptionsCheckbox(fld);
         const observer = createObserver(fld);
+    }
+
+    function onAddTextInput(fld) {
+        const standardValueInputs = fld.querySelector(".fld-standardvalue");
+        if (standardValueInputs != null) {
+            console.log(standardValueInputs.value);
+            console.log(fld);
+            fld.value = "Hallo";
+        }
     }
 
     var fb;
@@ -323,6 +332,10 @@
                 text: {
                     description: {
                         label: 'Beschreibung',
+                        value: ''
+                    },
+                    value: {
+                        label: 'Standardwert',
                         value: ''
                     },
                     source: {
@@ -446,6 +459,9 @@
                 },
                 select: {
                     onadd: onAddOptionInput
+                },
+                text: {
+                    onadd: onAddTextInput
                 }
             },
             onAddField: function (fieldId) {
