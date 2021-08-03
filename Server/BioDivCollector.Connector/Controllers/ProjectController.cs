@@ -292,6 +292,8 @@ namespace BioDivCollector.Connector.Controllers
                                 .Include(f => f.FormFormFields)
                                     .ThenInclude(f => f.FormField).ThenInclude(ff => ff.FieldChoices)
                                 .Include(f => f.FormFormFields)
+                                    .ThenInclude(f => f.FormField).ThenInclude(ff => ff.HiddenFieldChoices)
+                                .Include(f => f.FormFormFields)
                                     .ThenInclude(f => f.FormField).ThenInclude(pff => pff.PublicMotherFormField).ThenInclude(ff => ff.FieldChoices);
 
                 var forms = formsQuery.OrderBy(f => f.Title);
@@ -335,7 +337,10 @@ namespace BioDivCollector.Connector.Controllers
                                 order = choice.Order
                             };
 
-                            fieldDto.fieldChoices.Add(choiceDto);
+
+                            // if not hidden, add it to the choice-list
+                            if (!field.HiddenFieldChoices.Where(m=>m.FormField == field && m.FieldChoice == choice).Any())
+                                fieldDto.fieldChoices.Add(choiceDto);
                         }
 
                         formDto.formFields.Add(fieldDto);

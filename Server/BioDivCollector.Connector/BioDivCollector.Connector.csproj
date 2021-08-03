@@ -8,6 +8,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="McMaster.NETCore.Plugins" Version="1.4.0" />
+		<PackageReference Include="McMaster.NETCore.Plugins.Mvc" Version="1.4.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.10" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.9" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.9" />
@@ -26,6 +28,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\BioDivCollector.DB\BioDivCollector.DB.csproj" />
+		<ProjectReference Include="..\BioDivCollector.PluginContract\BioDivCollector.PluginContract.csproj" />
 	</ItemGroup>
 
 

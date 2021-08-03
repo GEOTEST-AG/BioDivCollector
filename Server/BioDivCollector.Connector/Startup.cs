@@ -1,4 +1,7 @@
 using BioDivCollector.DB.Models.Domain;
+using BioDivCollector.PluginContract;
+using BioDivCollector.PluginContract.Helpers;
+using McMaster.NETCore.Plugins;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -179,6 +182,54 @@ namespace BioDivCollector.Connector
                 s.IncludeXmlComments(xmlPath);
             });
 
+            // Plugins loading
+            var loaders = new List<PluginLoader>();
+
+            foreach (var dir in Directory.GetDirectories(Path.Combine(AppContext.BaseDirectory, "plugins")))
+            {
+                var pluginFile = Path.Combine(dir, Path.GetFileName(dir) + ".dll");
+                if (File.Exists(pluginFile))
+                {
+                    var loader = PluginLoader.CreateFromAssemblyFile(
+                        pluginFile,
+                        sharedTypes: new[] { typeof(IPlugin) });
+                    loaders.Add(loader);
+                }
+
+            }
+
+            // Load all ReferenceGeoemtryExtensions
+            List<IReferenceGeometryPlugin> referenceGeometryPlugins = new List<IReferenceGeometryPlugin>();
+            List<IPlugin> generalPlugins = new List<IPlugin>();
+            foreach (var loader in loaders)
+            {
+                foreach (var pluginType in loader
+                    .LoadDefaultAssembly()
+                    .GetTypes()
+                    .Where(t => typeof(IReferenceGeometryPlugin).IsAssignableFrom(t) && !t.IsAbstract))
+                {
+                    // This assumes the implementation of IPlugin has a parameterless constructor
+                    var plugin = Activator.CreateInstance(pluginType) as IReferenceGeometryPlugin;
+                    referenceGeometryPlugins.Add(plugin);
+                }
+
+                foreach (var pluginType in loader
+                    .LoadDefaultAssembly()
+                    .GetTypes()
+                    .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !typeof(IReferenceGeometryPlugin).IsAssignableFrom(t) && !t.IsAbstract))
+                {
+                    // This assumes the implementation of IPlugin has a parameterless constructor
+                    try
+                    {
+                        var plugin = Activator.CreateInstance(pluginType) as IPlugin;
+                        generalPlugins.Add(plugin);
+                    }
+                    catch (Exception e)
+                    { }
+                }
+            }
+            services.Add(new ServiceDescriptor(typeof(ReferenceGeometryExtension), new ReferenceGeometryExtension(referenceGeometryPlugins)));
+            services.Add(new ServiceDescriptor(typeof(GeneralPluginExtension), new GeneralPluginExtension(generalPlugins)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
