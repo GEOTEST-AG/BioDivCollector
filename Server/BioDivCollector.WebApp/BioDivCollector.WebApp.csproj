@@ -10,9 +10,9 @@
     <Copyright>2021 GEOTEST AG</Copyright>
     <PackageLicenseExpression>Apache Licence 2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://www.biodivcollector.ch</PackageProjectUrl>
-    <AssemblyVersion>1.0.0.5</AssemblyVersion>
-    <Version>1.0</Version>
-    <FileVersion>1.0.0.5</FileVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <Version>1.2</Version>
+    <FileVersion>1.2.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
