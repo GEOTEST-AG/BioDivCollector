@@ -348,7 +348,7 @@ namespace BioDivCollector.Connector.Controllers
                             }
 
                             // if not hidden, add it to the choice-list
-                            if (!field.HiddenFieldChoices.Where(m=>m.FormField == origFormField && m.FieldChoice == choice).Any())
+                            if (!field.HiddenFieldChoices.Where(m=>m.FormField == field && m.FieldChoice == choice).Any())
                                 fieldDto.fieldChoices.Add(choiceDto);
                         }
 
@@ -418,10 +418,10 @@ namespace BioDivCollector.Connector.Controllers
                         fieldChoiceId = text.FieldChoice?.FieldChoiceId
                     };
 
-                    // split by | for different value and text
-                    if (text.Value.Contains("|"))
+                    // check if fieldchoice is in format value|label -> use label as text
+                    if ((text.FieldChoice!=null) && (text.FieldChoice.Text.Contains("|")))
                     {
-                        textDto.value = text.Value.Split("|")[1].TrimStart(' ');
+                        textDto.value = text.FieldChoice.Text.Split("|")[1].TrimStart(' ');
                     }
 
                     recDto.texts.Add(textDto);
