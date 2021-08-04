@@ -302,6 +302,35 @@ namespace BioDivCollector.WebApp.Controllers
                                     await db.Entry(ff.PublicMotherFormField).Collection(m => m.FieldChoices).LoadAsync();
                                     fc = ff.PublicMotherFormField.FieldChoices.Where(m => m.Text == newValue).FirstOrDefault();
                                 }
+
+                                // do we have fieldchoices with option|label?
+                                if (fc==null)
+                                {if (ff.PublicMotherFormField != null)
+                                    {
+                                        foreach (FieldChoice fcSplit in ff.PublicMotherFormField.FieldChoices)
+                                        {
+
+                                            if ((fcSplit.Text.Contains("|" + newValue)) || (fcSplit.Text.Contains("| " + newValue)))
+                                            {
+                                                fc = fcSplit;
+                                                newValue = fcSplit.Text.Split('|')[0];
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        foreach (FieldChoice fcSplit in ff.FieldChoices)
+                                        {
+
+                                            if ((fcSplit.Text.Contains("|" + newValue)) || (fcSplit.Text.Contains("| " + newValue)))
+                                            {
+                                                fc = fcSplit;
+                                                newValue = fcSplit.Text.Split('|')[0];
+                                            }
+                                        }
+                                    }
+                                }
+
                                 TextData td = r.TextData.Where(m => m.FormField!=null && m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
                                 if (td == null)
                                 {
@@ -655,16 +684,38 @@ namespace BioDivCollector.WebApp.Controllers
                                 PropertyVm dynamicField = new PropertyVm(typeof(string), "Field_" + ff.FormFieldId.ToString());
                                 dynamicField.DisplayName = origFormField.Title;
                                 TextData td = r.TextData.Where(m => m.FormField == ff).FirstOrDefault();
-                                if (td != null) dynamicField.Value = td.Value;
                                 await db.Entry(origFormField).Collection(m => m.FieldChoices).LoadAsync();
+                                if (td != null)
+                                {
+                                    string text = td.Value;
+
+                                    // check if the choices have format value|label. Search for the label
+                                    foreach (FieldChoice fc in origFormField.FieldChoices.OrderBy(m => m.Order))
+                                    {
+                                        if (fc.Text.Contains("|"))
+                                        {
+                                            string[] value = fc.Text.Split("|");
+                                            if (value[0].TrimEnd(' ') == text) text = value[1];
+                                        }
+                                    }
+
+                                    dynamicField.Value = text;
+                                }
                                 if (origFormField.FieldChoices != null)
                                 {
                                     List<string> choices = new List<string>();
                                     foreach (FieldChoice fc in origFormField.FieldChoices.OrderBy(m => m.Order))
                                     {
                                         // only add the fieldchoice when it is not in the HiddenFieldChoiceList of the main formfield (not the public)
-                                        if (!ff.HiddenFieldChoices.Where(m=>m.FieldChoice==fc && m.FormField==ff).Any())
-                                            choices.Add(fc.Text);
+                                        if (!ff.HiddenFieldChoices.Where(m => m.FieldChoice == fc && m.FormField == ff).Any())
+                                        {
+                                            // split by | for different value and text
+                                            string text = fc.Text;
+                                            string[] value = text.Split("|");
+                                            if (value.Length > 1) text = value[1].TrimStart(' ');
+                                            choices.Add(text);
+                                        }
+                                            
                                     }
                                     dynamicField.Choices = choices;
                                 }
@@ -798,9 +849,25 @@ namespace BioDivCollector.WebApp.Controllers
                             PropertyVm dynamicField = new PropertyVm(typeof(string), "Field_" + ff.FormFieldId.ToString());
                             dynamicField.DisplayName = origFormField.Title;
                             TextData td = r.TextData.Where(m => m.FormField == ff).FirstOrDefault();
-                            if (td != null) dynamicField.Value = td.Value;
 
                             await db.Entry(origFormField).Collection(m => m.FieldChoices).LoadAsync();
+                            if (td != null)
+                            {
+                                string text = td.Value;
+
+                                // check if the choices have format value|label. Search for the label
+                                foreach (FieldChoice fc in origFormField.FieldChoices.OrderBy(m => m.Order))
+                                {
+                                    if (fc.Text.Contains("|"))
+                                    {
+                                        string[] value = fc.Text.Split("|");
+                                        if (value[0].TrimEnd(' ') == text) text = value[1];
+                                    }
+                                }
+
+                                dynamicField.Value = text;
+                            }
+
 
                             if (origFormField.FieldChoices != null)
                             {
@@ -809,7 +876,13 @@ namespace BioDivCollector.WebApp.Controllers
                                 {
                                     // only add the fieldchoice when it is not in the HiddenFieldChoiceList of the main formfield (not the public)
                                     if (!ff.HiddenFieldChoices.Where(m => m.FieldChoice == fc && m.FormField == ff).Any())
-                                        choices.Add(fc.Text);
+                                    {
+                                        // split by | for different value and text
+                                        string text = fc.Text;
+                                        string[] value = text.Split("|");
+                                        if (value.Length > 1) text = value[1].TrimStart(' ');
+                                        choices.Add(text);
+                                    }
                                 }
                                 dynamicField.Choices = choices;
                             }

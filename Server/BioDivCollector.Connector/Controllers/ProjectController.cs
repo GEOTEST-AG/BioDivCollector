@@ -341,6 +341,11 @@ namespace BioDivCollector.Connector.Controllers
                                 order = choice.Order
                             };
 
+                            // split by | for different value and text
+                            if (choice.Text.Contains("|"))
+                            {
+                                choiceDto.text = choice.Text.Split("|")[1].TrimStart(' ');
+                            }
 
                             // if not hidden, add it to the choice-list
                             if (!field.HiddenFieldChoices.Where(m=>m.FormField == origFormField && m.FieldChoice == choice).Any())
@@ -412,6 +417,13 @@ namespace BioDivCollector.Connector.Controllers
                         formFieldId = text.FormField?.FormFieldId,
                         fieldChoiceId = text.FieldChoice?.FieldChoiceId
                     };
+
+                    // split by | for different value and text
+                    if (text.Value.Contains("|"))
+                    {
+                        textDto.value = text.Value.Split("|")[1].TrimStart(' ');
+                    }
+
                     recDto.texts.Add(textDto);
                 }
                 foreach (NumericData numeric in rec.NumericData)
@@ -1127,6 +1139,15 @@ namespace BioDivCollector.Connector.Controllers
                     foreach (TextDataDTO textDto in recordDto.texts)            //TextData
                     {
                         TextData newText = textDto.Dto2Model();
+                        // Is FieldChoice of type value|label ? Then replace label with value to store only value into db
+                        if (newText.FieldChoiceId != null)
+                        {
+                            FieldChoice fc = await _context.FieldChoices.FindAsync(newText.FieldChoiceId);
+                            if ((fc != null) && (fc.Text.Contains("|")))
+                            {
+                                newText.Value = fc.Text.Split('|')[0].TrimEnd(' ');
+                            }
+                        }
                         record.TextData.Add(newText);                           //Add new data to record
                     }
 
@@ -1240,6 +1261,17 @@ namespace BioDivCollector.Connector.Controllers
                     foreach (TextDataDTO textDto in recordDto.texts)            //TextData
                     {
                         TextData newText = textDto.Dto2Model();
+
+                        // Is FieldChoice of type value|label ? Then replace label with value to store only value into db
+                        if (newText.FieldChoiceId != null)
+                        {
+                            FieldChoice fc = await _context.FieldChoices.FindAsync(newText.FieldChoiceId);
+                            if ((fc != null) && (fc.Text.Contains("|")))
+                            {
+                                newText.Value = fc.Text.Split('|')[0].TrimEnd(' ');
+                            }
+                        }
+
                         newRec.TextData.Add(newText);
                     }
                     foreach (NumericDataDTO numericDto in recordDto.numerics)   //NumericData
