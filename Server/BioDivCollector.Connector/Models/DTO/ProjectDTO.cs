@@ -190,6 +190,7 @@ namespace BioDivCollector.Connector.Models.DTO
         public int order { get; set; }
         public bool mandatory { get; set; }
         public bool useInRecordTitle { get; set; }
+        public string standardValue { get; set; }
 
         public List<FieldChoiceDto> fieldChoices = new List<FieldChoiceDto>();
     }

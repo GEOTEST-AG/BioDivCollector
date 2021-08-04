@@ -1,5 +1,6 @@
 ﻿using BioDivCollector.Connector.Models.DTO;
 using BioDivCollector.DB.Models.Domain;
+using BioDivCollector.PluginContract.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,11 +23,13 @@ namespace BioDivCollector.Connector.Controllers
     {
         private readonly BioDivContext _context;
         private readonly ILogger _logger;
+        private GeneralPluginExtension _generalPluginExtension;
 
-        public ProjectController(BioDivContext context, ILogger<ProjectController> logger)
+        public ProjectController(BioDivContext context, ILogger<ProjectController> logger, GeneralPluginExtension generalPluginExtension)
         {
             _context = context;
             _logger = logger;
+            _generalPluginExtension = generalPluginExtension;
         }
 
         // GET: api/Project/5
@@ -326,7 +329,8 @@ namespace BioDivCollector.Connector.Controllers
                             source = origFormField.Source,
                             order = field.Order,
                             mandatory = origFormField.Mandatory,
-                            useInRecordTitle = field.UseInRecordTitle
+                            useInRecordTitle = field.UseInRecordTitle,
+                            standardValue = field.StandardValue
                         };
                         foreach (FieldChoice choice in origFormField.FieldChoices.OrderBy(fc => fc.Order))
                         {
@@ -339,7 +343,7 @@ namespace BioDivCollector.Connector.Controllers
 
 
                             // if not hidden, add it to the choice-list
-                            if (!field.HiddenFieldChoices.Where(m=>m.FormField == field && m.FieldChoice == choice).Any())
+                            if (!field.HiddenFieldChoices.Where(m=>m.FormField == origFormField && m.FieldChoice == choice).Any())
                                 fieldDto.fieldChoices.Add(choiceDto);
                         }
 
