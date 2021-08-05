@@ -51,6 +51,7 @@ namespace BioDivCollector.DB.Models.Domain
         public DbSet<HiddenFieldChoice> HiddenFieldChoices { get; set; }
         public DbSet<ProjectForm> ProjectsForms { get; set; }
         public DbSet<ThirdPartyTool> ThirdPartyTools { get; set; }
+        public DbSet<ProjectThirdPartyTool> ProjectsThirdPartyTools { get; set; }
 
         //public BioDivContext(DbContextOptions<BioDivContext> options)
         //    : base(options)
