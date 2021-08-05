@@ -513,6 +513,29 @@ namespace BioDivCollector.WebApp.Controllers
                     if (!pvm.Forms.Any(m => m.FormId == r.FormId)) pvm.Forms.Add(r.Form);
                     pvm.Records.Add(rvm);
                 }
+
+                // add all geometries without records
+                List<ReferenceGeometry> geometries = g.Geometries.Where(m => m.Records.Count == 0 && m.StatusId != StatusEnum.deleted).ToList();
+                foreach (ReferenceGeometry rg in geometries)
+                {
+                    bool isReadOnly = true;
+                    if ((g.GroupStatusId != GroupStatusEnum.Gruppendaten_gueltig) && (g.GroupStatusId != GroupStatusEnum.Gruppendaten_erfasst))
+                        if (myGroups.Where(m => m.GroupId == g.GroupId).Count() > 0) isReadOnly = false;
+
+                    await db.Entry(rg).Collection(m => m.GeometryChangeLogs).Query().Include(u => u.ChangeLog).ThenInclude(usr=>usr.User).LoadAsync();
+                    ChangeLogGeometry lastChange = rg.GeometryChangeLogs.OrderBy(cl => cl.ChangeLogId).Last();
+
+                    Record rNew = new Record() { Geometry = rg };
+
+                    ChangeLog cl = new ChangeLog() { User = lastChange.ChangeLog.User, ChangeDate = lastChange.ChangeLog.ChangeDate };
+                    ChangeLogRecord clr = new ChangeLogRecord() { ChangeLog = cl, Record = rNew };
+                    rNew.RecordChangeLogs.Add(clr);
+
+                    RecordViewModel rvm = new RecordViewModel() { Record = rNew };
+                    rvm.Readonly = isReadOnly;
+                    pvm.Records.Add(rvm);
+                }
+
             }
             if (!erfassendeProjects.Contains(p)) ViewData["ReadOnly"] = true;
             else ViewData["ReadOnly"] = false;
