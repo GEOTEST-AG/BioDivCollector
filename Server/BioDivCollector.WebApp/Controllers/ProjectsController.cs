@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -9,6 +10,8 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using BioDivCollector.DB.Models.Domain;
 using BioDivCollector.WebApp.Helpers;
+using CsvHelper;
+using CsvHelper.Configuration;
 using GeoAPI.Geometries;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,11 +36,8 @@ namespace BioDivCollector.WebApp.Controllers
         }
 
 
-
-        public async Task<IActionResult> Index()
+        private async Task<List<ProjectPocoForIndex>> CreateProjectPocoForIndex(User user)
         {
-            User user = Helpers.UserHelper.GetCurrentUser(User, db);
-
             List<Project> projects = new List<Project>();
             List<Project> editProjectSetting = new List<Project>();
 
@@ -84,8 +84,8 @@ namespace BioDivCollector.WebApp.Controllers
                     await db.Entry(pg).Collection(mm => mm.Geometries).Query().Include(mmm => mmm.Records).LoadAsync();
                     await db.Entry(pg).Collection(mm => mm.Records).LoadAsync();
 
-                    geometryCount += pg.Geometries.Where(m=>m.StatusId!=StatusEnum.deleted).Count();
-                    recordCount += pg.Geometries.Where(m=>m.StatusId!=StatusEnum.deleted).Select(m => m.Records.Where(zz=>zz.StatusId!=StatusEnum.deleted).Count()).Sum();
+                    geometryCount += pg.Geometries.Where(m => m.StatusId != StatusEnum.deleted).Count();
+                    recordCount += pg.Geometries.Where(m => m.StatusId != StatusEnum.deleted).Select(m => m.Records.Where(zz => zz.StatusId != StatusEnum.deleted).Count()).Sum();
                     recordCount += pg.Records.Where(m => m.StatusId != StatusEnum.deleted && m.GeometryId == null).Count();
 
                     await db.Entry(pg).Reference(zzz => zzz.Group).Query().Include(m => m.GroupUsers).LoadAsync();
@@ -106,12 +106,36 @@ namespace BioDivCollector.WebApp.Controllers
 
             }
 
+            return newProjectList;
+        }
+
+
+        public async Task<IActionResult> Index()
+        {
+            User user = Helpers.UserHelper.GetCurrentUser(User, db);
+
             ViewData["Username"] = user.UserId;
 
-
-
-            return View(newProjectList);
+            return View(await CreateProjectPocoForIndex(user));
         }
+
+        public async Task<IActionResult> ExportProjectList()
+        {
+            User user = Helpers.UserHelper.GetCurrentUser(User, db);
+            List<ProjectPocoForIndex> projectPocos = await CreateProjectPocoForIndex(user);
+
+            var stream = new MemoryStream();
+            using (var writeFile = new StreamWriter(stream, encoding: System.Text.Encoding.UTF8, leaveOpen: true))
+            {
+                var csv = new CsvWriter(writeFile, new CultureInfo("de-CH"));
+                csv.Context.RegisterClassMap<ProjectPocoForExportMap>();
+                csv.WriteRecords(projectPocos);
+            }
+            stream.Position = 0; //reset stream
+            return File(stream, "application/octet-stream", "Projects.csv");
+        }
+
+
 
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -1600,6 +1624,29 @@ namespace BioDivCollector.WebApp.Controllers
         public string MyGroup { get; set; }
 
     }
+
+    public class ProjectPocoForExportMap : ClassMap<ProjectPocoForIndex>
+    {
+        public ProjectPocoForExportMap()
+        {
+            Map(m => m.Project.ProjectName).Index(0).Name("Name");
+            Map(m => m.Project.ProjectNumber).Index(1).Name("Projektnummer");
+            Map(m => m.Project.BDCGuid).Index(2).Name("BDC Guid");
+            Map(m => m.Project.ID_Extern).Index(3).Name("ID_Extern");
+            Map(m => m.Project.Description).Index(4).Name("Beschreibung");
+            Map(m => m.Project.OGD).Index(5).Name("OGD");
+            Map(m => m.MyGroup).Index(6).Name("Gruppe");
+            Map(m => m.GeometryCount).Index(7).Name("Anzahl Geometrien");
+            Map(m => m.RecordCount).Index(8).Name("Anzahl Beobachtungen");
+            Map(m => m.Project.ProjectConfigurator.FirstName).Index(9).Name("Koordinator Vorname");
+            Map(m => m.Project.ProjectConfigurator.Name).Index(10).Name("Koordinator Nachname");
+            Map(m => m.Project.ProjectManager.FirstName).Index(11).Name("Projektleiter Vorname");
+            Map(m => m.Project.ProjectManager.Name).Index(12).Name("Projektleiter Nachname");
+            Map(m => m.Project.ProjectStatus.Description).Index(13).Name("Projektstatus");
+        }
+    }
+
+
     public class LayersList
     {
         public Layers[] items { get; set; }
