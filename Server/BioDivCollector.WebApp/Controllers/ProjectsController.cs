@@ -73,13 +73,17 @@ namespace BioDivCollector.WebApp.Controllers
 
             foreach (Project p in projects.Distinct())
             {
-                List<ProjectGroup> pgs = await db.ProjectsGroups.Include(m=>m.Geometries).ThenInclude(m=>m.Records).Include(m=>m.Records).Where(k => k.ProjectId == p.ProjectId).ToListAsync();
+                List<ProjectGroup> pgs = await db.ProjectsGroups
+                    .Where(k => k.ProjectId == p.ProjectId).ToListAsync();
 
                 int recordCount = 0;
                 int geometryCount = 0;
                 string myGroup = "";
                 foreach (ProjectGroup pg in pgs)
                 {
+                    await db.Entry(pg).Collection(mm => mm.Geometries).Query().Include(mmm => mmm.Records).LoadAsync();
+                    await db.Entry(pg).Collection(mm => mm.Records).LoadAsync();
+
                     geometryCount += pg.Geometries.Where(m=>m.StatusId!=StatusEnum.deleted).Count();
                     recordCount += pg.Geometries.Where(m=>m.StatusId!=StatusEnum.deleted).Select(m => m.Records.Where(zz=>zz.StatusId!=StatusEnum.deleted).Count()).Sum();
                     recordCount += pg.Records.Where(m => m.StatusId != StatusEnum.deleted && m.GeometryId == null).Count();
@@ -288,7 +292,10 @@ namespace BioDivCollector.WebApp.Controllers
             await db.Entry(newProject).Reference(m => m.Status).LoadAsync();
 
             await db.Entry(newProject).Collection(m => m.ProjectGroups).LoadAsync();
+            await db.Entry(newProject).Collection(m => m.ProjectThirdPartyTools).Query().Include(m=>m.ThirdPartyTool).LoadAsync();
 
+            newProject.ProjectThirdPartyToolsString = string.Join(",", newProject.ProjectThirdPartyTools.Select(m => m.ThirdPartyTool.Name).ToList());
+            
             foreach (ProjectGroup pg in newProject.ProjectGroups)
             {
                 await db.Entry(pg).Collection(m => m.Geometries).LoadAsync();
@@ -372,13 +379,13 @@ namespace BioDivCollector.WebApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind("ProjectId, ProjectName, ProjectNumber, Description, ProjectConfigurator, ProjectManager, ID_Extern, OGD")] ProjectPoco project)
+        public async Task<IActionResult> Edit([Bind("ProjectId, ProjectName, ProjectNumber, Description, ProjectThirdPartyToolsString, ProjectConfigurator, ProjectManager, ID_Extern, OGD")] ProjectPoco project)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    Project pOld = await db.Projects.Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).Where(m => m.ProjectId == project.ProjectId).FirstOrDefaultAsync();
+                    Project pOld = await db.Projects.Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).Include(m=>m.ProjectThirdPartyTools).ThenInclude(ptp=>ptp.ThirdPartyTool).Where(m => m.ProjectId == project.ProjectId).FirstOrDefaultAsync();
                     pOld.ProjectName = project.ProjectName;
                     pOld.ProjectNumber = project.ProjectNumber;
                     pOld.Description = project.Description;
@@ -399,6 +406,20 @@ namespace BioDivCollector.WebApp.Controllers
                         pOld.ProjectManager = newPM;
                         UsersController uc = new UsersController(Configuration);
                         await uc.AddRoleToUser(pOld.ProjectManager.UserId, "PL");
+                    }
+
+                    if (project.ProjectThirdPartyToolsString != null)
+                    {
+                        pOld.ProjectThirdPartyTools.RemoveRange(0, pOld.ProjectThirdPartyTools.Count);
+                        string[] tools = project.ProjectThirdPartyToolsString.Split(',');
+                        foreach (string tool in tools)
+                        {
+                            if (!pOld.ProjectThirdPartyTools.Where(m=>m.ThirdPartyTool.Name == tool).Any())
+                            {
+                                ProjectThirdPartyTool ptpt = new ProjectThirdPartyTool() { Project = pOld, ThirdPartyTool = db.ThirdPartyTools.Where(tpt => tpt.Name == tool).First() };
+                                pOld.ProjectThirdPartyTools.Add(ptpt);
+                            }
+                        }
                     }
 
                     db.Update(pOld);
@@ -1105,6 +1126,13 @@ namespace BioDivCollector.WebApp.Controllers
             return File(stream, "application/octet-stream", "bdc_export." + fname[1]);
         }
 
+        public async Task<IActionResult> GetThirdPartyTools()
+        {
+            List<ThirdPartyTool> thirdPartyTool = await db.ThirdPartyTools.ToListAsync();
+            string json = JsonConvert.SerializeObject(thirdPartyTool);
+            return Content(json, "application/json");
+        }
+
 
         public async Task<IActionResult> GetUsersByRole(Guid? id, string role, string search)
         {
@@ -1136,6 +1164,28 @@ namespace BioDivCollector.WebApp.Controllers
 
             string json = JsonConvert.SerializeObject(returnList);
             return Content(json, "application/json");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateThirdPartyTools(string Name)
+        {
+            try
+            {
+                ThirdPartyTool tpt = new ThirdPartyTool() { Name = Name };
+                db.Entry(tpt).State = EntityState.Added;
+                db.ThirdPartyTools.Add(tpt);
+                await db.SaveChangesAsync();
+
+                List<ThirdPartyTool> allTPT = new List<ThirdPartyTool>();
+                allTPT.Add(tpt);
+                return Json(new { items = allTPT });
+            }
+            catch (Exception e)
+            {
+                
+            }
+
+            return Json(null);
         }
 
 
@@ -1597,6 +1647,7 @@ namespace BioDivCollector.WebApp.Controllers
         public bool OGD { get; set; }
         public string ProjectConfigurator { get; set; }
         public string ProjectManager { get; set; }
+        public string ProjectThirdPartyToolsString { get; set; }
     }
 
 

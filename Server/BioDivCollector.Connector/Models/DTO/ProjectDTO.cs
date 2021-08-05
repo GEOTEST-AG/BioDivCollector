@@ -30,6 +30,8 @@ namespace BioDivCollector.Connector.Models.DTO
             projectStatusId = project.ProjectStatusId;
             projectManager = project.ProjectManager?.ToString();
             projectConfigurator = project.ProjectConfigurator?.ToString();
+            projectThirdPartyTools = string.Join(", ", project.ProjectThirdPartyTools.Select(m => m.ThirdPartyTool.Name).ToList());
+
         }
 
         public Guid projectId { get; set; }
@@ -42,6 +44,8 @@ namespace BioDivCollector.Connector.Models.DTO
 
         public string projectManager { get; set; }
         public string projectConfigurator { get; set; }
+
+        public string projectThirdPartyTools { get; set; }
 
         public List<ReferenceGeometryDTO> geometries { get; set; } = new List<ReferenceGeometryDTO>();
         public List<RecordDTO> records { get; set; } = new List<RecordDTO>();

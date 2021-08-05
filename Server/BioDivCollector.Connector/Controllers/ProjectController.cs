@@ -76,6 +76,8 @@ namespace BioDivCollector.Connector.Controllers
                 .Include(p => p.ProjectGroups)
                     .ThenInclude(pg => pg.Group).ThenInclude(g => g.GroupUsers)
                     .ThenInclude(gu => gu.User)
+                .Include(p => p.ProjectThirdPartyTools)
+                    .ThenInclude(ptpt=>ptpt.ThirdPartyTool)
                 .Where(p => p.ProjectId == id &&
                             p.StatusId != StatusEnum.deleted &&
                             p.ProjectStatusId == ProjectStatusEnum.Projekt_bereit)
