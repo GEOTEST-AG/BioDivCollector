@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
@@ -60,11 +61,7 @@ namespace BioDivCollector.WebApp.Controllers
 
         }
 
-        /// <summary>
-        /// Shows a table with all form fields and Id's for the wfs
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IActionResult> LookupTable()
+        private async Task<List<LookupTableViewModel>> CreateLookupTableViewModel()
         {
             List<FormField> formFields = await db.FormFields.Include(m => m.FormFieldForms).ThenInclude(m => m.Form).ToListAsync();
 
@@ -76,7 +73,7 @@ namespace BioDivCollector.WebApp.Controllers
                 ltvm.UsedInForms.AddRange(ff.FormFieldForms?.Select(m => m.Form));
 
                 // formfield is public mother, so add all children formfields-forms
-                if ((ff.Public==true) && (ff.PublicMotherFormFieldFormFieldId==null))
+                if ((ff.Public == true) && (ff.PublicMotherFormFieldFormFieldId == null))
                 {
                     List<FormField> children = await db.FormFields.Where(m => m.PublicMotherFormFieldFormFieldId == ff.FormFieldId).ToListAsync();
                     foreach (FormField child in children)
@@ -87,6 +84,68 @@ namespace BioDivCollector.WebApp.Controllers
 
                 ltvms.Add(ltvm);
             }
+
+            return ltvms;
+        }
+
+
+        /// <summary>
+        /// Shows a table with all form fields and Id's for the wfs
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> LookupTable()
+        {
+            return View(await CreateLookupTableViewModel());
+        }
+
+        /// <summary>
+        /// Exports a QGIS QML Attribute table with the alias for all wfs fields
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> ExportQGISQmlAttributeTable()
+        {
+            List<LookupTableViewModel> ltvms = await CreateLookupTableViewModel();
+
+            var stream = new MemoryStream();
+            using (var writeFile = new StreamWriter(stream, encoding: System.Text.Encoding.UTF8, leaveOpen: true))
+            {
+                writeFile.WriteLine("<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>");
+                writeFile.WriteLine("<qgis version=\"3.16.4-Hannover\" styleCategories=\"Fields\">");
+                writeFile.WriteLine("  <aliases>");
+                writeFile.WriteLine("    <alias field=\"bdcguid_projekt\" index=\"0\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"projekt_id_extern\" index=\"1\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"projektname\" index=\"2\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"bdcguid_geometrie\" index=\"3\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"geometriename\" index=\"4\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"bdcguid_beobachtung\" index=\"5\" name=\"\"/>");
+
+                int index = 6;
+
+                foreach (LookupTableViewModel ltvm in ltvms)
+                {
+                    string id = "";
+                    if ((ltvm.FormField.Public == true) && (ltvm.FormField.PublicMotherFormField == null))
+                    {
+                        id = "a_" + ltvm.FormField.FormFieldId;
+                    }
+                    else if (ltvm.FormField.Public == false)
+                    {
+                        id = "f_" + ltvm.FormField.FormFieldId;
+                    }
+
+
+                    writeFile.WriteLine("    <alias field=\"" + id + "\" index=\"" + index + "\" name=\"" + ltvm.FormField.Title.Replace("<br>","").Replace("<","").Replace(">","") + "\"/>");
+                    index++;
+
+                }
+                writeFile.WriteLine("  </aliases>");
+                writeFile.WriteLine("</qgis>");
+
+            }
+            stream.Position = 0; //reset stream
+            return File(stream, "application/octet-stream", "style.qml");
+
+
 
             return View(ltvms);
         }
