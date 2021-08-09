@@ -37,6 +37,9 @@ namespace BioDivCollector.WebApp.Controllers
                 .Include(p => p.GroupProjects).ThenInclude(pp => pp.Project)
                 .Include(p => p.Status);
 
+            // users pl and pm projects
+            List<Project> projects = await _context.Projects.Include(m => m.ProjectGroups).Where(m => m.ProjectManager == user || m.ProjectConfigurator == user).ToListAsync();
+
             List<GroupViewModel> groups = new List<GroupViewModel>();
             foreach (Group g in await bioDivContext.ToListAsync())
             {
@@ -73,6 +76,9 @@ namespace BioDivCollector.WebApp.Controllers
                 {
                     GroupViewModel gvm = new GroupViewModel() { Group = g };
                     gvm.Editable = false;
+
+                    if (projects.Where(m => m.ProjectGroups.Select(m=>m.Group).Contains(g)).Any()) gvm.Editable = true;
+
                     gvm.ShowOnly = true;
                     groups.Add(gvm);
 
