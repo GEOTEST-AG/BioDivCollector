@@ -45,7 +45,14 @@ namespace BioDivCollectorXamarin.Views
             InitializeComponent();
             try
             {
-                BindingContext = ViewModel = new RecordsPageVM(Int32.Parse(ObjectId));
+                if (ObjectId != null && ObjectId != String.Empty)
+                {
+                    BindingContext = ViewModel = new RecordsPageVM(Int32.Parse(ObjectId));
+                }
+                else
+                {
+                    BindingContext = ViewModel = new RecordsPageVM();
+                }
             }
             catch (Exception e)
             {

@@ -198,7 +198,7 @@ namespace BioDivCollectorXamarin
                 });
             });
 
-            MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful", (sender) =>
+            MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful", (sender) =>
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {

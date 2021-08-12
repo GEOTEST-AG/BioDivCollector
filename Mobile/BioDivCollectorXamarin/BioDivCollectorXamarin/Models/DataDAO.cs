@@ -57,7 +57,7 @@ namespace BioDivCollectorXamarin.Models
                         var json = "";
                         using (HttpClient client = new HttpClient())
                         {
-                            client.Timeout = TimeSpan.FromSeconds(60); // 10 minutes
+                            client.Timeout = TimeSpan.FromSeconds(600); // 10 minutes
                             var token = Preferences.Get("AccessToken", "");
                             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -102,7 +102,7 @@ namespace BioDivCollectorXamarin.Models
                 }
                 else
                 {
-                    MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful");
+                    MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful");
                 }
 
 
@@ -201,14 +201,14 @@ namespace BioDivCollectorXamarin.Models
                                         //Delete records from device which have been confirmed by the connector as 'deleted' in the central db
                                         var uid = deletedRecord.Key.ToString();
                                         var queriedRec = conn.Table<Record>().Where(r => r.recordId == uid).FirstOrDefault();
-                                        conn.Delete(queriedRec); 
+                                        conn.Delete(queriedRec,true); 
                                     }
                                     foreach (var deletedGeometry in deletedGeometries)
                                     {
                                         //Delete geometries from device which have been confirmed by the connector as 'deleted' in the central db
                                         var uid = deletedGeometry.Key.ToString();
                                         var queriedGeom = conn.Table<ReferenceGeometry>().Where(g => g.geometryId == uid).FirstOrDefault();
-                                        conn.Delete(queriedGeom);
+                                        conn.Delete(queriedGeom,true);
                                     }
 
                                     foreach (var skippedGeom in skippedGeometries)
@@ -307,9 +307,10 @@ namespace BioDivCollectorXamarin.Models
                     MessagingCenter.Send(new DataDAO(), "SyncMessage", "Creating project");
                     try
                     {
+                        //Test to see if database schema exists
                         var projTableTest = conn.Table<Project>().Select(g => g).FirstOrDefault();
                         var projTableTest2 = conn.Table<ReferenceGeometry>().Select(g => g).FirstOrDefault();
-                        var proj = conn.Table<Project>().ToList();
+                        //var proj = conn.Table<Project>().ToList();
                     }
                     catch (Exception e)
                     {
@@ -352,15 +353,17 @@ namespace BioDivCollectorXamarin.Models
                         {
                             try
                             {
+                                var existinggeom = geom;
                                 geom.project_fk = project.Id;
-                                var exgeom = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefault();
+                                 var exgeom = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefault();
 
                                 if (exgeom != null)
                                 {
-                                    var existinggeom = conn.GetWithChildren<ReferenceGeometry>(exgeom.Id);
+                                    existinggeom = conn.GetWithChildren<ReferenceGeometry>(exgeom.Id);
                                     var id = existinggeom.Id;
                                     existinggeom = geom;
                                     existinggeom.Id = id;
+                                    existinggeom.status = geom.status;
                                     conn.Update(existinggeom);
                                 }
                                 else if (geom.status != 3)
@@ -372,7 +375,7 @@ namespace BioDivCollectorXamarin.Models
                                 {
                                     try
                                     {
-                                        var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+                                                                                var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
 
                                         if (existingrec != null)
                                         {
@@ -380,6 +383,7 @@ namespace BioDivCollectorXamarin.Models
                                             existingrec = rec;
                                             existingrec.project_fk = project.Id;
                                             existingrec.Id = id;
+                                            existingrec.status = rec.status;
                                             existingrec.geometry_fk = geom.Id;
                                             conn.Update(existingrec);
                                         }
@@ -388,7 +392,7 @@ namespace BioDivCollectorXamarin.Models
                                             rec.project_fk = project.Id;
                                             conn.Insert(rec);
                                         }
-
+                                        
                                         if (rec.status != 3)
                                         {
                                             try
@@ -400,18 +404,7 @@ namespace BioDivCollectorXamarin.Models
                                                     { txt.title = ""; }
                                                     try
                                                     {
-                                                        var existingtxt = conn.Table<TextData>().Select(g => g).Where(TextData => TextData.textId == txt.textId).FirstOrDefault();
-                                                        if (existingtxt != null)
-                                                        {
-                                                            var id = existingtxt.Id;
-                                                            existingtxt = txt;
-                                                            existingtxt.Id = id;
-                                                            conn.Update(existingtxt);
-                                                        }
-                                                        else
-                                                        {
-                                                            conn.Insert(txt);
-                                                        }
+                                                        conn.InsertOrReplace(txt);
                                                     }
                                                     catch (Exception e)
                                                     {
@@ -425,18 +418,7 @@ namespace BioDivCollectorXamarin.Models
                                                     { num.title = ""; }
                                                     try
                                                     {
-                                                        var existingnum = conn.Table<NumericData>().Select(g => g).Where(NumericData => NumericData.numericId == num.numericId).FirstOrDefault();
-                                                        if (existingnum != null)
-                                                        {
-                                                            var id = existingnum.Id;
-                                                            existingnum = num;
-                                                            existingnum.Id = id;
-                                                            conn.Update(existingnum);
-                                                        }
-                                                        else
-                                                        {
-                                                            conn.Insert(num);
-                                                        }
+                                                        conn.InsertOrReplace(num);
                                                     }
                                                     catch (Exception e)
                                                     {
@@ -450,18 +432,7 @@ namespace BioDivCollectorXamarin.Models
                                                     { onebool.title = ""; }
                                                     try
                                                     {
-                                                        var existingbool = conn.Table<BooleanData>().Select(g => g).Where(BooleanData => BooleanData.booleanId == onebool.booleanId).FirstOrDefault();
-                                                        if (existingbool != null)
-                                                        {
-                                                            var id = existingbool.Id;
-                                                            existingbool = onebool;
-                                                            existingbool.Id = id;
-                                                            conn.Update(existingbool);
-                                                        }
-                                                        else
-                                                        {
-                                                            conn.Insert(onebool);
-                                                        }
+                                                        conn.InsertOrReplace(onebool);
                                                     }
                                                     catch (Exception e)
                                                     {
@@ -475,28 +446,25 @@ namespace BioDivCollectorXamarin.Models
                                             }
                                         }
 
-                                        var queriedrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
-                                        queriedrec.texts = rec.texts;
-                                        conn.UpdateWithChildren(queriedrec);
-                                        queriedrec.numerics = rec.numerics;
-                                        conn.UpdateWithChildren(queriedrec);
-                                        queriedrec.booleans = rec.booleans;
-                                        conn.UpdateWithChildren(queriedrec);
+                                        rec.texts = rec.texts;
+                                        rec.numerics = rec.numerics;
+                                        rec.booleans = rec.booleans;
+                                        conn.UpdateWithChildren(rec);
                                         Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
                                     }
                                     catch (Exception e)
                                     {
                                         Console.WriteLine(e);
                                     }
-                                    var queriedgeom = conn.Table<ReferenceGeometry>().Select(g => g).Where(Geometry => Geometry.geometryId == geom.geometryId).FirstOrDefault();
-                                    var geomWC = conn.GetWithChildren<ReferenceGeometry>(queriedgeom.Id);
-                                    foreach (var r in geom.records)
+
+                                    conn.InsertOrReplaceAllWithChildren(geom.records);
+                                    /*foreach (var r in geom.records)
                                     {
-                                        var geomrec = geomWC.records.Where(gr => gr.recordId == r.recordId).FirstOrDefault();
-                                        geomWC.records.Remove(geomrec);
-                                        geomWC.records.Add(r);
-                                    }
-                                    conn.UpdateWithChildren(geomWC);
+                                        var geomrec = existinggeom.records.Where(gr => gr.recordId == r.recordId).FirstOrDefault();
+                                        existinggeom.records.Remove(geomrec);
+                                        existinggeom.records.Add(r);
+                                    }*/
+                                    conn.UpdateWithChildren(existinggeom);
                                     Console.WriteLine("Added record: " + DateTime.Now.ToLongTimeString());
                                 }
 
@@ -512,18 +480,8 @@ namespace BioDivCollectorXamarin.Models
                             try
                             {
                                 rec.project_fk = project.Id;
-                                var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
-                                if (existingrec != null)
-                                {
-                                    var id = existingrec.Id;
-                                    existingrec = rec;
-                                    existingrec.Id = id;
-                                    conn.Update(existingrec);
-                                }
-                                else if (rec.status != 3)
-                                {
-                                    conn.Insert(rec);
-                                }
+                                conn.InsertOrReplaceWithChildren(rec);
+                                
 
                                 if (rec.status != 3)
                                 {
@@ -610,12 +568,10 @@ namespace BioDivCollectorXamarin.Models
                                         Console.WriteLine(e);
                                     }
                                 }
-                                
-                                var queriedrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+
+                                var queriedrec = rec;// conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
                                 queriedrec.texts = rec.texts;
-                                conn.UpdateWithChildren(queriedrec);
                                 queriedrec.numerics = rec.numerics;
-                                conn.UpdateWithChildren(queriedrec);
                                 queriedrec.booleans = rec.booleans;
                                 conn.UpdateWithChildren(queriedrec);
                                 Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
@@ -929,7 +885,7 @@ namespace BioDivCollectorXamarin.Models
                     var geoms = project.geometries;
                     foreach (var geometry in geoms)
                     {
-                        var records = geometry.records.Where(x => x.status != 1).Where(x => x.timestamp > lastSync).ToList();
+                        var records = geometry.records.Where(x => x.status != 1).Where(x => x.timestamp.ToUniversalTime() > lastSync.ToUniversalTime()).ToList();
                         geometry.records = records;
                     }
 

@@ -20,7 +20,15 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public int Id { get; set; }
         public string geometryId { get; set; }
 
-        public string geometryName { get; set; }
+        private string _geometryName;
+        public string geometryName
+        {
+            get { return _geometryName ?? geometryId; }
+            set
+            {
+                _geometryName = value;
+            }
+        }
 
         public string geometry { get; set; }
 
@@ -162,7 +170,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     {
                         conn.Delete(queriedGeom,true);
                     }
-                    MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
+                    //MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
                 }
 
             }
