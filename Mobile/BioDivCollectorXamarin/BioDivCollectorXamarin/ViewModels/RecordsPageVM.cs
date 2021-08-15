@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BioDivCollectorXamarin.Models;
@@ -218,7 +220,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             IsBusy = true;
             SelectedItem = null;
-
+            App.RecordLists.CreateRecordLists();
             UpdateRecords();
 
         }
@@ -228,7 +230,132 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void UpdateRecords()
         {
-            Records = new ObservableCollection<GroupedFormRec>();
+            var recs = new List<GroupedFormRec>();
+            if (recs != null && SortBy != "Formulartyp")
+            {
+                if (FilterBy == "Formulartyp")
+                {
+                    var frm = Form.FetchForm((int)Form_pk);
+                    foreach (var group in App.RecordLists.RecordsByGeometry)
+                    {
+                        var newGroup = new GroupedFormRec();
+                        newGroup.LongGeomName = group.LongGeomName;
+                        newGroup.ShortGeomName = group.ShortGeomName;
+                        newGroup.GeomId = group.GeomId;
+                        newGroup.ShowButton = group.ShowButton;
+                        newGroup.Geom = group.Geom;
+
+                        foreach (FormRec form in group)
+                        {
+                            if (form.FormId == frm.formId)
+                            {
+                                newGroup.Add(form);
+                            }
+                        }
+                        recs.Add(newGroup);
+                    }
+                }
+
+                else if (FilterBy == "Geometrie" && object_pk != null)
+                {
+                    var obj = ReferenceGeometry.GetGeometry((int)Object_pk);
+                    foreach (var group in App.RecordLists.RecordsByGeometry)
+                    {
+                        try
+                        {
+                            if (group.FirstOrDefault().GeomId == obj.Id)
+                            {
+                                var newGroup = new GroupedFormRec();
+                                newGroup.LongGeomName = group.LongGeomName;
+                                newGroup.ShortGeomName = group.ShortGeomName;
+                                newGroup.GeomId = group.GeomId;
+                                newGroup.ShowButton = group.ShowButton;
+                                newGroup.Geom = group.Geom;
+
+                                foreach (FormRec form in group)
+                                {
+                                    newGroup.Add(form);
+                                }
+                                recs.Add(newGroup);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                    }
+                }
+
+                else
+                {
+                    recs = App.RecordLists.RecordsByGeometry;
+                }
+                Records = new ObservableCollection<GroupedFormRec>(recs);
+            }
+            else if (recs != null && SortBy == "Formulartyp")
+            {
+                if (FilterBy == "Formulartyp")
+                {
+                    var frm = Form.FetchForm((int)Form_pk);
+                    foreach (var group in App.RecordLists.RecordsByForm)
+                    {
+                        var newGroup = new GroupedFormRec();
+                        newGroup.LongGeomName = group.LongGeomName;
+                        newGroup.ShortGeomName = group.ShortGeomName;
+                        newGroup.GeomId = group.GeomId;
+                        newGroup.ShowButton = group.ShowButton;
+                        newGroup.Geom = group.Geom;
+
+                        foreach (FormRec form in group)
+                        {
+                            if (form.FormId == frm.formId)
+                            {
+                                newGroup.Add(form);
+                            }
+                        }
+                        recs.Add(newGroup);
+                    }
+                }
+
+                else if (FilterBy == "Geometrie" && Object_pk != null)
+                {
+                    var obj = ReferenceGeometry.GetGeometry((int)Object_pk);
+                    foreach (var group in App.RecordLists.RecordsByForm)
+                    {
+                        if (group.GeomId.ToString() == obj.geometryId)
+                        {
+                            var newGroup = new GroupedFormRec();
+                            newGroup.LongGeomName = group.LongGeomName;
+                            newGroup.ShortGeomName = group.ShortGeomName;
+                            newGroup.GeomId = group.GeomId;
+                            newGroup.ShowButton = group.ShowButton;
+                            newGroup.Geom = group.Geom;
+
+                            foreach (FormRec form in group)
+                            {
+                                newGroup.Add(form);
+                            }
+                            recs.Add(newGroup);
+                        }
+                    }
+                }
+
+                else
+                {
+                    recs = App.RecordLists.RecordsByForm;
+                }
+                Records = new ObservableCollection<GroupedFormRec>(recs);
+            }
+            else
+            {
+                Records = new ObservableCollection<GroupedFormRec>();
+            }
+
+            
+
+
+            OnPropertyChanged("Records");
+            /*Records = new ObservableCollection<GroupedFormRec>();
             Xamarin.Forms.BindingBase.EnableCollectionSynchronization(Records, null, ObservableCollectionCallback);
             var project = Project.FetchCurrentProject();
             Task.Run(async () =>
@@ -432,10 +559,11 @@ namespace BioDivCollectorXamarin.ViewModels
 
 
             });
-
+            */
         }
 
 
+        /*
         void ObservableCollectionCallback(IEnumerable collection, object context, Action accessMethod, bool writeAccess)
         {
             // `lock` ensures that only one thread access the collection at a time
@@ -483,6 +611,7 @@ namespace BioDivCollectorXamarin.ViewModels
             }
             return title;
         }
+        */
 
         /// <summary>
         /// The record selected from the list

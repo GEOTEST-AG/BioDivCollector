@@ -128,6 +128,28 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         }
 
         /// <summary>
+        /// Fetches the form for a specific database id
+        /// </summary>
+        /// <param name="formDbId"></param>
+        /// <returns>The Form</returns>
+        public static Form FetchForm(int formDbId)
+        {
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            {
+                try
+                {
+                    var form= conn.Table<Form>().Where(Form => Form.Id == formDbId).FirstOrDefault();
+                    return form;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Fetch a list of dropdown choice strings for a given dropdown field id
         /// </summary>
         /// <param name="fieldId"></param>

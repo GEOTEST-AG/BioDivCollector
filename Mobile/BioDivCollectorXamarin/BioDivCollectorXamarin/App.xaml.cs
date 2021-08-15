@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.IEssentials;
 using BioDivCollectorXamarin.Models.LoginModel;
 using Xamarin.Essentials;
@@ -150,7 +151,23 @@ namespace BioDivCollectorXamarin
                 busy = value;
             }
         }
-        
+
+        /// <summary>
+        /// Preconfigure lists of records
+        /// </summary>
+        private static RecordListModel recordLists;
+        public static RecordListModel RecordLists
+        {
+            get
+            {
+                return recordLists;
+            }
+            set
+            {
+                recordLists = value;
+            }
+        }
+
         /// <summary>
         /// Initialisation without furhter parameters
         /// </summary>
@@ -169,11 +186,13 @@ namespace BioDivCollectorXamarin
             InitializeComponent();
             Device.SetFlags(new string[] { "RadioButton_Experimental", "Shapes_Experimental", "Expander_Experimental" });
 
+            RecordLists = new RecordListModel();
             CurrentUser = User.RetrieveUser();
             BioDivPrefs = new BioDivPreferences();
             Preferences.Set("databaseLocation", databaseLocation);
             TileLocation = tileLocation;
             CurrentProjectId = Preferences.Get("currentProject", "");
+            RecordLists.CreateRecordLists();
             Busy = false;
             CheckConnection();
 
@@ -292,11 +311,14 @@ namespace BioDivCollectorXamarin
         {
             Task.Run(() =>
             {
+                RecordLists = new RecordListModel();
                 var projectId = projectGUID.ToString();
                 App.CurrentProjectId = projectId;
                 Preferences.Set("currentProject", projectId);
                 AppShell.ClearNavigationStacks();
                 MessagingCenter.Send(App.Current, "SetProject");
+                RecordLists.CreateRecordLists();
+                
             });
         }
     }
