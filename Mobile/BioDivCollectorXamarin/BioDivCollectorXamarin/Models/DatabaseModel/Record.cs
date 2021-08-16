@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using ForeignKeyAttribute = SQLiteNetExtensions.Attributes.ForeignKeyAttribute;
 using TableAttribute = SQLite.TableAttribute;
@@ -67,7 +68,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             rec.status = -1;
 
             //Add record to db.
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 var success = conn.Insert(rec);
                 if (success == 1)
@@ -100,7 +101,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             try
             {
                 var record = new Record();
-                using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 {
                     record = conn.Table<Record>().Select(n => n).Where(Record => Record.Id == recordId).FirstOrDefault();
                 }
@@ -115,6 +116,33 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         }
 
         /// <summary>
+        /// Fetch a record from the database given its database id
+        /// </summary>
+        /// <param name="recordId"></param>
+        /// <returns></returns>
+        public static bool FetchIfRecordHasOnlyEmptyChildren(int recordId)
+        {
+            try
+            {
+                var record = new Record();
+                int t = 0;
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                {
+                    record = conn.Table<Record>().Select(n => n).Where(Record => Record.Id == recordId).FirstOrDefault();
+                    t += conn.Table<TextData>().Select(n => n).Where(TextData => TextData.record_fk == recordId).Where(TextData => TextData.value != "").Count();
+                    t += conn.Table<NumericData>().Select(n => n).Where(NumericData => NumericData.record_fk == recordId).Where(NumericData => NumericData.value != 0).Count();
+                }
+                return t == 0;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Could not save data");
+            }
+            return true;
+
+        }
+
+        /// <summary>
         /// Delete a record from the database given its database id
         /// </summary>
         /// <param name="recordId"></param>
@@ -122,7 +150,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         {
             try
             {
-                using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 {
                     var record = conn.Table<Record>().Select(n => n).Where(Record => Record.Id == recordId).FirstOrDefault();
                     if (record.status > -1)
@@ -152,7 +180,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <param name="recId"></param>
         public static void UpdateRecord(int recId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 var rec = Record.FetchRecord(recId);
                 rec.timestamp = DateTime.Now;

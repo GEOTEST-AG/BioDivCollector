@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.ViewModels;
 using SQLite;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models
@@ -24,7 +25,7 @@ namespace BioDivCollectorXamarin.Models
                 enabled = value;
                 if (Name != null)
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                     {
                         var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.title == Name).Where(Layer => Layer.opacity == Opacity).FirstOrDefault();
                         if (existingLayer != null)
@@ -62,7 +63,7 @@ namespace BioDivCollectorXamarin.Models
 
                         if (Name != null)
                         {
-                            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                             {
                                 var layerInPostionAlready = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.order == value).Where(Layer => Layer.project_fk == project.Id).FirstOrDefault();
                                 if (layerInPostionAlready != null)
@@ -100,7 +101,7 @@ namespace BioDivCollectorXamarin.Models
                 opacity = value;
                 if (Name != null)
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                     {
                         var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.title == Name).Where(Layer => Layer.visible == enabled).FirstOrDefault();
                         if (existingLayer != null)

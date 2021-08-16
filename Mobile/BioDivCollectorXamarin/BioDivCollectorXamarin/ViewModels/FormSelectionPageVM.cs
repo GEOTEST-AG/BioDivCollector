@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using Xamarin.Essentials;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
@@ -18,20 +19,15 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public FormSelectionPageVM()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            try
             {
-                try
-                {
-                    var proj = conn.Table<Project>().Where(p => p.projectId == App.CurrentProjectId).FirstOrDefault();
-                    Forms = conn.Table<Form>().Where(f => f.project_fk == proj.Id).ToList();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
+                Forms = Form.FetchFormsForProject();
             }
-        }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
 
+        }
     }
 }

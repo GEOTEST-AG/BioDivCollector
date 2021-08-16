@@ -104,23 +104,34 @@ namespace BioDivCollectorXamarin.Models.LoginModel
             {
                 string currentTime = DateTime.UtcNow.ToString();
                 string refreshExpiry = Preferences.Get("RefreshTokenExpiry", currentTime);
-                DateTime refreshTokenExpiry = DateTime.Parse (refreshExpiry);
-
-                if (refreshTokenExpiry <= DateTime.UtcNow)
+                try
                 {
+                    DateTime refreshTokenExpiry = DateTime.Parse(refreshExpiry);
 
-                    //Return login page
-                    App.ShowLogin = true;
-                    return new MainPage();
-                    
+                    if (refreshTokenExpiry <= DateTime.UtcNow)
+                    {
+
+                        //Return login page
+                        App.ShowLogin = true;
+                        return new MainPage();
+
+                    }
+                    else
+                    {
+                        //Use refresh token and show a page whilst we are waiting for the token to return
+
+                        Authentication.RequestRefreshTokenAsync();
+                        return new LoginPage();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
                     //Use refresh token and show a page whilst we are waiting for the token to return
-                    
+
                     Authentication.RequestRefreshTokenAsync();
                     return new LoginPage();
                 }
+
             }
         }
 
@@ -146,7 +157,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                 if (refreshTokenExpiry <= DateTime.UtcNow)
                 {
                     //Log out if timed out
-                    MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful");
+                    MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful");
                 }
                 else
                 {
@@ -215,7 +226,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                 Android.Webkit.CookieManager.Instance.Flush();
 #endif
 
-            Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful");
+            Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful");
         }
     }
 }

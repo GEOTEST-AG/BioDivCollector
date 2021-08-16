@@ -126,18 +126,20 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void OnAppearing()
         {
-            string projId = Preferences.Get("currentProject", @"");
-            SyncCommand.RaiseCanExecuteChanged();
-            App.CurrentProjectId = projId;
-            try
+            Task.Run(() =>
             {
-                this.SetProject(projId);
-            }
-            catch (Exception exp)
-            {
-                Console.WriteLine("Couldn't set project " + exp);
-            }
-            
+                string projId = Preferences.Get("currentProject", @"");
+                SyncCommand.RaiseCanExecuteChanged();
+                App.CurrentProjectId = projId;
+                try
+                {
+                    this.SetProject(projId);
+                }
+                catch (Exception exp)
+                {
+                    Console.WriteLine("Couldn't set project " + exp);
+                }
+            });
         }
 
         /// <summary>

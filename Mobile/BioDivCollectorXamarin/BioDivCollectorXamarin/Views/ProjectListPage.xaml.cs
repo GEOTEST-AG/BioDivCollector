@@ -2,6 +2,7 @@
 using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.LoginModel;
 using BioDivCollectorXamarin.ViewModels;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -69,6 +70,36 @@ namespace BioDivCollectorXamarin.Views
         {
             var s = value as string;
             return !string.IsNullOrWhiteSpace(s);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
+    /// <summary>
+    /// Provide a bool value according to whether the string is null or empty
+    /// </summary>
+    public class FormFilledOutColourConverter : IValueConverter
+    {
+        /// <summary>Returns false if string is null or empty
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="targetType"></param>
+        /// <param name="parameter"></param>
+        /// <param name="culture"></param>
+        /// <returns></returns>
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            /*var s = value as int? ?? 0;
+            var empty = Record.FetchIfRecordHasOnlyEmptyChildren(s);
+            var sign = "";
+            if (empty)
+            { sign = "⚠️"; }*/
+            return "";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

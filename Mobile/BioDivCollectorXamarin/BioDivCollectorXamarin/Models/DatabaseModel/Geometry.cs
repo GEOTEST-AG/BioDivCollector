@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
@@ -19,7 +20,15 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public int Id { get; set; }
         public string geometryId { get; set; }
 
-        public string geometryName { get; set; }
+        private string _geometryName;
+        public string geometryName
+        {
+            get { return _geometryName ?? geometryId; }
+            set
+            {
+                _geometryName = value;
+            }
+        }
 
         public string geometry { get; set; }
 
@@ -47,7 +56,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public static ReferenceGeometry GetGeometry(int geomId)
         {
             ReferenceGeometry queriedGeom;
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 queriedGeom = conn.Get<ReferenceGeometry>(geomId);
             }
@@ -61,7 +70,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public static List<ReferenceGeometry> GetAllGeometries()
         {
             var queriedGeoms = new List<ReferenceGeometry>();
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 var currentProj = conn.Table<Project>().Where(p => p.projectId == App.CurrentProjectId).FirstOrDefault();
                 queriedGeoms = conn.Table<ReferenceGeometry>().Where(g => g.project_fk == currentProj.Id).ToList();
@@ -78,7 +87,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         {
             var queriedGeoms = new List<ReferenceGeometry>();
             var project = Project.FetchCurrentProject();
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 queriedGeoms = conn.Table<ReferenceGeometry>().Select(g => g).Where(geom => geom.project_fk == project.Id).ToList();
             }
@@ -106,7 +115,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var proj = Project.FetchCurrentProject();
             geom.project_fk = proj.Id;
 
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 conn.Insert(geom);
 
@@ -123,7 +132,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <param name="geom"></param>
         public static void SaveGeometry(ReferenceGeometry geom)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 conn.Update(geom);
             }
@@ -139,7 +148,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             try
             {
                 ReferenceGeometry queriedGeom;
-                using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 {
                     queriedGeom = conn.GetWithChildren<ReferenceGeometry>(geomId);
 
@@ -161,7 +170,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     {
                         conn.Delete(queriedGeom,true);
                     }
-                    MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
+                    //MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
                 }
 
             }

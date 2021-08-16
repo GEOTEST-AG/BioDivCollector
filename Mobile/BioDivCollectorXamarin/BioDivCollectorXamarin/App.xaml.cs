@@ -171,7 +171,7 @@ namespace BioDivCollectorXamarin
 
             CurrentUser = User.RetrieveUser();
             BioDivPrefs = new BioDivPreferences();
-            DatabaseLocation = databaseLocation;
+            Preferences.Set("databaseLocation", databaseLocation);
             TileLocation = tileLocation;
             CurrentProjectId = Preferences.Get("currentProject", "");
             Busy = false;
@@ -198,7 +198,7 @@ namespace BioDivCollectorXamarin
                 });
             });
 
-            MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful", (sender) =>
+            MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful", (sender) =>
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {

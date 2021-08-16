@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using Xamarin.Forms;
 using BioDivCollectorXamarin.Controls;
+using Xamarin.Essentials;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {
@@ -20,6 +21,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public int Id { get; set; }
         public int formId { get; set; }
         public string title { get; set; }
+        public int status { get; set; }
 
         [OneToMany(CascadeOperations = CascadeOperation.All)]
         public List<FormField> formFields { get; set; }
@@ -35,7 +37,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>List of forms</returns>
         public static List<Form> FetchFormsForProject()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -57,7 +59,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>List of form names</returns>
         public static List<String> FetchFormNamesForProject()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -85,7 +87,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>Form</returns>
         public static Form FetchFormWithFormName(string formName)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -108,7 +110,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>A list of form fields</returns>
         public static List<FormField> FetchFormFields(int formId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -132,7 +134,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>List of choice strings</returns>
         public static List<string> FetchFormChoicesForDropdown(int fieldId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -154,7 +156,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <param name="RecId"></param>
         public static void SaveValuesFromFormFields(List<View> Assets, int RecId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 foreach (var field in Assets)
                 {

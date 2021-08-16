@@ -7,6 +7,7 @@ using SQLiteNetExtensions.Attributes;
 using SQLiteNetExtensions.Extensions;
 using Xamarin.Forms;
 using System.Threading.Tasks;
+using Xamarin.Essentials;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {
@@ -60,7 +61,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>Whether it exists</returns>
         public static bool LocalProjectExists(string projectId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -90,7 +91,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>The project</returns>
         public static Project FetchProject(string project_pk)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -123,7 +124,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>The project</returns>
         public static Project FetchCurrentProject()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -137,7 +138,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
                 try
                 {
-                    var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+                    var currentProjectId = Preferences.Get("currentProject", "");
+                    var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == currentProjectId).FirstOrDefault();
                     return proj;
                 }
                 catch (Exception e)
@@ -157,7 +159,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>The whole project</returns>
         public static Project FetchProjectWithChildren(string project_pk)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -192,7 +194,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>Geometry count</returns>
         public static int FetchNumberOfGeometriesForProject(int projId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
@@ -214,7 +216,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>Record count</returns>
         public static int FetchNumberOfRecordsForProject(int projId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
 
                 try
@@ -243,7 +245,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 Project existingProject = FetchProjectWithChildren(project.projectId);
                 if (existingProject != null)
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                     {
                         conn.Delete(existingProject,true);
                     }
@@ -271,7 +273,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 var success = false;
                 if (existingProject != null)
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                     {
                         conn.Delete(existingProject,true);
                         success = true;
@@ -327,7 +329,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns>Whether it has unsaved changes</returns>
         public static bool ProjectHasUnsavedChanges(string projectId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
 
                 try

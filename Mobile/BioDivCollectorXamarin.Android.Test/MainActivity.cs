@@ -4,7 +4,7 @@ using Android.App;
 using Android.OS;
 using Xamarin.Android.NUnitLite;
 
-namespace BioDivCollectorXamarin.Android.Tests
+namespace BioDivCollectorXamarin.Android.Test
 {
     [Activity(Label = "@string/app_name", MainLauncher = true)]
     public class MainActivity : TestSuiteActivity

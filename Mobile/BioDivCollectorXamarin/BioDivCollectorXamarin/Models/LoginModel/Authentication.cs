@@ -131,7 +131,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
         private static void loginErrorHandler()
         {
             Login.Logout();
-            Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnuccessful");
+            Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful");
         }
 
         /// <summary>

@@ -8,9 +8,9 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: global::Android.Runtime.ResourceDesignerAttribute("BioDivCollectorXamarin.Android.Tests.Resource", IsApplication=true)]
+[assembly: global::Android.Runtime.ResourceDesignerAttribute("BioDivCollectorXamarin.Android.Test.Resource", IsApplication=true)]
 
-namespace BioDivCollectorXamarin.Android.Tests
+namespace BioDivCollectorXamarin.Android.Test
 {
 	
 	
@@ -25,28 +25,28 @@ namespace BioDivCollectorXamarin.Android.Tests
 		
 		public static void UpdateIdValues()
 		{
-			global::Xamarin.Android.NUnitLite.Resource.Id.OptionHostName = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.OptionHostName;
-			global::Xamarin.Android.NUnitLite.Resource.Id.OptionPort = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.OptionPort;
-			global::Xamarin.Android.NUnitLite.Resource.Id.OptionRemoteServer = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.OptionRemoteServer;
-			global::Xamarin.Android.NUnitLite.Resource.Id.OptionsButton = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.OptionsButton;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultFullName = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultFullName;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultMessage = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultMessage;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultResultState = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultResultState;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultRunSingleMethodTest = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultRunSingleMethodTest;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsFailed = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultsFailed;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsId = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultsId;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsIgnored = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultsIgnored;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsInconclusive = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultsInconclusive;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsMessage = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultsMessage;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsPassed = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultsPassed;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsResult = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultsResult;
-			global::Xamarin.Android.NUnitLite.Resource.Id.ResultStackTrace = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.ResultStackTrace;
-			global::Xamarin.Android.NUnitLite.Resource.Id.RunTestsButton = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.RunTestsButton;
-			global::Xamarin.Android.NUnitLite.Resource.Id.TestSuiteListView = global::BioDivCollectorXamarin.Android.Tests.Resource.Id.TestSuiteListView;
-			global::Xamarin.Android.NUnitLite.Resource.Layout.options = global::BioDivCollectorXamarin.Android.Tests.Resource.Layout.options;
-			global::Xamarin.Android.NUnitLite.Resource.Layout.results = global::BioDivCollectorXamarin.Android.Tests.Resource.Layout.results;
-			global::Xamarin.Android.NUnitLite.Resource.Layout.test_result = global::BioDivCollectorXamarin.Android.Tests.Resource.Layout.test_result;
-			global::Xamarin.Android.NUnitLite.Resource.Layout.test_suite = global::BioDivCollectorXamarin.Android.Tests.Resource.Layout.test_suite;
+			global::Xamarin.Android.NUnitLite.Resource.Id.OptionHostName = global::BioDivCollectorXamarin.Android.Test.Resource.Id.OptionHostName;
+			global::Xamarin.Android.NUnitLite.Resource.Id.OptionPort = global::BioDivCollectorXamarin.Android.Test.Resource.Id.OptionPort;
+			global::Xamarin.Android.NUnitLite.Resource.Id.OptionRemoteServer = global::BioDivCollectorXamarin.Android.Test.Resource.Id.OptionRemoteServer;
+			global::Xamarin.Android.NUnitLite.Resource.Id.OptionsButton = global::BioDivCollectorXamarin.Android.Test.Resource.Id.OptionsButton;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultFullName = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultFullName;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultMessage = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultMessage;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultResultState = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultResultState;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultRunSingleMethodTest = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultRunSingleMethodTest;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsFailed = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultsFailed;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsId = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultsId;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsIgnored = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultsIgnored;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsInconclusive = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultsInconclusive;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsMessage = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultsMessage;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsPassed = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultsPassed;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultsResult = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultsResult;
+			global::Xamarin.Android.NUnitLite.Resource.Id.ResultStackTrace = global::BioDivCollectorXamarin.Android.Test.Resource.Id.ResultStackTrace;
+			global::Xamarin.Android.NUnitLite.Resource.Id.RunTestsButton = global::BioDivCollectorXamarin.Android.Test.Resource.Id.RunTestsButton;
+			global::Xamarin.Android.NUnitLite.Resource.Id.TestSuiteListView = global::BioDivCollectorXamarin.Android.Test.Resource.Id.TestSuiteListView;
+			global::Xamarin.Android.NUnitLite.Resource.Layout.options = global::BioDivCollectorXamarin.Android.Test.Resource.Layout.options;
+			global::Xamarin.Android.NUnitLite.Resource.Layout.results = global::BioDivCollectorXamarin.Android.Test.Resource.Layout.results;
+			global::Xamarin.Android.NUnitLite.Resource.Layout.test_result = global::BioDivCollectorXamarin.Android.Test.Resource.Layout.test_result;
+			global::Xamarin.Android.NUnitLite.Resource.Layout.test_suite = global::BioDivCollectorXamarin.Android.Test.Resource.Layout.test_suite;
 		}
 		
 		public partial class Attribute

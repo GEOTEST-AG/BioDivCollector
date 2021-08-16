@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Foundation;
 using UIKit;
 
-namespace BioDivCollectorXamarin.iOS.Tests
+namespace BioDivCollectorXamarin.iOS.Test
 {
     public class Application
     {

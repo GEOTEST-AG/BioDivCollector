@@ -44,7 +44,7 @@ namespace BioDivCollectorXamarin.ViewModels
         public FormPageVM(int recId)
         {
 
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 //Get the record and its corresponding variable values
                 var queriedrec = conn.GetWithChildren<Record>(recId);
@@ -523,7 +523,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private async void OnDelete()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 var response = await App.Current.MainPage.DisplayActionSheet("Möchten Sie diese Beobachtung vom Gerät entfernen?", "Abbrechen", "Entfernen");
                 if (response == "Entfernen")
@@ -547,7 +547,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (choice.SelectedIndex > 0)
                 {
                     var geom = choice.ItemsSource[(int)choice.SelectedIndex] as ReferenceGeometry;
-                    using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                     {
                         var queriedrec = conn.Get<Record>(RecId);
                         queriedrec.geometry_fk = geom.Id;
@@ -561,7 +561,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 }
                 else
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                     {
                         var queriedrec = conn.Get<Record>(RecId);
                         queriedrec.geometry_fk = null;
@@ -629,7 +629,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 SaveCommand.ChangeCanExecute();
             }
 
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 text.value = String.Empty;
                 //conn.Update(text);
@@ -758,7 +758,7 @@ namespace BioDivCollectorXamarin.ViewModels
         private void DidSelectFromChoices(object sender, EventArgs e)
         {
             var choice = sender as CustomPicker;
-            using (SQLiteConnection conn = new SQLiteConnection(App.DatabaseLocation))
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.Id == choice.ValueId).FirstOrDefault();
                 var choiceString = choice.SelectedItem.ToString();
