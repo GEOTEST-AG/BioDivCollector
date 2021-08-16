@@ -29,9 +29,8 @@ namespace BioDivCollector.WebApp.Controllers
         public async Task<IActionResult> Index()
         {
             List<Form> forms = await db.Forms.Include(m => m.FormProjects).ThenInclude(fp => fp.Project)
-                .Include(m => m.FormRecords)
                 .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
-                .Include(m=>m.FormChangeLogs).ThenInclude(m=>m.ChangeLog).ThenInclude(m=>m.User)                
+                .Include(m => m.FormChangeLogs).ThenInclude(m => m.ChangeLog).ThenInclude(m => m.User)
                 .ToListAsync();
 
             List<FormPoco> fps = new List<FormPoco>();
@@ -41,6 +40,9 @@ namespace BioDivCollector.WebApp.Controllers
                 foreach (Form f in forms)
                 {
                     FormPoco fp = new FormPoco() { Form = f, Editable = true, Author = f.FormChangeLogs?.First().ChangeLog?.User };
+
+                    fp.RecordsCount = db.Records.Where(m => m.FormId == f.FormId).Count();
+
                     fps.Add(fp);
                 }
                 return View(fps);
@@ -51,6 +53,7 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 FormPoco fp = new FormPoco() { Form = f, Editable = false, Author = f.FormChangeLogs?.First().ChangeLog?.User };
                 if (f.FormChangeLogs?.First().ChangeLog?.User == user) fp.Editable = true;
+                fp.RecordsCount = db.Records.Where(m => m.FormId == f.FormId).Count();
                 fps.Add(fp);
             }
             return View(fps);
@@ -1024,6 +1027,7 @@ namespace BioDivCollector.WebApp.Controllers
         public Form Form { get; set; }
         public bool Editable { get; set; }
         public User Author { get; set; }
+        public int RecordsCount { get; set; }
     }
 
     public class FormBuilderJson
