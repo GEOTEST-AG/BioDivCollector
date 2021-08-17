@@ -147,6 +147,7 @@ namespace BioDivCollectorXamarin.Views
         private async void FiltrierenButton_Clicked(object sender, EventArgs e)
         {
             string action = await DisplayActionSheet("Filtern nach", "Abbrechen", "kein Filter", "Geometrie", "Formulartyp");
+            string filteredBy = ViewModel.FilterBy;
             if (action == "kein Filter")
             {
                 ViewModel.Object_pk = null;
@@ -154,7 +155,9 @@ namespace BioDivCollectorXamarin.Views
                 FiltrierenButton.Text = "Filtern nach";
             }
             else if (action == "Abbrechen")
-            { }
+            {
+                ViewModel.FilterBy = filteredBy;
+            }
             else if (action == "Geometrie")
             {
                 FiltrierenButton.Text = "Gefiltert nach Geometrie";
@@ -174,7 +177,7 @@ namespace BioDivCollectorXamarin.Views
                 }
                 else
                 {
-                    FiltrierenButton.Text = "Filtern nach";
+                    ViewModel.FilterBy = filteredBy;
                 }
             }
             else { ViewModel.FilterBy = action; }
@@ -226,7 +229,7 @@ namespace BioDivCollectorXamarin.Views
                 {
                     GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
                     var geom = formRec.Geom;
-                    string newName = await DisplayPromptAsync("Geometriename", "Editieren Sie bitte der Geometriename", initialValue: geom.geometryName, keyboard: Keyboard.Text);
+                    string newName = await DisplayPromptAsync("Geometriename", "Editieren Sie bitte der Geometriename", accept: "OK", cancel: "Abbrechen",  initialValue: geom.geometryName, keyboard: Keyboard.Text);
                     geom.geometryName = newName;
                     geom.timestamp = DateTime.Now;
                     if (geom.status != -1)

@@ -66,10 +66,11 @@ namespace BioDivCollectorXamarin.ViewModels
             }
             set
             {
+                bool isnew = (value != object_pk);
                 object_pk = value;
                 Preferences.Set("FilterGeometry", value.ToString());
                 FilterBy = "Geometrie";
-                UpdateRecords();
+                if (isnew) { UpdateRecords(); }
             }
         }
 
@@ -164,7 +165,6 @@ namespace BioDivCollectorXamarin.ViewModels
             RecordDeleteCommand = new RecordDeleteCommand(this);
             GeometryDeleteCommand = new GeometryDeleteCommand(this);
 
-            UpdateRecords();
 
             MessagingCenter.Subscribe<Application>(App.Current, "RefreshRecords", (sender) =>
             {
@@ -220,9 +220,10 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             IsBusy = true;
             SelectedItem = null;
-            App.RecordLists.CreateRecordLists();
-            UpdateRecords();
-
+            Task.Run(async() =>
+            {
+                App.RecordLists.CreateRecordLists();
+            });
         }
 
         /// <summary>
@@ -256,28 +257,17 @@ namespace BioDivCollectorXamarin.ViewModels
                     }
                 }
 
-                else if (FilterBy == "Geometrie" && object_pk != null)
+                else if (FilterBy == "Geometrie" && Object_pk != null)
                 {
                     var obj = ReferenceGeometry.GetGeometry((int)Object_pk);
                     foreach (var group in App.RecordLists.RecordsByGeometry)
                     {
                         try
                         {
-                            if (group.FirstOrDefault().GeomId == obj.Id)
-                            {
-                                var newGroup = new GroupedFormRec();
-                                newGroup.LongGeomName = group.LongGeomName;
-                                newGroup.ShortGeomName = group.ShortGeomName;
-                                newGroup.GeomId = group.GeomId;
-                                newGroup.ShowButton = group.ShowButton;
-                                newGroup.Geom = group.Geom;
-
-                                foreach (FormRec form in group)
+                                if (group.GeomId == obj.Id)
                                 {
-                                    newGroup.Add(form);
+                                    recs.Add(group);
                                 }
-                                recs.Add(newGroup);
-                            }
                         }
                         catch (Exception e)
                         {
@@ -285,7 +275,6 @@ namespace BioDivCollectorXamarin.ViewModels
                         }
                     }
                 }
-
                 else
                 {
                     recs = App.RecordLists.RecordsByGeometry;
@@ -316,30 +305,28 @@ namespace BioDivCollectorXamarin.ViewModels
                         recs.Add(newGroup);
                     }
                 }
-
                 else if (FilterBy == "Geometrie" && Object_pk != null)
                 {
                     var obj = ReferenceGeometry.GetGeometry((int)Object_pk);
                     foreach (var group in App.RecordLists.RecordsByForm)
                     {
-                        if (group.GeomId.ToString() == obj.geometryId)
-                        {
-                            var newGroup = new GroupedFormRec();
-                            newGroup.LongGeomName = group.LongGeomName;
-                            newGroup.ShortGeomName = group.ShortGeomName;
-                            newGroup.GeomId = group.GeomId;
-                            newGroup.ShowButton = group.ShowButton;
-                            newGroup.Geom = group.Geom;
+                        var newGroup = new GroupedFormRec();
+                        newGroup.LongGeomName = group.LongGeomName;
+                        newGroup.ShortGeomName = group.ShortGeomName;
+                        newGroup.GeomId = group.GeomId;
+                        newGroup.ShowButton = group.ShowButton;
+                        newGroup.Geom = group.Geom;
 
-                            foreach (FormRec form in group)
+                        foreach (FormRec form in group)
+                        {
+                            if (form.GeomId == obj.Id)
                             {
                                 newGroup.Add(form);
                             }
-                            recs.Add(newGroup);
                         }
+                        recs.Add(newGroup);
                     }
                 }
-
                 else
                 {
                     recs = App.RecordLists.RecordsByForm;
@@ -351,267 +338,10 @@ namespace BioDivCollectorXamarin.ViewModels
                 Records = new ObservableCollection<GroupedFormRec>();
             }
 
-            
-
-
             OnPropertyChanged("Records");
-            /*Records = new ObservableCollection<GroupedFormRec>();
-            Xamarin.Forms.BindingBase.EnableCollectionSynchronization(Records, null, ObservableCollectionCallback);
-            var project = Project.FetchCurrentProject();
-            Task.Run(async () =>
-            {
-                try
-                {
-                    var longName = string.Empty;
-                    var shortName = string.Empty;
-                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                    {
-                        if (SortBy == null || SortBy == string.Empty || SortBy == "Geometrie")
-                        {
-                            //SORT BY GEOMETRY CASE
 
-                            //No Geometry
-
-                            if (FilterBy == null || FilterBy != "Geometrie")
-                            {
-                                var nogroup = new GroupedFormRec() { LongGeomName = "Allgemeine Beobachtungen", ShortGeomName = "Allgemein", ShowButton = false };
-                                var norecList = new List<FormRec>();
-                                if (FilterBy == "Formulartyp")
-                                {
-
-                                    norecList = (from record in conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == null).Where(Record => Record.project_fk == project.Id).Where(Record => Record.status < 3).ToList()
-                                                 join form in conn.Table<Form>().Where(Form => Form.title == FormName).ToList()
-                                                              on record.formId equals form.formId
-                                                 select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = record.formId, RecId = record.Id, User = record.fullUserName }).ToList();
-
-                                    foreach (var rec in norecList)
-                                    {
-                                        var title = CreateTitleStringForRecord(rec);
-                                        if (title != String.Empty && title != " ") { rec.Title = title; } else { rec.Title = rec.FormType; }
-                                        nogroup.Add(rec);
-                                    }
-
-                                }
-                                else
-                                {
-                                    norecList = (from record in conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == null).Where(Record => Record.project_fk == project.Id).Where(Record => Record.status < 3).ToList()
-                                                 join form in conn.Table<Form>().ToList()
-                                                              on record.formId equals form.formId
-                                                 select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = record.formId, RecId = record.Id, User = record.fullUserName }).ToList();
-
-                                    foreach (var rec in norecList)
-                                    {
-                                        var title = CreateTitleStringForRecord(rec);
-                                        if (title != String.Empty && title != " ") { rec.Title = title; } else { rec.Title = rec.FormType; }
-                                        var prev = nogroup.Select(p => p.RecId == rec.RecId).ToList();
-                                        if (!prev.Contains(true))
-                                        {
-                                            if (rec != null) { nogroup.Add(rec); }
-                                        }
-                                    }
-                                }
-                                if (nogroup != null) { Records.Add(nogroup); }
-                            }
-
-
-                            //For each geometry
-                            var geoms = new List<ReferenceGeometry>();
-                            var geomsTemp = new List<ReferenceGeometry>();
-                            if (FilterBy != "Geometrie")
-                            {
-
-                                geomsTemp = conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).Where(ReferenceGeometry => ReferenceGeometry.status < 3).ToList();
-
-                            }
-                            else
-                            {
-
-                                geomsTemp = conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.Id == Object_pk).Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList();
-
-                            }
-                            geoms = geomsTemp.OrderBy(o => o.geometryName).ToList();
-
-                            foreach (var geom in geoms)
-                            {
-                                var geomName = geom.geometryName ?? String.Empty;
-                                var group = new GroupedFormRec() { LongGeomName = geomName, ShortGeomName = geomName, ShowButton = true, Geom = geom };
-                                var recList = new List<FormRec>();
-                                if (FilterBy == null || FilterBy == String.Empty || FilterBy == "Geometrie")
-                                {
-
-                                    recList = (from record in conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == geom.Id).Where(Record => Record.status < 3).ToList()
-                                               join form in conn.Table<Form>().Where(f => f.project_fk == project.Id).ToList()
-                                                            on record.formId equals form.formId
-                                               join referenceGeometry in conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.Id == geom.Id).Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList()
-                                                            on record.geometry_fk equals referenceGeometry.Id
-                                               select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = record.formId, RecId = record.Id, User = record.fullUserName, GeometryName = geomName, GeomId = referenceGeometry.Id }).ToList();
-
-                                }
-                                else if (FilterBy == "Formulartyp")
-                                {
-
-
-                                    recList = (from record in conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == geom.Id).Where(Record => Record.status < 3).ToList()
-                                               join form in conn.Table<Form>().Where(Form => Form.title == FormName).ToList()
-                                                            on record.formId equals form.formId
-                                               join referenceGeometry in conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.Id == geom.Id).Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList()
-                                                            on record.geometry_fk equals referenceGeometry.Id
-                                               select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = record.formId, RecId = record.Id, User = record.fullUserName, GeometryName = geomName }).ToList();
-
-
-                                }
-                                foreach (var rec in recList)
-                                {
-                                    var title = CreateTitleStringForRecord(rec);
-                                    if (title != String.Empty && title != " ") { rec.Title = title; } else { rec.Title = rec.FormType; }
-                                    if (rec != null) { group.Add(rec); }
-                                }
-                                if (group != null) { Records.Add(group); }
-                            }
-                        }
-
-
-                        else if (SortBy == "Formulartyp")
-                        {
-                            //SORT BY FORM TYPE CASE
-                            var forms = new List<Form>();
-                            if (FilterBy != "Formulartyp")
-                            {
-                                var formsTemp = conn.Table<Form>().Where(Form => Form.project_fk == project.Id).ToList();
-                                forms = formsTemp.OrderBy(o => o.title).ToList();
-                            }
-                            else
-                            {
-                                var formsTemp = conn.Table<Form>().Where(Form => Form.project_fk == project.Id).Where(Form => Form.Id == Form_pk).ToList();
-                                forms = formsTemp.OrderBy(o => o.title).ToList();
-                            }
-
-
-                            //For each form
-
-                            foreach (var formgr in forms)
-                            {
-                                var group = new GroupedFormRec() { LongGeomName = formgr.title ?? "", ShortGeomName = formgr.title ?? "", ShowButton = false };
-                                var recList = new List<FormRec>();
-                                var recListNoGeom = new List<FormRec>();
-
-                                if (FilterBy == null || FilterBy == String.Empty)
-                                {
-                                    recList = (from record in conn.Table<Record>().Where(Record => Record.formId == formgr.formId).Where(Record => Record.status < 3).Where(Record => Record.project_fk == project.Id).ToList()
-                                               join form in conn.Table<Form>().Where(Form => Form.project_fk == project.Id).Where(Form => Form.title == formgr.title).ToList()
-                                                            on record.formId equals form.formId
-                                               join referenceGeometry in conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList()
-                                                            on record.geometry_fk equals referenceGeometry.Id
-                                               select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = form.formId, RecId = record.Id, User = record.fullUserName, GeometryName = referenceGeometry.geometryName }).ToList();
-                                    recListNoGeom = (from record in conn.Table<Record>().Where(Record => Record.formId == formgr.formId).Where(Record => Record.status < 3).Where(Record => Record.geometry_fk == null).Where(Record => Record.project_fk == project.Id).ToList()
-                                                     join form in conn.Table<Form>().Where(Form => Form.project_fk == project.Id).Where(Form => Form.title == formgr.title).ToList()
-                                                                  on record.formId equals form.formId
-                                                     select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = form.formId, RecId = record.Id, User = record.fullUserName, GeometryName = String.Empty }).ToList();
-
-                                }
-                                else if (FilterBy == "Formulartyp")
-                                {
-                                    recList = (from record in conn.Table<Record>().Where(Record => Record.formId == formgr.formId).Where(Record => Record.status < 3).Where(Record => Record.project_fk == project.Id).ToList()
-                                               join form in conn.Table<Form>().Where(Form => Form.project_fk == project.Id).Where(Form => Form.title == FormName).ToList()
-                                                            on record.formId equals form.formId
-                                               join referenceGeometry in conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList()
-                                                            on record.geometry_fk equals referenceGeometry.Id
-                                               select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = form.formId, RecId = record.Id, User = record.fullUserName, GeometryName = referenceGeometry.geometryName }).ToList();
-                                    recListNoGeom = (from record in conn.Table<Record>().Where(Record => Record.formId == formgr.formId).Where(Record => Record.status < 3).Where(Record => Record.geometry_fk == null).Where(Record => Record.project_fk == project.Id).ToList()
-                                                     join form in conn.Table<Form>().Where(Form => Form.project_fk == project.Id).Where(Form => Form.title == FormName).ToList()
-                                                                  on record.formId equals form.formId
-                                                     select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = form.formId, RecId = record.Id, User = record.fullUserName, GeometryName = String.Empty }).ToList();
-
-                                }
-                                else if (FilterBy == "Geometrie")
-                                {
-                                    recList = (from record in conn.Table<Record>().Where(Record => Record.formId == formgr.formId).Where(Record => Record.geometry_fk == Object_pk).Where(Record => Record.status < 3).Where(Record => Record.project_fk == project.Id).ToList()
-                                               join form in conn.Table<Form>().Where(Form => Form.project_fk == project.Id).Where(Form => Form.title == formgr.title).ToList()
-                                                            on record.formId equals form.formId
-                                               join referenceGeometry in conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).Where(ReferenceGeometry => ReferenceGeometry.Id == Object_pk).ToList()
-                                                            on record.geometry_fk equals referenceGeometry.Id
-                                               select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = form.formId, RecId = record.Id, User = record.fullUserName, GeometryName = referenceGeometry.geometryName }).ToList();
-                                }
-
-                                foreach (var rec in recListNoGeom)
-                                {
-                                    var title = CreateTitleStringForRecord(rec);
-                                    if (title != String.Empty && title != " ") { rec.Title = title; } else { rec.Title = rec.FormType; }
-                                    if (rec != null) { group.Add(rec); }
-                                }
-                                foreach (var rec in recList)
-                                {
-                                    var title = CreateTitleStringForRecord(rec);
-                                    if (title != String.Empty && title != " ") { rec.Title = title; } else { rec.Title = rec.FormType; }
-                                    if (rec != null) { group.Add(rec); }
-                                }
-                                if (group != null) { Records.Add(group); }
-                            }
-
-                        }
-                        OnPropertyChanged("Records");
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
-
-            });
-            */
         }
 
-
-        /*
-        void ObservableCollectionCallback(IEnumerable collection, object context, Action accessMethod, bool writeAccess)
-        {
-            // `lock` ensures that only one thread access the collection at a time
-            lock (collection)
-            {
-                accessMethod?.Invoke();
-            }
-        }
-
-        /// <summary>
-        /// Compile the title string for the record, based on the parameters selected to be used in the title in the form definition
-        /// </summary>
-        /// <param name="rec"></param>
-        /// <returns>The record title</returns>
-        private string CreateTitleStringForRecord (FormRec rec)
-        {
-            var title = "";
-            var formFields = Form.FetchFormFields(rec.FormId);
-
-            if (formFields != null)
-            {
-                foreach (var formField in formFields)
-                {
-                    if ( formField.typeId == 11 || formField.typeId == 51 || formField.typeId == 61 )
-                    {
-                        using (SQLiteConnection txtconn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                        {
-                            try
-                            {
-                                TextData txt = txtconn.Table<TextData>().Where(Txt => Txt.formFieldId == formField.fieldId).Where(Txt => Txt.record_fk == rec.RecId).FirstOrDefault();
-                                title = title + txt.value + ", ";
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                            }
-                        }
-                    }
-                }
-                if (title.Length >= 2)
-                {
-                    title = title.Substring(0, title.Length - 2);
-                    rec.Title = title;
-                }
-            }
-            return title;
-        }
-        */
 
         /// <summary>
         /// The record selected from the list

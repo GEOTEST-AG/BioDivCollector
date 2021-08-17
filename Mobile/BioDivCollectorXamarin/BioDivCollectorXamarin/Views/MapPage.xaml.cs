@@ -31,11 +31,11 @@ namespace BioDivCollectorXamarin.Views
                     });
             });
 
-            MessagingCenter.Subscribe<MapPageVM>(this, "RequestGeometryName", (sender) =>
+            MessagingCenter.Subscribe<MapPageVM,string>(this, "RequestGeometryName", (sender,arg) =>
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    RequestGeometryName();
+                    RequestGeometryName(arg);
                 });
             });
 
@@ -79,9 +79,9 @@ namespace BioDivCollectorXamarin.Views
         /// <summary>
         /// Ask the user what they would like to call the geometry
         /// </summary>
-        private async void RequestGeometryName()
+        private async void RequestGeometryName(string defaultName)
         {
-            string result = await DisplayPromptAsync("Geometriename", "Bitte geben Sie eine Geometriename ein");
+            string result = await DisplayPromptAsync("Geometriename", "Bitte geben Sie eine Geometriename ein", accept:"Speichern", cancel:"Abbrechen", initialValue: defaultName);
             MessagingCenter.Send<MapPage, string>(this, "GeometryName", result);
         }
 

@@ -23,7 +23,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         private string _geometryName;
         public string geometryName
         {
-            get { return _geometryName ?? geometryId; }
+            get { return _geometryName; }
             set
             {
                 _geometryName = value;

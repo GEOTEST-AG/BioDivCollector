@@ -529,6 +529,13 @@ namespace BioDivCollectorXamarin.ViewModels
         public void OnDisappearing()
         {
             StopGPS();
+            /*foreach (var layer in Map.Layers)
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    Map.Layers.Remove(layer);
+                });
+            }*/
             MessagingCenter.Unsubscribe<MapLayer>(this, "LayerOrderChanged");
         }
 
@@ -956,7 +963,10 @@ namespace BioDivCollectorXamarin.ViewModels
                 RefreshShapes();
                 MessagingCenter.Unsubscribe<MapPage, string>(this, "GeometryName");
             });
-            MessagingCenter.Send<MapPageVM>(this, "RequestGeometryName");
+            Mapsui.Geometries.Point point = TempCoordinates[0];
+            var coords = point.ToDoubleArray();
+            var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
+            MessagingCenter.Send<MapPageVM,string>(this, "RequestGeometryName", coordString);
         }
 
         /// <summary>

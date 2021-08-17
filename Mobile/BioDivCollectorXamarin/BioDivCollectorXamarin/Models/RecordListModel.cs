@@ -126,7 +126,8 @@ namespace BioDivCollectorXamarin.Models
                         foreach (var geom in geoms)
                         {
                             var geomName = geom.geometryName ?? String.Empty;
-                            var group = new GroupedFormRec() { LongGeomName = geomName, ShortGeomName = geomName, ShowButton = true, Geom = geom };
+                            Int32.TryParse(geom.geometryId, out int geomId);
+                            var group = new GroupedFormRec() { LongGeomName = geomName, ShortGeomName = geomName, GeomId = geom.Id, ShowButton = true, Geom = geom };
                             var recList = new List<FormRec>();
 
                                 recList = (from record in conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == geom.Id).Where(Record => Record.status < 3).ToList()
@@ -182,7 +183,7 @@ namespace BioDivCollectorXamarin.Models
                                                         on record.formId equals form.formId
                                            join referenceGeometry in conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList()
                                                         on record.geometry_fk equals referenceGeometry.Id
-                                           select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = form.formId, RecId = record.Id, User = record.fullUserName, GeometryName = referenceGeometry.geometryName }).ToList();
+                                           select new FormRec { Timestamp = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")), Title = form.title, FormType = form.title, FormId = form.formId, RecId = record.Id, User = record.fullUserName, GeometryName = referenceGeometry.geometryName, GeomId = referenceGeometry.Id }).ToList();
                                 recListNoGeom = (from record in conn.Table<Record>().Where(Record => Record.formId == formgr.formId).Where(Record => Record.status < 3).Where(Record => Record.geometry_fk == null).Where(Record => Record.project_fk == project.Id).ToList()
                                                  join form in conn.Table<Form>().Where(Form => Form.project_fk == project.Id).Where(Form => Form.title == formgr.title).ToList()
                                                               on record.formId equals form.formId

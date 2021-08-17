@@ -33,8 +33,6 @@ namespace BioDivCollectorXamarin.ViewModels
         public Command CancelCommand { get; }
         public Command GUIDCommand { get; }
         public Command DeleteCommand { get; }
-        public Command NowCommand { get; }
-        public Command ClearCommand { get; }
 
         /// <summary>
         /// On creating the view controller for a specific recordId, the form is checked to see which parameters are required, and the relevant input fields are queued up for adding to the page.
@@ -61,7 +59,6 @@ namespace BioDivCollectorXamarin.ViewModels
                 formType = conn.GetWithChildren<Form>(formTemp.Id);
                 foreach (var formField in formType.formFields.OrderBy(f => f.order))
                 {
-
                     var label = new Label();
                     if (formField.title != null && formField.title != String.Empty)
                     {
@@ -79,7 +76,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     label.Margin = new Thickness(0, 10, 0, 0);
                     label.SetAppThemeColor(Label.TextColorProperty, Color.Black, Color.White);
                     Assets.Add(label);
-                    
+
 
                     if (formField.typeId == 11 || formField.typeId == 61)
                     {
@@ -96,7 +93,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 txts.Add(txt);
                                 queriedrec.texts = txts;
                                 conn.UpdateWithChildren(queriedrec);
-                                text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
+                                text = txt;
                             }
                             textField = new CustomEntry { Text = text.value.ToString() };
                             textField.Keyboard = Keyboard.Text;
@@ -110,7 +107,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             textField.IsEnabled = !ReadOnly;
                             textField.Mandatory = formField.mandatory;
                             var empty = String.IsNullOrEmpty(textField.Text);
-                            if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); } 
+                            if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); }
                             if (ReadOnly)
                             {
                                 textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
@@ -127,12 +124,12 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
+                            var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var dateField = new CustomDatePicker();
                             var timeField = new CustomTimePicker();
                             var nowButton = new Button();
                             var clearButton = new Button();
-                            
+
                             var stack = new CustomStackLayout()
                             {
                                 Orientation = StackOrientation.Horizontal,
@@ -152,14 +149,14 @@ namespace BioDivCollectorXamarin.ViewModels
                                 txts.Add(txt);
                                 queriedrec.texts = txts;
                                 conn.UpdateWithChildren(queriedrec);
-                                text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
+                                text = txt;
                             }
                             List<string> choices = Form.FetchFormChoicesForDropdown(formField.fieldId);
-                            
+
                             try
                             {
                                 var dt = DateTime.ParseExact(text.value, "yyyy-MM-ddTHH:mm:sszzz", null);
-                                
+
                                 if (text.value != null && text.value != String.Empty)
                                 {
                                     dateField.NullableDate = dt.Date;
@@ -170,7 +167,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             {
                                 Console.WriteLine(exp);
                             }
-                            
+
                             dateField.Margin = new Thickness(0, 0, 0, 10);
                             dateField.ValueId = text.Id;
                             dateField.TypeId = formField.typeId;
@@ -208,13 +205,13 @@ namespace BioDivCollectorXamarin.ViewModels
                             dic.Add("date", dateField);
                             dic.Add("time", timeField);
 
-                            NowCommand = new Command(FillOutDate);
+                            var nowCommand = new Command(FillOutDate);
 
                             nowButton.Text = "JETZT";
                             nowButton.TextTransform = TextTransform.Uppercase;
                             nowButton.FontSize = 12;
                             nowButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
-                            nowButton.Command = NowCommand;
+                            nowButton.Command = nowCommand;
                             nowButton.CommandParameter = dic;
                             nowButton.Margin = new Thickness(10, 0, 0, 0);
                             nowButton.WidthRequest = 40;
@@ -222,12 +219,12 @@ namespace BioDivCollectorXamarin.ViewModels
                             nowButton.VerticalOptions = LayoutOptions.StartAndExpand;
                             nowButton.IsVisible = !ReadOnly;
 
-                            ClearCommand = new Command(ClearDate);
+                            var clearCommand = new Command(ClearDate);
 
                             clearButton.Text = "ⓧ";
                             clearButton.FontSize = 20;
                             clearButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
-                            clearButton.Command = ClearCommand;
+                            clearButton.Command = clearCommand;
                             clearButton.CommandParameter = dic;
                             clearButton.Margin = new Thickness(10, 0, 10, 0);
                             clearButton.WidthRequest = 30;
@@ -251,7 +248,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
+                            var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var textField = new CustomPicker();
                             if (text == null)
                             {
@@ -261,7 +258,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 txts.Add(txt);
                                 queriedrec.texts = txts;
                                 conn.UpdateWithChildren(queriedrec);
-                                text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
+                                text = txt;
                             }
                             List<string> choices = Form.FetchFormChoicesForDropdown(formField.Id);
                             textField.ItemsSource = choices;
@@ -286,7 +283,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 }
                                 textField.SelectedItem = text.value;
                             }
-                            else if (text.value != null  && text.value != String.Empty)
+                            else if (text.value != null && text.value != String.Empty)
                             {
                                 textField.Title = text.value;
                             }
@@ -304,7 +301,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            var num = conn.Table<NumericData>().Select(n => n).Where(NumericData => NumericData.record_fk == RecId).Where(NumericData => NumericData.formFieldId == formField.fieldId).FirstOrDefault();
+                            var num = conn.Table<NumericData>().Select(n => n).Where(NumericData => NumericData.record_fk == RecId).Where(NumericData => NumericData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var textField = new CustomEntry();
                             if (num == null)
                             {
@@ -314,10 +311,10 @@ namespace BioDivCollectorXamarin.ViewModels
                                 nums.Add(nm);
                                 queriedrec.texts = txts;
                                 conn.UpdateWithChildren(queriedrec);
-                                num = conn.Table<NumericData>().Select(n => n).Where(NumericData => NumericData.record_fk == RecId).Where(NumericData => NumericData.formFieldId == formField.fieldId).FirstOrDefault();
+                                num = nm;
 
                             }
-                            
+
                             textField = new CustomEntry { Text = ((double)num.value).ToString("F", CultureInfo.CreateSpecificCulture("de-CH")) };
                             textField.Keyboard = Keyboard.Numeric;
                             textField.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
@@ -346,7 +343,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            var boolValue = conn.Table<BooleanData>().Select(n => n).Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.formFieldId == formField.fieldId).FirstOrDefault();
+                            var boolValue = conn.Table<BooleanData>().Select(n => n).Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var checkBox = new CustomCheckBox();
                             if (boolValue == null)
                             {
@@ -356,7 +353,6 @@ namespace BioDivCollectorXamarin.ViewModels
                                 bools.Add(boolValue);
                                 queriedrec.booleans = bools;
                                 conn.UpdateWithChildren(queriedrec);
-                                boolValue = conn.Table<BooleanData>().Select(n => n).Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.formFieldId == formField.fieldId).FirstOrDefault();
                             }
                             if (boolValue != null)
                             {

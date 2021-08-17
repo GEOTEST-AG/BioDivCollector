@@ -32,5 +32,7 @@ namespace BioDivCollectorXamarin
         {
             base.OnAppearing();
         }
+
+
     }
 }
