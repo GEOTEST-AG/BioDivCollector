@@ -163,8 +163,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     {
                         conn.Delete(record);
                     }
-                    
-                    MessagingCenter.Send<Application>(App.Current, "RefreshRecords");
+                    App.RecordLists.CreateRecordLists();
                 }
             }
             catch (Exception e)
