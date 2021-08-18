@@ -72,6 +72,9 @@
                 </ListView.ItemTemplate>
 
             </ListView>
+            <StackLayout Padding="10" BackgroundColor="{StaticResource BioDivGrey}" IsVisible="{Binding Activity}" Spacing="0">
+                <ActivityIndicator IsRunning="{Binding Activity}" BackgroundColor="{StaticResource BioDivGrey}" IsVisible="{Binding Activity}" Color="{StaticResource BioDivGreen}"/>
+            </StackLayout>
             <local:ConnectionView/>
 
             <FlexLayout Direction="Row" WidthRequest="500" AlignContent="SpaceAround" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="0" Margin="0" BackgroundColor="{StaticResource BioDivGrey}" HeightRequest="57">

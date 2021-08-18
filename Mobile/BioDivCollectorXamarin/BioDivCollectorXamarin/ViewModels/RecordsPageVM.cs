@@ -115,6 +115,20 @@ namespace BioDivCollectorXamarin.ViewModels
         }
 
         /// <summary>
+        /// A string used as an activity indicator
+        /// </summary>
+        private bool activity;
+        public bool Activity
+        {
+            get { return activity; }
+            set
+            {
+                activity = value;
+                OnPropertyChanged("Activity");
+            }
+        }
+
+        /// <summary>
         /// The method by which to sort the list
         /// </summary>
         private string sortBy;
@@ -140,6 +154,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public RecordsPageVM()
         {
+            Activity = false;
             Title = "Beobachtungen";
             if (SortBy == String.Empty) SortBy = "Geometrie";
 
@@ -186,6 +201,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="objectId"></param>
         public RecordsPageVM(int objectId)
         {
+            Activity = false;
             Title = "Beobachtungen";
             if (SortBy == String.Empty) SortBy = "Geometrie";
             App.CurrentRoute = "//Records?objectId=" + objectId.ToString();
@@ -218,10 +234,12 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void OnAppearing()
         {
+            Activity = false;
             IsBusy = true;
             SelectedItem = null;
             Task.Run(async() =>
             {
+                Activity = true;
                 App.RecordLists.CreateRecordLists();
             });
         }
@@ -231,6 +249,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void UpdateRecords()
         {
+            Activity = true;
             var recs = new List<GroupedFormRec>();
             if (recs != null && SortBy != "Formulartyp")
             {
@@ -339,7 +358,7 @@ namespace BioDivCollectorXamarin.ViewModels
             }
 
             OnPropertyChanged("Records");
-
+            Activity = false;
         }
 
 
