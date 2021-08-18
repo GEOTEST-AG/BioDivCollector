@@ -265,11 +265,11 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="project"></param>
         /// <returns>Delete successful</returns>
-        public static bool DeleteProject(Project project)
+        public static bool DeleteProject(string projectId)
         {
             try
             {
-                Project existingProject = FetchProjectWithChildren(project.projectId);
+                Project existingProject = FetchProjectWithChildren(projectId);
                 var success = false;
                 if (existingProject != null)
                 {

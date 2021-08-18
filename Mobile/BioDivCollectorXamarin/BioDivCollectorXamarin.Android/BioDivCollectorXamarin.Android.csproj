@@ -43,6 +43,7 @@
     </AndroidSigningStorePass>
 <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 <AndroidSupportedAbis>armeabi-v7a;arm64-v8a;x86;x86_64</AndroidSupportedAbis>
+<AndroidPackageFormat>aab</AndroidPackageFormat>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType></DebugType>
@@ -56,6 +57,7 @@
     <EnableLLVM>false</EnableLLVM>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <BundleAssemblies>false</BundleAssemblies>
+    <AndroidPackageFormat>aab</AndroidPackageFormat>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Android" />

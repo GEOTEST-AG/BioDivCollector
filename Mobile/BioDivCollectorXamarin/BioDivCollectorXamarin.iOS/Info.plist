@@ -28,7 +28,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>ch.geotest.BioDivCollector</string>
 	<key>CFBundleVersion</key>
-	<string>29</string>
+	<string>30</string>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>CFBundleName</key>

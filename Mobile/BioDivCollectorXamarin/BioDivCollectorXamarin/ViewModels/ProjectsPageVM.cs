@@ -286,8 +286,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (App.CurrentProjectId != null)
                 {
                     Debug.WriteLine("Deleting ");
-                    var proj = Project.FetchProjectWithChildren(App.CurrentProjectId);
-                    bool success = Project.DeleteProject(proj);
+                    bool success = Project.DeleteProject(App.CurrentProjectId);
                     if (success)
                     {
                         App.SetProject(String.Empty);

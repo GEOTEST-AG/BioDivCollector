@@ -229,7 +229,6 @@ namespace BioDivCollectorXamarin.ViewModels
         public void Execute(object parameter)
         {
             ProjectSimple proj = parameter as ProjectSimple;
-            var project = Project.FetchProject(proj.projectId);
 
             Device.BeginInvokeOnMainThread(async () =>
             {
@@ -237,9 +236,9 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (response == "Entfernen")
                 {
                     Debug.WriteLine("Deleting ");
-                    bool success = Project.DeleteProject(project);
+                    bool success = Project.DeleteProject(proj.projectId);
                     
-                    if (App.CurrentProjectId == project.projectId)
+                    if (App.CurrentProjectId == proj.projectId)
                     {
                         App.SetProject(String.Empty);
                         Preferences.Set("FilterGeometry", String.Empty);
