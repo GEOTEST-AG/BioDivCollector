@@ -557,20 +557,31 @@ namespace BioDivCollectorXamarin.ViewModels
             var shapeLayers = MapModel.CreateShapes();
             if (shapeLayers != null && shapeLayers.Count > 0)
             {
+
                 ILayer polylayer;
                 ILayer linelayer;
                 ILayer pointlayer;
+                ILayer polylayerNoRecords;
+                ILayer linelayerNoRecords;
+                ILayer pointlayerNoRecords;
                 ILayer allShapesLayer;
                 shapeLayers.TryGetValue("polygons", out polylayer);
                 shapeLayers.TryGetValue("lines", out linelayer);
                 shapeLayers.TryGetValue("points", out pointlayer);
+                shapeLayers.TryGetValue("polygonsNoRecords", out polylayerNoRecords);
+                shapeLayers.TryGetValue("linesNoRecords", out linelayerNoRecords);
+                shapeLayers.TryGetValue("pointsNoRecords", out pointlayerNoRecords);
                 shapeLayers.TryGetValue("all", out allShapesLayer);
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     Map.Layers.Insert(Map.Layers.Count, polylayer);
                     Map.Layers.Insert(Map.Layers.Count, linelayer);
                     Map.Layers.Insert(Map.Layers.Count, pointlayer);
+                    Map.Layers.Insert(Map.Layers.Count, polylayerNoRecords);
+                    Map.Layers.Insert(Map.Layers.Count, linelayerNoRecords);
+                    Map.Layers.Insert(Map.Layers.Count, pointlayerNoRecords);
                 });
+
 
             }
 
@@ -609,7 +620,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             foreach (var layer in Map.Layers)
             {
-                if (layer.Name == "Polygons" || layer.Name == "Lines" || layer.Name == "Points")
+                if (layer.Name == "Polygons" || layer.Name == "Lines" || layer.Name == "Points" || layer.Name == "PolygonsNoRecords" || layer.Name == "LinesNoRecords" || layer.Name == "PointsNoRecords")
                 {
                     Map.Layers.Remove(layer);
                 }
@@ -620,14 +631,23 @@ namespace BioDivCollectorXamarin.ViewModels
                 ILayer polylayer;
                 ILayer linelayer;
                 ILayer pointlayer;
+                ILayer polylayerNoRecords;
+                ILayer linelayerNoRecords;
+                ILayer pointlayerNoRecords;
                 ILayer allShapesLayer;
                 shapeLayers.TryGetValue("polygons", out polylayer);
                 shapeLayers.TryGetValue("lines", out linelayer);
                 shapeLayers.TryGetValue("points", out pointlayer);
+                shapeLayers.TryGetValue("polygonsNoRecords", out polylayerNoRecords);
+                shapeLayers.TryGetValue("linesNoRecords", out linelayerNoRecords);
+                shapeLayers.TryGetValue("pointsNoRecords", out pointlayerNoRecords);
                 shapeLayers.TryGetValue("all", out allShapesLayer);
                 Map.Layers.Insert(Map.Layers.Count, polylayer);
                 Map.Layers.Insert(Map.Layers.Count, linelayer);
                 Map.Layers.Insert(Map.Layers.Count, pointlayer);
+                Map.Layers.Insert(Map.Layers.Count, polylayerNoRecords);
+                Map.Layers.Insert(Map.Layers.Count, linelayerNoRecords);
+                Map.Layers.Insert(Map.Layers.Count, pointlayerNoRecords);
 
                 if (allShapesLayer != null)
                 {

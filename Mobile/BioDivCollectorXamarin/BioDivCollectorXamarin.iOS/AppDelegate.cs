@@ -28,6 +28,7 @@ namespace BioDivCollectorXamarin.iOS
             string folderPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "..", "Library");
             string fullPath = Path.Combine(folderPath, dbName);
             string tilePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            Xamarin.RisePlugin.AutoCompleteTextView.iOS.AutoCompleteTextViewRenderer.Init();
 
             LoadApplication(new App(fullPath,tilePath));
 

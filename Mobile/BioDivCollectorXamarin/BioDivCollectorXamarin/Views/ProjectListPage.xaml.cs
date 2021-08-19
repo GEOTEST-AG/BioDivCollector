@@ -94,12 +94,12 @@ namespace BioDivCollectorXamarin.Views
         /// <returns></returns>
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            /*var s = value as int? ?? 0;
+            var s = value as int? ?? 0;
             var empty = Record.FetchIfRecordHasOnlyEmptyChildren(s);
             var sign = "";
             if (empty)
-            { sign = "⚠️"; }*/
-            return "";
+            { sign = "⚠️"; }
+            return sign;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

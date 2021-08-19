@@ -10,6 +10,7 @@
     <None Remove="Images\locSaved.png" />
     <None Remove="Models\LoginModel\Auth.xml" />
     <None Remove="Models\LoginModel\Auth %28copy%29.xml" />
+    <None Remove="Images\locNoEntry.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +22,7 @@
     <EmbeddedResource Include="Models\LoginModel\AuthTest.xml">
       <IncludeInPackage>true</IncludeInPackage>
     </EmbeddedResource>
+    <EmbeddedResource Include="Images\locNoEntry.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,6 +44,7 @@
     <PackageReference Include="Mapsui.Forms" Version="2.0.3" />
     <PackageReference Include="BruTile.MbTiles" Version="2.2.0" />
     <PackageReference Include="Xamarin.Essentials.Interfaces" Version="1.6.1" />
+    <PackageReference Include="Xamarin.RisePlugin.AutoCompleteTextView" Version="1.0.9" />
   </ItemGroup>
 
   <ItemGroup>

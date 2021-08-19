@@ -21,6 +21,8 @@ using System.Threading.Tasks;
 using Mapsui.Utilities;
 using System.Net.Http;
 using System.Net;
+using SQLite;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 
 namespace BioDivCollectorXamarin.Models
 {
@@ -286,12 +288,28 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>layer</returns>
         private static ILayer CreatePointLayer(List<Feature> points)
         {
-            return new Layer("Points")
+            return new Mapsui.Layers.Layer("Points")
             {
                 CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(points),
                 IsMapInfoLayer = true,
                 Style = CreateSavedBitmapStyle()
+            };
+        }
+
+        /// <summary>
+        /// Create a point geometry layer for all point geometries that have no associated records
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns>layer</returns>
+        private static ILayer CreatePointLayerNoRecords(List<Feature> points)
+        {
+            return new Mapsui.Layers.Layer("Points")
+            {
+                CRS = "EPSG:3857",
+                DataSource = new MemoryProvider(points),
+                IsMapInfoLayer = true,
+                Style = CreateSavedBitmapStyleNoRecords()
             };
         }
 
@@ -302,7 +320,7 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>layer</returns>
         private static ILayer CreateTempPointLayer(List<Feature> points)
         {
-            return new Layer("Points")
+            return new Mapsui.Layers.Layer("Points")
             {
                 CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(points),
@@ -334,6 +352,17 @@ namespace BioDivCollectorXamarin.Models
         }
 
         /// <summary>
+        /// Read the bitmap for a saved point that has no records (orange)
+        /// </summary>
+        /// <returns>The bitmap as a style object</returns>
+        private static SymbolStyle CreateSavedBitmapStyleNoRecords()
+        {
+            var path = "BioDivCollectorXamarin.Images.locNoEntry.png";
+            var bitmapId = GetBitmapIdForEmbeddedResource(path);
+            return new SymbolStyle { BitmapId = bitmapId, SymbolScale = 0.40, SymbolOffset = new Offset(0, 0) };
+        }
+
+        /// <summary>
         /// Get the id of the embedded bitmap
         /// </summary>
         /// <param name="imagePath"></param>
@@ -354,7 +383,7 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>The polygon layer</returns>
         public static ILayer CreatePolygonLayer(List<Feature> polygons, Mapsui.Styles.Color lineColour, Mapsui.Styles.Color fillColour)
         {
-            return new Layer("Polygons")
+            return new Mapsui.Layers.Layer("Polygons")
             {
                 CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(polygons),
@@ -381,7 +410,7 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>The line layer</returns>
         public static ILayer CreateLineLayer(List<Feature> lines, Mapsui.Styles.Color colour)
         {
-            return new Layer("Lines")
+            return new Mapsui.Layers.Layer("Lines")
             {
                 CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(lines),
@@ -434,12 +463,20 @@ namespace BioDivCollectorXamarin.Models
                 var points = new List<Feature>();
                 var polygons = new List<Feature>();
                 var lines = new List<Feature>();
+                var pointsNoRecords = new List<Feature>();
+                var polygonsNoRecords = new List<Feature>();
+                var linesNoRecords = new List<Feature>();
                 var allShapes = new List<Feature>();
 
                 foreach (Shape item in items)
                 {
                     var coords = item.shapeGeom.Coordinates;
                     var coordCount = item.shapeGeom.Coordinates.Length;
+                    var hasRecords = false;
+                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                    {
+                        hasRecords = conn.Table<Record>().Select(c => c).Where(c => c.geometry_fk == item.geomId).Count() > 0;
+                    }
                     if (coordCount > 0)
                     {
                         if (coordCount == 1)
@@ -462,7 +499,8 @@ namespace BioDivCollectorXamarin.Models
                                 HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left,
                                 Offset = new Offset(20, 0, false)
                             });
-                            points.Add(feature);
+                            if (hasRecords) { points.Add(feature); } else {
+                                pointsNoRecords.Add(feature); }
                             allShapes.Add(feature);
                         }
                         else
@@ -494,7 +532,7 @@ namespace BioDivCollectorXamarin.Models
                                     HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Center
                                 });
 
-                                polygons.Add(feature);
+                                if (hasRecords) { polygons.Add(feature); } else { polygonsNoRecords.Add(feature); }
                                 allShapes.Add(feature);
                             }
                             else
@@ -519,7 +557,7 @@ namespace BioDivCollectorXamarin.Models
                                     BackColor = new Mapsui.Styles.Brush(Mapsui.Styles.Color.White),
                                     HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Center
                                 });
-                                lines.Add(feature);
+                                if (hasRecords) { lines.Add(feature); } else { linesNoRecords.Add(feature); }
                                 allShapes.Add(feature);
                             }
                         }
@@ -529,12 +567,18 @@ namespace BioDivCollectorXamarin.Models
                 ILayer polygonLayer = CreatePolygonLayer(polygons, new Mapsui.Styles.Color(0, 0, 200, 255), new Mapsui.Styles.Color(0, 0, 200, 32));
                 ILayer pointLayer = CreatePointLayer(points);
                 ILayer lineLayer = CreateLineLayer(lines, new Mapsui.Styles.Color(0, 0, 200, 255));
+                ILayer polygonLayerNoRecords = CreatePolygonLayer(polygonsNoRecords, new Mapsui.Styles.Color(255, 166, 0, 255), new Mapsui.Styles.Color(255, 166, 0, 32));
+                ILayer pointLayerNoRecords = CreatePointLayerNoRecords(pointsNoRecords);
+                ILayer lineLayerNoRecords = CreateLineLayer(linesNoRecords, new Mapsui.Styles.Color(255, 166, 0, 255));
                 ILayer allShapesLayer = CreatePolygonLayer(allShapes, new Mapsui.Styles.Color(0, 0, 200, 255), new Mapsui.Styles.Color(0, 0, 200, 32)); //AllShapes layer is created merely to get bounding box of all shapes. It does not have the correct styles for showing all the shapes
 
 
                 layerDic.Add("polygons", polygonLayer);
                 layerDic.Add("lines", lineLayer);
                 layerDic.Add("points", pointLayer);
+                layerDic.Add("polygonsNoRecords", polygonLayerNoRecords);
+                layerDic.Add("linesNoRecords", lineLayerNoRecords);
+                layerDic.Add("pointsNoRecords", pointLayerNoRecords);
                 layerDic.Add("all", allShapesLayer);
 
             }
