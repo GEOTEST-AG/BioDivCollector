@@ -196,6 +196,7 @@ namespace BioDivCollectorXamarin
             Busy = false;
             CheckConnection();
 
+            
             VersionTracking.Track();
 
             MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginSuccessful", (sender) =>
@@ -235,12 +236,13 @@ namespace BioDivCollectorXamarin
         protected override void OnStart()
         {
             this.StartListening();
+            
             if (ShowLogin)
             {
                 MainPage = Login.GetPageToView();
             }
             ShowLogin = false;
-
+            //Authentication.RequestAuthentication("dawes","Bio_Apple4");
         }
 
         /// <summary>

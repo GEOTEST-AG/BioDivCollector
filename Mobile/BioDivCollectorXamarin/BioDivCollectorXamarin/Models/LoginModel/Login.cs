@@ -86,7 +86,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                 User.RetrieveUser();
             }
 
-            //OFfline Access
+            //Offline Access
             if (Connectivity.NetworkAccess != NetworkAccess.Internet)
             {
                 if (App.CurrentUser == null)
@@ -183,6 +183,8 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                     var token = Preferences.Get("AccessToken", "");
                     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
+                    Preferences.Set("Username", String.Empty);
+                    Preferences.Set("Password", String.Empty);
 
                     var values = new Dictionary<string, string>
                     {

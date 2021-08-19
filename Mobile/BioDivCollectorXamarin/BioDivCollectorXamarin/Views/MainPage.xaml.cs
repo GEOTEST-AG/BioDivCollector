@@ -6,9 +6,11 @@ using System;
 using Xamarin.Forms.PlatformConfiguration;
 using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
 using Xamarin.Essentials;
+using Xamarin.Forms.Xaml;
 
 namespace BioDivCollectorXamarin
 {
+    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class MainPage : ContentPage
     {
 
@@ -16,7 +18,7 @@ namespace BioDivCollectorXamarin
 
         public MainPage()
         {
-            //InitializeComponent();
+            InitializeComponent();
 
             ViewModel = new MainPageVM();
             BindingContext = ViewModel;

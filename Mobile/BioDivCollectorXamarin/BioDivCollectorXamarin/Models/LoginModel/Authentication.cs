@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using Xamarin.Auth;
 using Xamarin.Essentials;
+using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models.LoginModel
 {
@@ -72,6 +74,59 @@ namespace BioDivCollectorXamarin.Models.LoginModel
 
             return rawData;
 
+        }
+
+        public static async Task RequestAuthentication(string username, string password)
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    
+                    var urlString = "https://id.biodivcollector.ch/auth/realms/BioDivCollector/protocol/openid-connect/token";
+                    var request = new HttpRequestMessage()
+                    {
+                        RequestUri = new Uri(urlString),
+                        Method = HttpMethod.Post,
+
+                    };
+
+                    FormUrlEncodedContent postData = new FormUrlEncodedContent(
+                        new []
+                        {
+                            new KeyValuePair<string, string>("client_id", Authentication.AuthParams.ClientId),
+                            new KeyValuePair<string, string>("grant_type", "password"),
+                            new KeyValuePair<string, string>("client_secret", Authentication.AuthParams.ClientSecret),
+                            new KeyValuePair<string, string>("scope", Authentication.AuthParams.Scope),
+                            new KeyValuePair<string, string>("username", username),
+                            new KeyValuePair<string, string>("password", password),
+                        }
+                    );
+                    request.Content = postData;
+                    request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+                    var task = client.SendAsync(request).ContinueWith((taskwithmsg) =>
+                    {
+                        var response = taskwithmsg.Result;
+
+                        var jsonTask = response.Content.ReadAsStringAsync();
+                        jsonTask.Wait();
+                        var jsonObject = jsonTask.Result;
+                        var returnedObject = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonObject);  //Deserialise response
+                        SaveTokens(returnedObject);
+                    });
+                    task.Wait();
+
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            finally
+            {
+                Application.Current.MainPage = BioDivCollectorXamarin.Models.LoginModel.Login.GetPageToView();
+            }
         }
 
         /// <summary>

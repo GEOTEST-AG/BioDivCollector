@@ -11,7 +11,7 @@ using Xamarin.Essentials;
 using Foundation;
 using UIKit;
 
-[assembly: ExportRenderer(typeof(MainPage), typeof(LoginPageRenderer))]
+//[assembly: ExportRenderer(typeof(MainPage), typeof(LoginPageRenderer))]
 namespace BioDivCollectorXamarin.iOS
 {
     public class LoginPageRenderer : PageRenderer
