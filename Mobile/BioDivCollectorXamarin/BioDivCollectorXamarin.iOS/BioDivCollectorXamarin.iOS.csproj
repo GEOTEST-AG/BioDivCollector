@@ -80,7 +80,6 @@
   <ItemGroup>
     <Compile Include="MultilineButtonRenderer.cs" />
     <Compile Include="EntryRenderer.cs" />
-    <Compile Include="LoginRenderer.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
     <None Include="Entitlements.plist" />

@@ -33,6 +33,7 @@ namespace BioDivCollectorXamarin
         protected override void OnAppearing()
         {
             base.OnAppearing();
+            ViewModel.OnAppearing();
         }
 
 

@@ -13,6 +13,8 @@ namespace BioDivCollectorXamarin.ViewModels
         public bool DidStart;
 
         public Command LoginCommand { get; }
+        public Command RegisterCommand { get; }
+        public Command PasswordCommand { get; }
 
         private string username;
         public string Username
@@ -47,10 +49,16 @@ namespace BioDivCollectorXamarin.ViewModels
             //If we show the login page, set the chain up for a login to be performed
             DidStart = App.AppDidStart;
             LoginCommand = new Command(Login, ValidateLogin);
-            Username = "";
-            Password = "";
+            RegisterCommand = new Command(Register, ValidateTrue);
+            PasswordCommand = new Command(ChangePassword, ValidateTrue);
+        }
 
-            var oldUser = Preferences.Get("Username",String.Empty);
+        public void OnAppearing()
+        {
+            Username = String.Empty;
+            Password = String.Empty;
+
+            var oldUser = Preferences.Get("Username", String.Empty);
             var oldPassword = Preferences.Get("Password", String.Empty);
             if (oldUser != String.Empty && oldPassword != String.Empty)
             {
@@ -86,6 +94,21 @@ namespace BioDivCollectorXamarin.ViewModels
         private bool ValidateLogin()
         {
             return true;
+        }
+
+        private bool ValidateTrue()
+        {
+            return true;
+        }
+
+        public void Register()
+        {
+            Device.OpenUri(new Uri("https://id.biodivcollector.ch/auth/realms/BioDivCollector/login-actions/registration?client_id=BioDivCollector&tab_id=PPOcNlpFwpI"));
+        }
+
+        public void ChangePassword()
+        {
+            Device.OpenUri(new Uri("https://id.biodivcollector.ch/auth/realms/BioDivCollector/login-actions/authenticate?client_id=BioDivCollector&tab_id=1uPJiY4Fhyw"));
         }
     }
 }
