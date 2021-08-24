@@ -310,7 +310,6 @@ namespace BioDivCollectorXamarin.Models
                         //Test to see if database schema exists
                         var projTableTest = conn.Table<Project>().Select(g => g).FirstOrDefault();
                         var projTableTest2 = conn.Table<ReferenceGeometry>().Select(g => g).FirstOrDefault();
-                        //var proj = conn.Table<Project>().ToList();
                     }
                     catch (Exception e)
                     {
@@ -325,6 +324,15 @@ namespace BioDivCollectorXamarin.Models
                         conn.CreateTable<Form>();
                         conn.CreateTable<FormField>();
                         conn.CreateTable<FieldChoice>();
+                    }
+
+                    try
+                    {
+                        PerformStandardValueMigration(conn);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
                     }
 
                     try
@@ -375,7 +383,7 @@ namespace BioDivCollectorXamarin.Models
                                 {
                                     try
                                     {
-                                                                                var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+                                        var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
 
                                         if (existingrec != null)
                                         {
@@ -458,12 +466,6 @@ namespace BioDivCollectorXamarin.Models
                                     }
 
                                     conn.InsertOrReplaceAllWithChildren(geom.records);
-                                    /*foreach (var r in geom.records)
-                                    {
-                                        var geomrec = existinggeom.records.Where(gr => gr.recordId == r.recordId).FirstOrDefault();
-                                        existinggeom.records.Remove(geomrec);
-                                        existinggeom.records.Add(r);
-                                    }*/
                                     conn.UpdateWithChildren(existinggeom);
                                     Console.WriteLine("Added record: " + DateTime.Now.ToLongTimeString());
                                 }
@@ -569,7 +571,7 @@ namespace BioDivCollectorXamarin.Models
                                     }
                                 }
 
-                                var queriedrec = rec;// conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+                                var queriedrec = rec;
                                 queriedrec.texts = rec.texts;
                                 queriedrec.numerics = rec.numerics;
                                 queriedrec.booleans = rec.booleans;
@@ -620,8 +622,9 @@ namespace BioDivCollectorXamarin.Models
 
                                     }
                                 }
-                                
+
                                 //Add form fields
+
                                 foreach (var formfield in form.formFields)
                                 {
                                     try
@@ -711,6 +714,22 @@ namespace BioDivCollectorXamarin.Models
                 }
             }
             MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
+        }
+
+        /// <summary>
+        /// Add a standard value column to the form field table if it does not exist
+        /// </summary>
+        /// <param name="conn"></param>
+        private static void PerformStandardValueMigration(SQLiteConnection conn)
+        {
+            //Check for column and migrate
+            var tableInfo = conn.GetTableInfo("FormField");
+            var columnExists = tableInfo.Any(x => x.Name.Equals("standardValue"));
+            if (!columnExists)
+            {
+                var f = conn.CreateCommand("ALTER TABLE [FormField] ADD COLUMN standardValue NTEXT");
+                var l = f.ExecuteNonQuery();
+            }
         }
 
         /// <summary>

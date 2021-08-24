@@ -1,28 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Images\loc.png" />
     <None Remove="Images\locSaved.png" />
-    <None Remove="Models\LoginModel\Auth.xml" />
     <None Remove="Models\LoginModel\Auth %28copy%29.xml" />
     <None Remove="Images\locNoEntry.png" />
+    <None Remove="Models\LoginModel\Auth.xml" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Remove="Models\LoginModel\AuthTest.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Images\loc.png" />
     <EmbeddedResource Include="Images\locSaved.png" />
-    <EmbeddedResource Include="Models\LoginModel\Auth.xml">
-      <IncludeInPackage>true</IncludeInPackage>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Models\LoginModel\AuthTest.xml">
-      <IncludeInPackage>true</IncludeInPackage>
-    </EmbeddedResource>
     <EmbeddedResource Include="Images\locNoEntry.png" />
+    <EmbeddedResource Include="Models\LoginModel\AuthTest.xml" />
+    <EmbeddedResource Include="Models\LoginModel\Auth.xml">
+      <IncludeInPackage>false</IncludeInPackage>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +46,7 @@
     <PackageReference Include="BruTile.MbTiles" Version="2.2.0" />
     <PackageReference Include="Xamarin.Essentials.Interfaces" Version="1.6.1" />
     <PackageReference Include="Xamarin.RisePlugin.AutoCompleteTextView" Version="1.0.9" />
+    <PackageReference Include="ProjNet" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -102,5 +104,16 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\MBTiles\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Models\LoginModel\Auth.xml">
+      <IncludeInPackage>true</IncludeInPackage>
+    </None>
+    <None Update="Models\LoginModel\AuthTest.xml">
+      <IncludeInPackage>true</IncludeInPackage>
+    </None>
+    <None Update="Models\LoginModel\Auth.xml">
+      <IncludeInPackage>true</IncludeInPackage>
+    </None>
   </ItemGroup>
 </Project>

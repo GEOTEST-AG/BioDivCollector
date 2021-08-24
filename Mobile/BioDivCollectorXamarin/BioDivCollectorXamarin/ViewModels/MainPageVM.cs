@@ -11,6 +11,18 @@ namespace BioDivCollectorXamarin.ViewModels
 
 
         public bool DidStart;
+        private bool activity;
+        public bool Activity
+        {
+            get
+            {
+                return activity;
+            }
+            set
+            {
+                activity = value;
+            }
+        }
 
         public Command LoginCommand { get; }
         public Command RegisterCommand { get; }
@@ -57,11 +69,13 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             Username = String.Empty;
             Password = String.Empty;
+            Activity = false;
 
             var oldUser = Preferences.Get("Username", String.Empty);
             var oldPassword = Preferences.Get("Password", String.Empty);
             if (oldUser != String.Empty && oldPassword != String.Empty)
             {
+                Activity = true;
                 Task.Run(async () => {
                     await Authentication.RequestAuthentication(oldUser, oldPassword);
                 });
@@ -83,6 +97,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             try
             {
+                Activity = true;
                 await Authentication.RequestAuthentication(Username, Password);
             }
             catch (Exception e)

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:BioDivCollectorXamarin"
              xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
+             xmlns:viewModel="clr-namespace:BioDivCollectorXamarin.ViewModels"
              x:Class="BioDivCollectorXamarin.Views.ProjectsPage"
              xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views"
              Shell.NavBarIsVisible="False"
@@ -11,9 +12,10 @@
              Title = "Projekt"
              ios:Page.UseSafeArea="true">
 
-    
+    <ContentPage.BindingContext>
+        <viewModel:ProjectsPageVM/>
+    </ContentPage.BindingContext>
     <ContentPage.Content>
-
 
         <StackLayout BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HorizontalOptions="Fill"  Margin="0,0,0,0" Spacing="0">
             <Grid BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HeightRequest="160" MinimumHeightRequest="160" >

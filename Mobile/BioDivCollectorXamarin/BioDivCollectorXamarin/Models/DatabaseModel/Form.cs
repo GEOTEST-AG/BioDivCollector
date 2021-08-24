@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using Xamarin.Forms;
 using BioDivCollectorXamarin.Controls;
+using BioDivCollectorXamarin.Models;
 using Xamarin.Essentials;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
@@ -364,6 +365,52 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
         }
 
+        public static string DetermineText(Record record, TextData text, string standardValue)
+        {
+            var value = text.value;
+            if (standardValue == null)
+            {
+                if (value == null)
+                { return String.Empty; }
+                return value;
+            }
+            if ((value == null && standardValue != String.Empty) || standardValue.Substring(0, 1) == "=")
+            {
+                if (standardValue.Substring(0, 1) == "=")
+                {
+                    standardValue = standardValue.Remove(0, 1);
+                }
+                if (standardValue == "userfullname()")
+                {
+                    return App.CurrentUser.firstName + " " + App.CurrentUser.name;
+                }
+                else if (standardValue == "now()")
+                {
+                    return DateTime.Now.ToShortDateString();
+                }
+                else if (standardValue == "userid()")
+                {
+                    return App.CurrentUser.userId;
+                }
+                else if (standardValue == "length()")
+                {
+                    ReferenceGeometry geom = ReferenceGeometry.GetGeometry((int)record.geometry_fk);
+                    var length = ReferenceGeometry.CalculateLengthOfLine(geom);
+                    return length.ToString("F2");
+                }
+                else if (standardValue == "area()")
+                {
+                    ReferenceGeometry geom = ReferenceGeometry.GetGeometry((int)record.geometry_fk);
+                    var area = ReferenceGeometry.CalculateAreaOfPolygon(geom);
+                    return area.ToString("F2");
+                }
+                else
+                {
+                    return String.Empty;
+                }
+            }
+            return value;
+        }
     }
 
 
@@ -384,6 +431,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public int order { get; set; }
         public bool mandatory { get; set; }
         public bool useInRecordTitle { get; set; }
+        public string standardValue { get; set; }
 
         [OneToMany(CascadeOperations = CascadeOperation.All)]
         public List<FieldChoice> fieldChoices { get; set; }

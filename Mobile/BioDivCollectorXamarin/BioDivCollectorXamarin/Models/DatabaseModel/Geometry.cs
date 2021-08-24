@@ -1,4 +1,6 @@
-﻿using SQLite;
+﻿using NetTopologySuite.Geometries;
+using ProjNet.CoordinateSystems.Transformations;
+using SQLite;
 using SQLiteNetExtensions.Attributes;
 using SQLiteNetExtensions.Extensions;
 using System;
@@ -7,6 +9,12 @@ using System.Linq;
 using System.Text;
 using Xamarin.Essentials;
 using Xamarin.Forms;
+using NetTopologySuite.IO;
+using Mapsui.Projection;
+using Mapsui.Geometries;
+using ProjNet.CoordinateSystems;
+using ProjNet.CoordinateSystems.Transformations;
+using NetTopologySuite.Geometries;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {
@@ -178,6 +186,44 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             {
                 Console.WriteLine("Could not delete geometry" + e);
             }
+        }
+
+        public static Coordinate[] TransformWGS84ToCH1903(Coordinate[] coordinates)
+        {
+            CoordinateTransformationFactory ctFact = new CoordinateTransformationFactory();
+
+            var csWgs84 = ProjNet.CoordinateSystems.GeographicCoordinateSystem.WGS84;
+            const string epsg21781 = "PROJCS[\"CH1903 / LV03\", GEOGCS[\"CH1903\",DATUM[\"CH1903\",SPHEROID[\"Bessel 1841\",6377397.155,299.1528128,AUTHORITY[\"EPSG\", \"7004\"]],TOWGS84[674.4, 15.1, 405.3, 0, 0, 0, 0],AUTHORITY[\"EPSG\", \"6149\"]],PRIMEM[\"Greenwich\", 0,AUTHORITY[\"EPSG\", \"8901\"]],UNIT[\"degree\", 0.0174532925199433,AUTHORITY[\"EPSG\", \"9122\"]],AUTHORITY[\"EPSG\", \"4149\"]],PROJECTION[\"Hotine_Oblique_Mercator_Azimuth_Center\"],PARAMETER[\"latitude_of_center\", 46.95240555555556], PARAMETER[\"longitude_of_center\", 7.439583333333333],PARAMETER[\"azimuth\", 90], PARAMETER[\"rectified_grid_angle\", 90], PARAMETER[\"scale_factor\", 1],PARAMETER[\"false_easting\", 600000],PARAMETER[\"false_northing\", 200000],UNIT[\"metre\", 1,AUTHORITY[\"EPSG\", \"9001\"]],AXIS[\"Y\", EAST],AXIS[\"X\", NORTH],AUTHORITY[\"EPSG\", \"21781\"]]";
+            var cs21781 = ProjNet.IO.CoordinateSystems.CoordinateSystemWktReader.Parse(epsg21781) as CoordinateSystem;
+
+            ICoordinateTransformation trans = ctFact.CreateFromCoordinateSystems(csWgs84, cs21781);
+
+
+            var pointsq = coordinates.Select(c => new double[] { c.X, c.Y }).ToList();
+
+            Coordinate[] tpoints = trans.MathTransform.TransformList(pointsq).Select(c => new Coordinate(c[0], c[1])).ToArray();
+
+            return tpoints;
+        }
+
+        public static double CalculateAreaOfPolygon(ReferenceGeometry geom)
+        {
+            var geometry = DataDAO.GeoJSON2Geometry(geom.geometry);
+            var tpoints = ReferenceGeometry.TransformWGS84ToCH1903(geometry.Coordinates);
+
+            var polygon = new Mapsui.Geometries.Polygon();
+            polygon.ExteriorRing.Vertices = tpoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToArray();
+            return polygon.Area;
+        }
+
+        public static double CalculateLengthOfLine(ReferenceGeometry geom)
+        {
+            var geometry = DataDAO.GeoJSON2Geometry(geom.geometry);
+            var tpoints = ReferenceGeometry.TransformWGS84ToCH1903(geometry.Coordinates);
+
+            var line = new Mapsui.Geometries.LineString();
+            line.Vertices = tpoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToArray();
+            return line.Length;
         }
     }
 

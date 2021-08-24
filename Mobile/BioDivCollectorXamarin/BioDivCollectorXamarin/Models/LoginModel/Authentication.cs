@@ -82,7 +82,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    
+
                     var urlString = "https://id.biodivcollector.ch/auth/realms/BioDivCollector/protocol/openid-connect/token";
                     var request = new HttpRequestMessage()
                     {
@@ -104,7 +104,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                     );
                     request.Content = postData;
                     request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-
+                    
                     var task = client.SendAsync(request).ContinueWith((taskwithmsg) =>
                     {
                         var response = taskwithmsg.Result;

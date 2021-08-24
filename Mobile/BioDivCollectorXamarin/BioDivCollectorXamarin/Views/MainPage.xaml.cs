@@ -36,6 +36,12 @@ namespace BioDivCollectorXamarin
             ViewModel.OnAppearing();
         }
 
+        void CheckBox_CheckedChanged(System.Object sender, Xamarin.Forms.CheckedChangedEventArgs e)
+        {
+            //Have to use an event handler as binding directly is not an option
+            ViewModel.SaveLogin = e.Value;
+        }
 
     }
+
 }

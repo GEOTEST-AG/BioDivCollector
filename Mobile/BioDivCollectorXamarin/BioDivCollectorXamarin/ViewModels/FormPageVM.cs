@@ -59,321 +59,346 @@ namespace BioDivCollectorXamarin.ViewModels
                 formType = conn.GetWithChildren<Form>(formTemp.Id);
                 foreach (var formField in formType.formFields.OrderBy(f => f.order))
                 {
-                    var label = new Label();
-                    if (formField.title != null && formField.title != String.Empty)
+                    if (formField.typeId == 71)
                     {
-                        label.Text = formField.title;
+                        var header = new Label();
+                        if (formField.title != null && formField.title != String.Empty)
+                        {
+                            header.Text = formField.title;
+                        }
+                        else
+                        {
+                            header.Text = formField.description;
+                        }
+                        header.HeightRequest = 50;
+                        header.FontAttributes = FontAttributes.Bold;
+                        header.VerticalTextAlignment = TextAlignment.End;
+                        header.Margin = new Thickness(0, 10, 0, 0);
+                        header.TextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
+                        header.FontSize = 24;
+                        Assets.Add(header);
                     }
+
                     else
-                    {
-                        label.Text = formField.description;
-                    }
-                    if (formField.mandatory)
-                    {
-                        label.Text = label.Text + " *";
-                    }
-                    label.FontAttributes = FontAttributes.Bold;
-                    label.Margin = new Thickness(0, 10, 0, 0);
-                    label.SetAppThemeColor(Label.TextColorProperty, Color.Black, Color.White);
-                    Assets.Add(label);
 
-
-                    if (formField.typeId == 11 || formField.typeId == 61)
                     {
-                        try
+                        var label = new Label();
+                        if (formField.title != null && formField.title != String.Empty)
                         {
-                            var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
-                            var textField = new CustomEntry();
-
-                            if (text == null)
-                            {
-                                //CreateNew
-                                var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = recId };
-                                conn.Insert(txt);
-                                txts.Add(txt);
-                                queriedrec.texts = txts;
-                                conn.UpdateWithChildren(queriedrec);
-                                text = txt;
-                            }
-                            textField = new CustomEntry { Text = text.value.ToString() };
-                            textField.Keyboard = Keyboard.Text;
-                            textField.Placeholder = formField.description;
-                            textField.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
-                            textField.ReturnType = ReturnType.Done;
-                            textField.Margin = new Thickness(0, 0, 0, 10);
-                            textField.ValueId = text.Id;
-                            textField.TypeId = formField.typeId;
-                            textField.TextChanged += TextFieldChanged;
-                            textField.IsEnabled = !ReadOnly;
-                            textField.Mandatory = formField.mandatory;
-                            var empty = String.IsNullOrEmpty(textField.Text);
-                            if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); }
-                            if (ReadOnly)
-                            {
-                                textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
-                            }
-                            Assets.Add(textField);
+                            label.Text = formField.title;
                         }
-                        catch (Exception e)
+                        else
                         {
-                            Console.WriteLine("Could not create field" + e);
+                            label.Text = formField.description;
                         }
-
-                    }
-                    else if (formField.typeId == 41)
-                    {
-                        try
+                        if (formField.mandatory)
                         {
-                            var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                            var dateField = new CustomDatePicker();
-                            var timeField = new CustomTimePicker();
-                            var nowButton = new Button();
-                            var clearButton = new Button();
+                            label.Text = label.Text + " *";
+                        }
+                        label.FontAttributes = FontAttributes.Bold;
+                        label.Margin = new Thickness(0, 10, 0, 0);
+                        label.SetAppThemeColor(Label.TextColorProperty, Color.Black, Color.White);
+                        Assets.Add(label);
 
-                            var stack = new CustomStackLayout()
+                        if (formField.typeId == 11 || formField.typeId == 61)
+                        {
+                            try
                             {
-                                Orientation = StackOrientation.Horizontal,
-                                Children =
+                                var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
+                                var textField = new CustomEntry();
+
+                                if (text == null)
+                                {
+                                    //CreateNew
+                                    var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = recId };
+                                    conn.Insert(txt);
+                                    txts.Add(txt);
+                                    queriedrec.texts = txts;
+                                    conn.UpdateWithChildren(queriedrec);
+                                    text = txt;
+                                }
+                                textField = new CustomEntry { Text = Form.DetermineText(queriedrec, text, formField.standardValue)};
+                                textField.Keyboard = Keyboard.Text;
+                                textField.Placeholder = formField.description;
+                                textField.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
+                                textField.ReturnType = ReturnType.Done;
+                                textField.Margin = new Thickness(0, 0, 0, 10);
+                                textField.ValueId = text.Id;
+                                textField.TypeId = formField.typeId;
+                                textField.TextChanged += TextFieldChanged;
+                                textField.IsEnabled = !ReadOnly;
+                                textField.Mandatory = formField.mandatory;
+                                var empty = String.IsNullOrEmpty(textField.Text);
+                                if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); }
+                                if (ReadOnly)
+                                {
+                                    textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                                }
+                                Assets.Add(textField);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("Could not create field" + e);
+                            }
+
+                        }
+                        else if (formField.typeId == 41)
+                        {
+                            try
+                            {
+                                var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
+                                var dateField = new CustomDatePicker();
+                                var timeField = new CustomTimePicker();
+                                var nowButton = new Button();
+                                var clearButton = new Button();
+
+                                var stack = new CustomStackLayout()
+                                {
+                                    Orientation = StackOrientation.Horizontal,
+                                    Children =
                                 {
                                     dateField, timeField, nowButton, clearButton
                                 }
-                            };
-                            stack.WidthRequest = 350;
-                            stack.HorizontalOptions = LayoutOptions.Start;
+                                };
+                                stack.WidthRequest = 350;
+                                stack.HorizontalOptions = LayoutOptions.Start;
 
-                            if (text == null)
-                            {
-                                //CreateNew
-                                var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = recId };
-                                conn.Insert(txt);
-                                txts.Add(txt);
-                                queriedrec.texts = txts;
-                                conn.UpdateWithChildren(queriedrec);
-                                text = txt;
+                                if (text == null)
+                                {
+                                    //CreateNew
+                                    var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = recId };
+                                    conn.Insert(txt);
+                                    txts.Add(txt);
+                                    queriedrec.texts = txts;
+                                    conn.UpdateWithChildren(queriedrec);
+                                    text = txt;
+                                }
+                                List<string> choices = Form.FetchFormChoicesForDropdown(formField.fieldId);
+
+                                try
+                                {
+                                    var dt = DateTime.ParseExact(text.value, "yyyy-MM-ddTHH:mm:sszzz", null);
+
+                                    if (text.value != null && text.value != String.Empty)
+                                    {
+                                        dateField.NullableDate = dt.Date;
+                                        timeField.NullableDate = new TimeSpan(dt.TimeOfDay.Hours, dt.TimeOfDay.Minutes, 0);
+                                    }
+                                }
+                                catch (Exception exp)
+                                {
+                                    Console.WriteLine(exp);
+                                }
+
+                                dateField.Margin = new Thickness(0, 0, 0, 10);
+                                dateField.ValueId = text.Id;
+                                dateField.TypeId = formField.typeId;
+                                dateField.Format = "dd MMMM yyyy";
+                                dateField.IsEnabled = !ReadOnly;
+                                dateField.WidthRequest = 170;
+                                dateField.HeightRequest = 40;
+                                dateField.Mandatory = formField.mandatory;
+                                dateField.VerticalOptions = LayoutOptions.StartAndExpand;
+                                dateField.PropertyChanged += DateFieldChanged;
+                                var empty = (dateField.NullableDate == null);
+                                if (formField.mandatory) { Validation.Add((int)dateField.ValueId, !empty); }
+                                if (ReadOnly)
+                                {
+                                    dateField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                                }
+                                timeField.Margin = new Thickness(0, 0, 0, 0);
+                                timeField.ValueId = text.Id;
+                                timeField.TypeId = formField.typeId;
+                                timeField.Format = "HH:mm";
+                                timeField.IsEnabled = !ReadOnly;
+                                timeField.WidthRequest = 70;
+                                timeField.HeightRequest = 40;
+                                timeField.VerticalOptions = LayoutOptions.StartAndExpand;
+                                timeField.Mandatory = formField.mandatory;
+                                timeField.PropertyChanged += TimeFieldChanged;
+                                if (ReadOnly)
+                                {
+                                    timeField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                                }
+
+
+                                Dictionary<String, Object> dic = new Dictionary<string, object>();
+                                dic.Add("text", text);
+                                dic.Add("date", dateField);
+                                dic.Add("time", timeField);
+
+                                var nowCommand = new Command(FillOutDate);
+
+                                nowButton.Text = "JETZT";
+                                nowButton.TextTransform = TextTransform.Uppercase;
+                                nowButton.FontSize = 12;
+                                nowButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
+                                nowButton.Command = nowCommand;
+                                nowButton.CommandParameter = dic;
+                                nowButton.Margin = new Thickness(10, 0, 0, 0);
+                                nowButton.WidthRequest = 40;
+                                nowButton.HeightRequest = 40;
+                                nowButton.VerticalOptions = LayoutOptions.StartAndExpand;
+                                nowButton.IsVisible = !ReadOnly;
+
+                                var clearCommand = new Command(ClearDate);
+
+                                clearButton.Text = "ⓧ";
+                                clearButton.FontSize = 20;
+                                clearButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
+                                clearButton.Command = clearCommand;
+                                clearButton.CommandParameter = dic;
+                                clearButton.Margin = new Thickness(10, 0, 10, 0);
+                                clearButton.WidthRequest = 30;
+                                clearButton.HeightRequest = 40;
+                                clearButton.VerticalOptions = LayoutOptions.StartAndExpand;
+                                clearButton.IsVisible = !ReadOnly;
+
+                                stack.Margin = new Thickness(0, 0, 0, 10);
+                                stack.ValueId = text.Id;
+                                stack.TypeId = formField.typeId;
+
+                                Assets.Add(stack);
                             }
-                            List<string> choices = Form.FetchFormChoicesForDropdown(formField.fieldId);
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("Could not create field" + e);
+                            }
 
+                        }
+                        else if (formField.typeId == 51)
+                        {
                             try
                             {
-                                var dt = DateTime.ParseExact(text.value, "yyyy-MM-ddTHH:mm:sszzz", null);
-
-                                if (text.value != null && text.value != String.Empty)
+                                var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
+                                var textField = new CustomPicker();
+                                if (text == null)
                                 {
-                                    dateField.NullableDate = dt.Date;
-                                    timeField.NullableDate = new TimeSpan(dt.TimeOfDay.Hours, dt.TimeOfDay.Minutes, 0);
+                                    //CreateNew
+                                    var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = recId };
+                                    conn.Insert(txt);
+                                    txts.Add(txt);
+                                    queriedrec.texts = txts;
+                                    conn.UpdateWithChildren(queriedrec);
+                                    text = txt;
                                 }
-                            }
-                            catch (Exception exp)
-                            {
-                                Console.WriteLine(exp);
-                            }
+                                List<string> choices = Form.FetchFormChoicesForDropdown(formField.Id);
+                                textField.ItemsSource = choices;
+                                textField.ValueId = text.Id;
+                                textField.TypeId = formField.Id;
+                                textField.Title = formField.description;
+                                textField.IsEnabled = !ReadOnly;
+                                textField.Mandatory = formField.mandatory;
+                                if (formField.mandatory) { Validation.Add((int)textField.ValueId, textField.SelectedItem != null || (text.value != null && text.value != String.Empty)); }
+                                if (ReadOnly)
+                                {
+                                    textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                                }
+                                textField.SelectedIndexChanged += DidSelectFromChoices;
 
-                            dateField.Margin = new Thickness(0, 0, 0, 10);
-                            dateField.ValueId = text.Id;
-                            dateField.TypeId = formField.typeId;
-                            dateField.Format = "dd MMMM yyyy";
-                            dateField.IsEnabled = !ReadOnly;
-                            dateField.WidthRequest = 170;
-                            dateField.HeightRequest = 40;
-                            dateField.Mandatory = formField.mandatory;
-                            dateField.VerticalOptions = LayoutOptions.StartAndExpand;
-                            dateField.PropertyChanged += DateFieldChanged;
-                            var empty = (dateField.NullableDate == null);
-                            if (formField.mandatory) { Validation.Add((int)dateField.ValueId, !empty); }
-                            if (ReadOnly)
-                            {
-                                dateField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
-                            }
-                            timeField.Margin = new Thickness(0, 0, 0, 0);
-                            timeField.ValueId = text.Id;
-                            timeField.TypeId = formField.typeId;
-                            timeField.Format = "HH:mm";
-                            timeField.IsEnabled = !ReadOnly;
-                            timeField.WidthRequest = 70;
-                            timeField.HeightRequest = 40;
-                            timeField.VerticalOptions = LayoutOptions.StartAndExpand;
-                            timeField.Mandatory = formField.mandatory;
-                            timeField.PropertyChanged += TimeFieldChanged;
-                            if (ReadOnly)
-                            {
-                                timeField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
-                            }
-
-
-                            Dictionary<String, Object> dic = new Dictionary<string, object>();
-                            dic.Add("text", text);
-                            dic.Add("date", dateField);
-                            dic.Add("time", timeField);
-
-                            var nowCommand = new Command(FillOutDate);
-
-                            nowButton.Text = "JETZT";
-                            nowButton.TextTransform = TextTransform.Uppercase;
-                            nowButton.FontSize = 12;
-                            nowButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
-                            nowButton.Command = nowCommand;
-                            nowButton.CommandParameter = dic;
-                            nowButton.Margin = new Thickness(10, 0, 0, 0);
-                            nowButton.WidthRequest = 40;
-                            nowButton.HeightRequest = 40;
-                            nowButton.VerticalOptions = LayoutOptions.StartAndExpand;
-                            nowButton.IsVisible = !ReadOnly;
-
-                            var clearCommand = new Command(ClearDate);
-
-                            clearButton.Text = "ⓧ";
-                            clearButton.FontSize = 20;
-                            clearButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["TransparentButtonStyle"];
-                            clearButton.Command = clearCommand;
-                            clearButton.CommandParameter = dic;
-                            clearButton.Margin = new Thickness(10, 0, 10, 0);
-                            clearButton.WidthRequest = 30;
-                            clearButton.HeightRequest = 40;
-                            clearButton.VerticalOptions = LayoutOptions.StartAndExpand;
-                            clearButton.IsVisible = !ReadOnly;
-
-                            stack.Margin = new Thickness(0, 0, 0, 10);
-                            stack.ValueId = text.Id;
-                            stack.TypeId = formField.typeId;
-
-                            Assets.Add(stack);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("Could not create field" + e);
-                        }
-
-                    }
-                    else if (formField.typeId == 51)
-                    {
-                        try
-                        {
-                            var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                            var textField = new CustomPicker();
-                            if (text == null)
-                            {
-                                //CreateNew
-                                var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = recId };
-                                conn.Insert(txt);
-                                txts.Add(txt);
-                                queriedrec.texts = txts;
-                                conn.UpdateWithChildren(queriedrec);
-                                text = txt;
-                            }
-                            List<string> choices = Form.FetchFormChoicesForDropdown(formField.Id);
-                            textField.ItemsSource = choices;
-                            textField.ValueId = text.Id;
-                            textField.TypeId = formField.Id;
-                            textField.Title = formField.description;
-                            textField.IsEnabled = !ReadOnly;
-                            textField.Mandatory = formField.mandatory;
-                            if (formField.mandatory) { Validation.Add((int)textField.ValueId, textField.SelectedItem != null || (text.value != null && text.value != String.Empty)); }
-                            if (ReadOnly)
-                            {
-                                textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
-                            }
-                            textField.SelectedIndexChanged += DidSelectFromChoices;
-
-                            if (text.fieldChoiceId != null)
-                            {
-                                textField.SelectedIndex = choices.FindIndex(a => a.Contains(text.value));
-                                if (textField.SelectedIndex == -1 && (text.value != null && text.value != String.Empty))
+                                if (text.fieldChoiceId != null)
+                                {
+                                    textField.SelectedIndex = choices.FindIndex(a => a.Contains(text.value));
+                                    if (textField.SelectedIndex == -1 && (text.value != null && text.value != String.Empty))
+                                    {
+                                        textField.Title = text.value;
+                                    }
+                                    textField.SelectedItem = text.value;
+                                }
+                                else if (text.value != null && text.value != String.Empty)
                                 {
                                     textField.Title = text.value;
                                 }
-                                textField.SelectedItem = text.value;
-                            }
-                            else if (text.value != null && text.value != String.Empty)
-                            {
-                                textField.Title = text.value;
-                            }
-                            textField.Margin = new Thickness(0, 0, 0, 10);
+                                textField.Margin = new Thickness(0, 0, 0, 10);
 
-                            Assets.Add(textField);
+                                Assets.Add(textField);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("Could not create field" + e);
+                            }
+
                         }
-                        catch (Exception e)
+                        else if (formField.typeId == 21)
                         {
-                            Console.WriteLine("Could not create field" + e);
+                            try
+                            {
+                                var num = conn.Table<NumericData>().Select(n => n).Where(NumericData => NumericData.record_fk == RecId).Where(NumericData => NumericData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
+                                var textField = new CustomEntry();
+                                if (num == null)
+                                {
+                                    //CreateNew
+                                    var nm = new NumericData { numericId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = recId };
+                                    conn.Insert(nm);
+                                    nums.Add(nm);
+                                    queriedrec.texts = txts;
+                                    conn.UpdateWithChildren(queriedrec);
+                                    num = nm;
+
+                                }
+
+                                textField = new CustomEntry { Text = ((double)num.value).ToString("F", CultureInfo.CreateSpecificCulture("de-CH")) };
+                                textField.Keyboard = Keyboard.Numeric;
+                                textField.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
+                                textField.ReturnType = ReturnType.Done;
+                                textField.Margin = new Thickness(0, 0, 0, 10);
+                                textField.ValueId = num.Id;
+                                textField.TypeId = formField.typeId;
+                                textField.IsEnabled = !ReadOnly;
+                                textField.Mandatory = formField.mandatory;
+                                var empty = String.IsNullOrEmpty(textField.Text);
+                                if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); }
+                                if (ReadOnly)
+                                {
+                                    textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                                }
+                                textField.TextChanged += NumericFieldChanged;
+                                Assets.Add(textField);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("Could not create field" + e);
+                            }
+
+                        }
+                        else if (formField.typeId == 31)
+                        {
+                            try
+                            {
+                                var boolValue = conn.Table<BooleanData>().Select(n => n).Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
+                                var checkBox = new CustomCheckBox();
+                                if (boolValue == null)
+                                {
+                                    //CreateNew
+                                    boolValue = new BooleanData { booleanId = Guid.NewGuid().ToString(), title = String.Empty, value = false, formFieldId = formField.fieldId, record_fk = recId };
+                                    conn.Insert(boolValue);
+                                    bools.Add(boolValue);
+                                    queriedrec.booleans = bools;
+                                    conn.UpdateWithChildren(queriedrec);
+                                }
+                                if (boolValue != null)
+                                {
+                                    checkBox.IsChecked = (bool)boolValue.value;
+                                }
+                                checkBox.Margin = new Thickness(0, 0, 0, 10);
+                                checkBox.ValueId = boolValue.Id;
+                                checkBox.TypeId = formField.typeId;
+                                checkBox.IsEnabled = !ReadOnly;
+                                if (ReadOnly) { checkBox.Color = Color.LightGray; }
+                                checkBox.CheckedChanged += BooleanFieldChanged;
+                                Assets.Add(checkBox);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("Could not create field" + e);
+                            }
+
                         }
 
                     }
-                    else if (formField.typeId == 21)
-                    {
-                        try
-                        {
-                            var num = conn.Table<NumericData>().Select(n => n).Where(NumericData => NumericData.record_fk == RecId).Where(NumericData => NumericData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                            var textField = new CustomEntry();
-                            if (num == null)
-                            {
-                                //CreateNew
-                                var nm = new NumericData { numericId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = recId };
-                                conn.Insert(nm);
-                                nums.Add(nm);
-                                queriedrec.texts = txts;
-                                conn.UpdateWithChildren(queriedrec);
-                                num = nm;
-
-                            }
-
-                            textField = new CustomEntry { Text = ((double)num.value).ToString("F", CultureInfo.CreateSpecificCulture("de-CH")) };
-                            textField.Keyboard = Keyboard.Numeric;
-                            textField.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
-                            textField.ReturnType = ReturnType.Done;
-                            textField.Margin = new Thickness(0, 0, 0, 10);
-                            textField.ValueId = num.Id;
-                            textField.TypeId = formField.typeId;
-                            textField.IsEnabled = !ReadOnly;
-                            textField.Mandatory = formField.mandatory;
-                            var empty = String.IsNullOrEmpty(textField.Text);
-                            if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); }
-                            if (ReadOnly)
-                            {
-                                textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
-                            }
-                            textField.TextChanged += NumericFieldChanged;
-                            Assets.Add(textField);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("Could not create field" + e);
-                        }
-
-                    }
-                    else if (formField.typeId == 31)
-                    {
-                        try
-                        {
-                            var boolValue = conn.Table<BooleanData>().Select(n => n).Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                            var checkBox = new CustomCheckBox();
-                            if (boolValue == null)
-                            {
-                                //CreateNew
-                                boolValue = new BooleanData { booleanId = Guid.NewGuid().ToString(), title = String.Empty, value = false, formFieldId = formField.fieldId, record_fk = recId };
-                                conn.Insert(boolValue);
-                                bools.Add(boolValue);
-                                queriedrec.booleans = bools;
-                                conn.UpdateWithChildren(queriedrec);
-                            }
-                            if (boolValue != null)
-                            {
-                                checkBox.IsChecked = (bool)boolValue.value;
-                            }
-                            checkBox.Margin = new Thickness(0, 0, 0, 10);
-                            checkBox.ValueId = boolValue.Id;
-                            checkBox.TypeId = formField.typeId;
-                            checkBox.IsEnabled = !ReadOnly;
-                            if (ReadOnly) { checkBox.Color = Color.LightGray; }
-                            checkBox.CheckedChanged += BooleanFieldChanged;
-                            Assets.Add(checkBox);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("Could not create field" + e);
-                        }
-
-                    }
-
                 }
+
+                    
 
                 var geomlabel = new Label();
                 geomlabel.Text = "Zugeordnete Geometrie";
@@ -458,11 +483,15 @@ namespace BioDivCollectorXamarin.ViewModels
 
         }
 
-
+        /// <summary>
+        /// Carry out tasks on screen appearing
+        /// </summary>
         public void OnAppearing()
         {
 
         }
+
+
 
         /// <summary>
         /// Check if the save button can be pressed: check whether all of the mandatory components have been filled out
