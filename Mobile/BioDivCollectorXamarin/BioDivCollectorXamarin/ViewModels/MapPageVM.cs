@@ -21,7 +21,7 @@ using Exception = System.Exception;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
-    class MapPageVM : BaseViewModel
+    public class MapPageVM : BaseViewModel
     {
         /// <summary>
         /// The main map
@@ -175,7 +175,13 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public ObservableCollection<MapLayer> MapLayers { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public MapPageVM()
+        {
 
+        }
 
         /// <summary>
         /// Initialisation
@@ -941,7 +947,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void CancelNewGeom()
         {
-            RemoveTempGeometry();
+            CancelAddingMapGeometry();
         }
 
         /// <summary>
@@ -1054,14 +1060,7 @@ namespace BioDivCollectorXamarin.ViewModels
             CanAddMapGeometry = !CanAddMapGeometry;
             if (CanAddMapGeometry == false)
             {
-                RemoveTempGeometry();
-                foreach (var layer in Map.Layers)
-                {
-                    if (layer.Name == "Polygons" || layer.Name == "Lines" || layer.Name == "Points")
-                    {
-                        layer.IsMapInfoLayer = true;  //Make the layer selectable
-                    }
-                }
+                CancelAddingMapGeometry();
             }
             else
             {
@@ -1081,6 +1080,18 @@ namespace BioDivCollectorXamarin.ViewModels
             else
             {
                 VMGeomEditButton.BackgroundColor = (Color)Application.Current.Resources["BioDivGrey"];
+            }
+        }
+
+        private void CancelAddingMapGeometry()
+        {
+            RemoveTempGeometry();
+            foreach (var layer in Map.Layers)
+            {
+                if (layer.Name == "Polygons" || layer.Name == "Lines" || layer.Name == "Points")
+                {
+                    layer.IsMapInfoLayer = true;  //Make the layer selectable
+                }
             }
         }
 
@@ -1136,7 +1147,7 @@ namespace BioDivCollectorXamarin.ViewModels
     /// <summary>
     /// The command for showing the map layers page
     /// </summary>
-    class LayersButtonCommand : ICommand
+    public class LayersButtonCommand : ICommand
     {
         public MapPageVM MapPageViewModel { get; set; }
 

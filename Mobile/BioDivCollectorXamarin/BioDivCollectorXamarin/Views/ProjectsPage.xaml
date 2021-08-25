@@ -5,6 +5,7 @@
              xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
              xmlns:viewModel="clr-namespace:BioDivCollectorXamarin.ViewModels"
              x:Class="BioDivCollectorXamarin.Views.ProjectsPage"
+             x:DataType="viewModel:ProjectsPageVM"
              xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views"
              Shell.NavBarIsVisible="False"
              BackgroundColor = "{StaticResource BioDivGrey}"
@@ -15,13 +16,13 @@
     <ContentPage.BindingContext>
         <viewModel:ProjectsPageVM/>
     </ContentPage.BindingContext>
-    <ContentPage.Content>
 
-        <StackLayout BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HorizontalOptions="Fill"  Margin="0,0,0,0" Spacing="0">
-            <Grid BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill" HeightRequest="160" MinimumHeightRequest="160" >
+    <ContentPage.Content>
+        <StackLayout BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource BioDivGrey}}" VerticalOptions="Fill" HorizontalOptions="Fill"  Margin="0,0,0,0" Spacing="0">
+            <Grid BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource BioDivGrey}}" VerticalOptions="Fill" HeightRequest="160" MinimumHeightRequest="160" >
                     <Frame BorderColor="{StaticResource BioDivGrey}"
                            OutlineColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
-                           BackgroundColor="Transparent"
+                           BackgroundColor="{AppThemeBinding Light=Color.White, Dark={StaticResource BioDivGrey}}"
                            Opacity="1"
                            CornerRadius="20"
                            Margin="20,30,20,10"
@@ -41,8 +42,7 @@
                 <!-- Current Project Information -->
             <ScrollView Margin="0" VerticalOptions="FillAndExpand" IsVisible="{Binding CurrentProject, Converter={StaticResource objectToBool}}">
                 <FlexLayout Direction="Column" JustifyContent="SpaceEvenly" >
-                    <Grid  BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" VerticalOptions="Fill">
-
+                    <Grid  BackgroundColor="Transparent" VerticalOptions="Fill">
                         <Frame x:Name="CurrentProjectCard" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
                            OutlineColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
                            BackgroundColor="Transparent"
@@ -107,8 +107,8 @@
                                 <Label Text="{Binding CurrentProject.lastSync,StringFormat='{0:dd MMMM yyyy HH:mm zzz}'}"/>
                             </FlexLayout>
                         </Frame>
-                        <Frame Margin ="0,0,0,0" Padding="0" WidthRequest="200" HeightRequest="30" IsClippedToBounds="True" HorizontalOptions="Center" VerticalOptions="Start" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}" CornerRadius="15" BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" HasShadow="False">
-                            <Label Text="Aktuelles Projekt" FontAttributes="Bold" Margin="0,5,0,5" HorizontalOptions="CenterAndExpand" HorizontalTextAlignment="Center" BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}"/>
+                        <Frame Margin ="0,0,0,0" Padding="0" WidthRequest="200" HeightRequest="30" IsClippedToBounds="True" HorizontalOptions="Center" VerticalOptions="Start" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}" CornerRadius="15" BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource BioDivGrey}}" HasShadow="False">
+                            <Label Text="Aktuelles Projekt" FontAttributes="Bold" Margin="0,5,0,5" HorizontalOptions="CenterAndExpand" HorizontalTextAlignment="Center" BackgroundColor="Transparent"/>
                         </Frame>
 
                     </Grid>

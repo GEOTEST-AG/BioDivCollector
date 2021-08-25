@@ -38,13 +38,13 @@
     <PackageReference Include="Xam.Plugin.Geolocator" Version="4.5.0.6" />
     <PackageReference Include="Xamarin.Auth.Extensions" Version="1.7.0" />
     <PackageReference Include="Xamarin.Auth.XamarinForms" Version="1.7.0" />
-    <PackageReference Include="Xamarin.CommunityToolkit" Version="1.1.0" />
-    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />  
+    <PackageReference Include="Xamarin.CommunityToolkit" Version="1.2.0" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2083" />  
     <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
     <PackageReference Include="Mapsui" Version="2.0.3" />
     <PackageReference Include="Mapsui.Forms" Version="2.0.3" />
     <PackageReference Include="BruTile.MbTiles" Version="2.2.0" />
-    <PackageReference Include="Xamarin.Essentials.Interfaces" Version="1.6.1" />
+    <PackageReference Include="Xamarin.Essentials.Interfaces" Version="1.7.0" />
     <PackageReference Include="Xamarin.RisePlugin.AutoCompleteTextView" Version="1.0.9" />
     <PackageReference Include="ProjNet" Version="2.0.0" />
   </ItemGroup>
