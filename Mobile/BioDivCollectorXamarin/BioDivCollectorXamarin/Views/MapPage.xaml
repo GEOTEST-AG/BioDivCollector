@@ -25,6 +25,10 @@
                         <Button x:Name="LayersButton" ImageSource="outline_layers_white_24dp.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding LayersButtonCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
                         <Button x:Name="SaveButton" ImageSource="outline_save_white_24dp.png" Style="{StaticResource mapButtonStyle}"  Command ="{Binding SaveMapCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
                     </StackLayout>
+                    <StackLayout WidthRequest="50" Padding="10,20,10,20" VerticalOptions="End" HorizontalOptions="Start">
+                        <Button x:Name="ClearButton" ImageSource="clear.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding ClearGeomCommand}" BackgroundColor="{StaticResource BioDivGreen}" IsVisible="{Binding CanAddMapGeometry}"/>
+                        <Button x:Name="UndoButton" ImageSource="undo.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding UndoGeomCommand}" BackgroundColor="{StaticResource BioDivGreen}" IsVisible="{Binding CanAddMapGeometry}"/>
+                    </StackLayout>
                 </Grid>
             
                 <FlexLayout Direction="Row" WidthRequest="500" AlignContent="SpaceAround" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="1,2,1,0" Margin="0" BackgroundColor="{StaticResource BioDivGrey}" HeightRequest="55" IsVisible="{Binding CanAddMapGeometry}">

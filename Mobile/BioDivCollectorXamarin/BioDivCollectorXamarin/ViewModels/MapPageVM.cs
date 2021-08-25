@@ -58,6 +58,16 @@ namespace BioDivCollectorXamarin.ViewModels
         public Command CancelGeomCommand { get; set; }
 
         /// <summary>
+        /// The button command to undo the last drawn point of a geometry
+        /// </summary>
+        public Command UndoGeomCommand { get; set; }
+
+        /// <summary>
+        /// The button command to clear a temporary geometry
+        /// </summary>
+        public Command ClearGeomCommand { get; set; }
+
+        /// <summary>
         /// The button command to save the newly defined geometry
         /// </summary>
         public Command SaveGeomCommand { get; set; }
@@ -196,6 +206,8 @@ namespace BioDivCollectorXamarin.ViewModels
             LayersButtonCommand = new LayersButtonCommand(this);
             CancelGeomCommand = new Command(CancelNewGeom, CanCancelNewGeom);
             SaveGeomCommand = new Command(SaveNewGeom, CanSaveNewGeom);
+            UndoGeomCommand = new Command(UndoLastTempPoint, CanUndoNewGeom);
+            ClearGeomCommand = new Command(ClearNewGeom, CanClearNewGeom);
             SaveMapCommand = new Command(SaveMaps, CanSaveMaps);
             AddMapGeometryCommand = new Command(AllowAddNewGeom, AllowAddNewGeomButtonActivated);
             CancelSaveCommand = new Command(CancelSave, AllowCancelSave);
@@ -279,10 +291,9 @@ namespace BioDivCollectorXamarin.ViewModels
 
             MessagingCenter.Subscribe<MapPageVM>(this, "ShapeDrawingUndone", (sender) =>
             {
-                RefreshShapes();
+                Map.Layers.Remove(TempLayer);
                 TempLayer = MapModel.CreateTempLayer(TempCoordinates);
                 Map.Layers.Insert(Map.Layers.Count, TempLayer);
-                //SaveGeomCommand.ChangeCanExecute();
             });
 
             DeviceDisplay.MainDisplayInfoChanged += HandleRotationChange;
@@ -414,6 +425,8 @@ namespace BioDivCollectorXamarin.ViewModels
                 TempLayer = MapModel.CreateTempLayer(TempCoordinates);
                 Map.Layers.Insert(Map.Layers.Count, TempLayer);
                 (SaveGeomCommand as Command).ChangeCanExecute();
+                (ClearGeomCommand as Command).ChangeCanExecute();
+                (UndoGeomCommand as Command).ChangeCanExecute();
             }        
         }
 
@@ -960,6 +973,24 @@ namespace BioDivCollectorXamarin.ViewModels
         }
 
         /// <summary>
+        /// Validate if the undo function is available
+        /// </summary>
+        /// <returns>true</returns>
+        private bool CanUndoNewGeom()
+        {
+            return TempCoordinates.Count > 1;
+        }
+
+        /// <summary>
+        /// Validate if the clear function is available
+        /// </summary>
+        /// <returns>true</returns>
+        private bool CanClearNewGeom()
+        {
+            return TempCoordinates.Count > 0;
+        }
+
+        /// <summary>
         /// Cancel saving map tiles
         /// </summary>
         private void CancelSave()
@@ -1021,7 +1052,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     if (TempCoordinates.Count > 3)
                     {
-                        if (!CurrentPolygonSelfIntersecting) //Polyon was not previously self-intersecting
+                        if (!CurrentPolygonSelfIntersecting) //Polygon was not previously self-intersecting
                         {
                             CurrentPolygonSelfIntersecting = true;
                             Device.BeginInvokeOnMainThread(async () =>
@@ -1031,9 +1062,8 @@ namespace BioDivCollectorXamarin.ViewModels
                                 {
                                     try
                                     {
-                                        TempCoordinates.RemoveAt(TempCoordinates.Count - 2);
+                                        UndoLastTempPoint();
                                         CurrentPolygonSelfIntersecting = false;
-                                        MessagingCenter.Send<MapPageVM>(this, "ShapeDrawingUndone");
                                         SaveGeomCommand.ChangeCanExecute();
                                     }
                                     catch (Exception e)
@@ -1048,6 +1078,34 @@ namespace BioDivCollectorXamarin.ViewModels
                     
                     return false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Remove the last-drawn point in a new geometry
+        /// </summary>
+        private void UndoLastTempPoint()
+        {
+            if (TempCoordinates.Count > 1)
+            {
+                TempCoordinates.RemoveAt(TempCoordinates.Count - 2);
+                MessagingCenter.Send<MapPageVM>(this, "ShapeDrawingUndone");
+                (ClearGeomCommand as Command).ChangeCanExecute();
+                (UndoGeomCommand as Command).ChangeCanExecute();
+            }
+        }
+
+        /// <summary>
+        /// Clear a new geometry
+        /// </summary>
+        private void ClearNewGeom()
+        {
+            if (TempCoordinates.Count > 1)
+            {
+                TempCoordinates = new List<Mapsui.Geometries.Point>();
+                Map.Layers.Remove(TempLayer);
+                (ClearGeomCommand as Command).ChangeCanExecute();
+                (UndoGeomCommand as Command).ChangeCanExecute();
             }
         }
 

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -327,6 +327,14 @@
     <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small.png" />
     <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small-1.png" />
     <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small-2.png" />
+    <ImageAsset Include="Assets.xcassets\undo.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\undo.imageset\outline_undo_white_24pt_1x-1.png" />
+    <ImageAsset Include="Assets.xcassets\undo.imageset\outline_undo_white_24pt_2x-1.png" />
+    <ImageAsset Include="Assets.xcassets\undo.imageset\outline_undo_white_24pt_3x-1.png" />
+    <ImageAsset Include="Assets.xcassets\clear.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\clear.imageset\outline_clear_white_24pt_1x.png" />
+    <ImageAsset Include="Assets.xcassets\clear.imageset\outline_clear_white_24pt_2x.png" />
+    <ImageAsset Include="Assets.xcassets\clear.imageset\outline_clear_white_24pt_3x.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -374,6 +382,8 @@
     <Folder Include="Assets.xcassets\Background.imageset\" />
     <Folder Include="Assets.xcassets\LogoV1Small.imageset\" />
     <Folder Include="Assets.xcassets\LogoV1small.imageset\" />
+    <Folder Include="Assets.xcassets\undo.imageset\" />
+    <Folder Include="Assets.xcassets\clear.imageset\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\MapModel.cs" Condition=" '$(EnableDefaultCompileItems)' == 'true' ">
