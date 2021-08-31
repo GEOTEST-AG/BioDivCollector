@@ -113,7 +113,21 @@ namespace BioDivCollectorXamarin.Models.LoginModel
 
                         //Return login page
                         App.ShowLogin = true;
-                        return new MainPage();
+
+                        var oldUser = Preferences.Get("Username", String.Empty);
+                        var oldPassword = Preferences.Get("Password", String.Empty);
+                        if (oldUser != String.Empty && oldPassword != String.Empty)
+                        {
+                            Task.Run(async () => {
+                                await Authentication.RequestAuthentication(oldUser, oldPassword);
+                            });
+                            return new LoginPage();
+                        }
+                        else
+                        {
+                            return new MainPage();
+                        }
+                        
 
                     }
                     else

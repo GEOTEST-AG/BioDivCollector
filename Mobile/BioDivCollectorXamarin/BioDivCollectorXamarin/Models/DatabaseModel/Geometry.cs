@@ -134,6 +134,26 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             }
         }
 
+
+        /// <summary>
+        /// Update a geometry in the database given a list of coordinates
+        /// </summary>
+        /// <param name="pointList"></param>
+        /// <param name="name"></param>
+        public static void UpdateGeometry(List<Mapsui.Geometries.Point> pointList, int GeomId)
+        {
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            {
+                var geom = conn.GetWithChildren<ReferenceGeometry>(GeomId);
+                geom.geometry = DataDAO.CoordinatesToGeoJSON(pointList);
+                geom.userName = App.CurrentUser.userId;
+                geom.fullUserName = App.CurrentUser.firstName + " " + App.CurrentUser.name;
+                geom.timestamp = DateTime.Now;
+                geom.status = 1;
+                conn.Update(geom);
+            }
+        }
+
         /// <summary>
         /// Update the geometry with any changes made
         /// </summary>
@@ -224,6 +244,36 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var line = new Mapsui.Geometries.LineString();
             line.Vertices = tpoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToArray();
             return line.Length;
+        }
+
+        public static string FindGeometryTypeFromCoordinateList(List<Mapsui.Geometries.Point>coordList)
+        {
+            var start = coordList[0];
+            var end = coordList[coordList.Count - 1];
+            if (coordList.Count == 1)
+            {
+                return "Punkt";
+            }
+            else if (start.X == end.X && start.Y == end.Y)
+            {
+                return "Polygon";
+            }
+            else
+            {
+                return "Linie";
+            }
+        }
+
+        public void ChangeGeometryName(string name)
+        {
+            this.geometryName = name;
+            this.timestamp = DateTime.Now;
+            if (this.status != -1)
+            {
+                this.status = 2;
+            }
+            ReferenceGeometry.SaveGeometry(this);
+            App.RecordLists.CreateRecordLists();
         }
     }
 

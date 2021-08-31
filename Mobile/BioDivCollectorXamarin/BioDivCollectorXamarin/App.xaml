@@ -209,12 +209,12 @@
                         <VisualStateGroup x:Name="CommonStates">
                             <VisualState x:Name="Normal">
                                 <VisualState.Setters>
-                                    <Setter Property="Opacity" Value="0.7" />
+                                    <Setter Property="Opacity" Value="0.9" />
                                 </VisualState.Setters>
                             </VisualState>
                             <VisualState x:Name="Disabled">
                                 <VisualState.Setters>
-                                    <Setter Property="Opacity" Value="0.2" />
+                                    <Setter Property="Opacity" Value="0.4" />
                                 </VisualState.Setters>
                             </VisualState>
                         </VisualStateGroup>

@@ -122,6 +122,9 @@ namespace BioDivCollectorXamarin.Models.LoginModel
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                //Delete username and password if login did not work, so that we don't get into an endless loop
+                Preferences.Set("Username", String.Empty);
+                Preferences.Set("Password", String.Empty);
             }
             finally
             {

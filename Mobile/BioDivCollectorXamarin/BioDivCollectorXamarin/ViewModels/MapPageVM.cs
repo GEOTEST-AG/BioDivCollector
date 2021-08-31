@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -166,6 +167,11 @@ namespace BioDivCollectorXamarin.ViewModels
         }
 
         /// <summary>
+        /// The geometry to edit
+        /// </summary>
+        public int GeomToEdit;
+
+        /// <summary>
         /// A temporary list of coordinates used during geometry creation
         /// </summary>
         private List<Mapsui.Geometries.Point> tempCoordinates;
@@ -296,9 +302,15 @@ namespace BioDivCollectorXamarin.ViewModels
                 Map.Layers.Insert(Map.Layers.Count, TempLayer);
             });
 
+            MessagingCenter.Subscribe<Application,int>(App.Current, "EditGeometry", (sender,arg) =>
+            {
+                GeomToEdit = arg;
+            });
+
+
             DeviceDisplay.MainDisplayInfoChanged += HandleRotationChange;
 
-            
+
         }
 
         /// <summary>
@@ -424,9 +436,18 @@ namespace BioDivCollectorXamarin.ViewModels
                 
                 TempLayer = MapModel.CreateTempLayer(TempCoordinates);
                 Map.Layers.Insert(Map.Layers.Count, TempLayer);
-                (SaveGeomCommand as Command).ChangeCanExecute();
-                (ClearGeomCommand as Command).ChangeCanExecute();
-                (UndoGeomCommand as Command).ChangeCanExecute();
+
+                try
+                {
+                    (SaveGeomCommand as Command).ChangeCanExecute();
+                    (ClearGeomCommand as Command).ChangeCanExecute();
+                    (UndoGeomCommand as Command).ChangeCanExecute();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
             }        
         }
 
@@ -517,7 +538,42 @@ namespace BioDivCollectorXamarin.ViewModels
                     Task.Delay(100).ContinueWith(t => ZoomMapOut());
                 }
             });
-            
+
+        }
+
+        /// <summary>
+        /// Allow editing of a predefined geometry
+        /// </summary>
+        private void ConfigureGeometryForEditing()
+        {
+            if (GeomToEdit > 0)
+            {
+                try
+                {
+                    var tempGeom = ReferenceGeometry.GetGeometry(GeomToEdit);
+                    NetTopologySuite.Geometries.Coordinate[] tempPoints = DataDAO.GeoJSON2Geometry(tempGeom.geometry).Coordinates;
+                    List<Mapsui.Geometries.Point> coordList = tempPoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToList();
+                    GeometryType = ReferenceGeometry.FindGeometryTypeFromCoordinateList(coordList);
+                    TempCoordinates = coordList; //Not initially assigned to tempCoordinates, as we need to first know GeometryType to decide whether the save command can run
+
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        TempLayer = MapModel.CreateTempLayer(TempCoordinates);
+                        Map.Layers.Insert(Map.Layers.Count, TempLayer);
+
+                        AllowAddNewGeom();
+
+                        SaveGeomCommand.ChangeCanExecute();
+                        ClearGeomCommand.ChangeCanExecute();
+                        UndoGeomCommand.ChangeCanExecute();
+
+                    });
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
         }
 
         /// <summary>
@@ -548,13 +604,6 @@ namespace BioDivCollectorXamarin.ViewModels
         public void OnDisappearing()
         {
             StopGPS();
-            /*foreach (var layer in Map.Layers)
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    Map.Layers.Remove(layer);
-                });
-            }*/
             MessagingCenter.Unsubscribe<MapLayer>(this, "LayerOrderChanged");
         }
 
@@ -601,7 +650,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     Map.Layers.Insert(Map.Layers.Count, pointlayerNoRecords);
                 });
 
-
+                ConfigureGeometryForEditing();
             }
 
             var filterGeom = Preferences.Get("FilterGeometry", String.Empty);
@@ -673,6 +722,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     VMMapView.Navigator.NavigateTo(allShapesLayer.Envelope, Mapsui.Utilities.ScaleMethod.Fit);
                 }
             }
+            ConfigureGeometryForEditing();
         }
 
 
@@ -910,7 +960,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="args"></param>
         public void MapOnInfo(object sender, MapInfoEventArgs args)
         {
-            if (DateTime.Now > LastObjectSelection.AddSeconds(1)) //ensure that only 1 selection is made at one time
+            if (DateTime.Now > LastObjectSelection.AddSeconds(1) && CanAddMapGeometry == false) //ensure that only 1 selection is made at one time
             {
                 LastObjectSelection = DateTime.Now;
                 var featureName = args.MapInfo.Feature?["Name"]?.ToString();
@@ -960,6 +1010,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void CancelNewGeom()
         {
+            GeomToEdit = 0;
             CancelAddingMapGeometry();
         }
 
@@ -995,6 +1046,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void CancelSave()
         {
+            GeomToEdit = 0;
             MessagingCenter.Send<Application>(App.Current, "CancelMapSave");
         }
 
@@ -1012,18 +1064,31 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void SaveNewGeom()
         {
-            MessagingCenter.Subscribe<MapPage,string>(this, "GeometryName", (sender,arg) =>
+            
+            if (GeomToEdit > 0)
             {
-                var geomName = arg as string;
-                ReferenceGeometry.SaveGeometry(TempCoordinates, geomName);
+                ReferenceGeometry.UpdateGeometry(TempCoordinates, GeomToEdit);
+                GeomToEdit = 0;
+                AllowAddNewGeom();
                 RemoveTempGeometry();
                 RefreshShapes();
-                MessagingCenter.Unsubscribe<MapPage, string>(this, "GeometryName");
-            });
-            Mapsui.Geometries.Point point = TempCoordinates[0];
-            var coords = point.ToDoubleArray();
-            var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
-            MessagingCenter.Send<MapPageVM,string>(this, "RequestGeometryName", coordString);
+            }
+            else
+            {
+                MessagingCenter.Subscribe<MapPage, string>(this, "GeometryName", (sender, arg) =>
+                {
+                    var geomName = arg as string;
+                    ReferenceGeometry.SaveGeometry(TempCoordinates, geomName);
+                    GeomToEdit = 0;
+                    RemoveTempGeometry();
+                    RefreshShapes();
+                    MessagingCenter.Unsubscribe<MapPage, string>(this, "GeometryName");
+                });
+                Mapsui.Geometries.Point point = TempCoordinates[0];
+                var coords = point.ToDoubleArray();
+                var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
+                MessagingCenter.Send<MapPageVM, string>(this, "RequestGeometryName", coordString);
+            }
         }
 
         /// <summary>
@@ -1088,7 +1153,20 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             if (TempCoordinates.Count > 1)
             {
-                TempCoordinates.RemoveAt(TempCoordinates.Count - 2);
+                if (TempCoordinates[0].X == TempCoordinates[TempCoordinates.Count - 1].X && TempCoordinates[0].Y == TempCoordinates[TempCoordinates.Count - 1].Y)
+                {
+                    //Keep start and end coordinates of polygon
+                    TempCoordinates.RemoveAt(TempCoordinates.Count - 2);
+                } else
+                {
+                    TempCoordinates.RemoveAt(TempCoordinates.Count - 1);
+                }
+                if (TempCoordinates.Count == 2 && TempCoordinates[0].X == TempCoordinates[TempCoordinates.Count - 1].X && TempCoordinates[0].Y == TempCoordinates[TempCoordinates.Count - 1].Y)
+                {
+                    //Delete the joining point of a polygon if we only have 2 points the same
+                    TempCoordinates.RemoveAt(TempCoordinates.Count - 1);
+                }
+                
                 MessagingCenter.Send<MapPageVM>(this, "ShapeDrawingUndone");
                 (ClearGeomCommand as Command).ChangeCanExecute();
                 (UndoGeomCommand as Command).ChangeCanExecute();
@@ -1131,13 +1209,20 @@ namespace BioDivCollectorXamarin.ViewModels
                 }
             }
 
-            if (canAddMapGeometry)
+            try
             {
-                VMGeomEditButton.BackgroundColor = (Color)Application.Current.Resources["BioDivGreen"];
+                if (canAddMapGeometry)
+                {
+                    VMGeomEditButton.BackgroundColor = (Color)Application.Current.Resources["BioDivGreen"];
+                }
+                else
+                {
+                    VMGeomEditButton.BackgroundColor = (Color)Application.Current.Resources["BioDivGrey"];
+                }
             }
-            else
+            catch (Exception e)
             {
-                VMGeomEditButton.BackgroundColor = (Color)Application.Current.Resources["BioDivGrey"];
+                Console.WriteLine(e);
             }
         }
 

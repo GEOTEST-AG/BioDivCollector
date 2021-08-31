@@ -212,7 +212,7 @@ namespace BioDivCollectorXamarin.Views
         {
             Device.BeginInvokeOnMainThread(async () =>
             {
-                string formAction = await DisplayActionSheet("Optionen", "Abbrechen", null, "Geometrie entfernen", "GUID Kopieren", "Geometriename editieren");
+                string formAction = await DisplayActionSheet("Optionen", "Abbrechen", null, "Geometrie entfernen", "GUID Kopieren", "Geometriename editieren", "Geometrie editieren");
                 if (formAction == "Geometrie entfernen")
                 {
                     DeleteButton_Clicked(sender, e);
@@ -230,16 +230,23 @@ namespace BioDivCollectorXamarin.Views
                     GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
                     var geom = formRec.Geom;
                     string newName = await DisplayPromptAsync("Geometriename", "Editieren Sie bitte der Geometriename", accept: "OK", cancel: "Abbrechen",  initialValue: geom.geometryName, keyboard: Keyboard.Text);
-                    geom.geometryName = newName;
-                    geom.timestamp = DateTime.Now;
-                    if (geom.status != -1)
-                    {
-                        geom.status = 2;
-                    }
-                    ReferenceGeometry.SaveGeometry(geom);
-                    ViewModel.UpdateRecords();
+                    geom.ChangeGeometryName(newName);
+                    
+                }
+                else if (formAction == "Geometrie editieren")
+                {
+                    SendGeometryToMapForEditing((Button)sender);
+                    App.CurrentRoute = "//Map";
+                    Shell.Current.GoToAsync($"//Map", true);
                 }
             });
+        }
+
+        private void SendGeometryToMapForEditing(Button sender)
+        {
+            GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
+            var geom = formRec.Geom;
+            MessagingCenter.Send<Application, int>(Application.Current, "EditGeometry", geom.Id);
         }
 
         /// <summary>
