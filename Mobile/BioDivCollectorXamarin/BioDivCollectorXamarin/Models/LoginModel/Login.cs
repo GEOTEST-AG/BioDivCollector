@@ -36,12 +36,29 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                     var task = client.SendAsync(request).ContinueWith((taskwithmsg) =>
                     {
                         var response = taskwithmsg.Result;
+                        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+                            var jsonTask = response.Content.ReadAsStringAsync();
+                            jsonTask.Wait();
+                            jsonObject = jsonTask.Result;
 
-                        var jsonTask = response.Content.ReadAsStringAsync();
-                        jsonTask.Wait();
-                        jsonObject = jsonTask.Result;
-                        
-                        App.BioDivPrefs.Set("User", jsonObject);
+                            App.BioDivPrefs.Set("User", jsonObject);
+                        }
+                        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            Device.BeginInvokeOnMainThread(async () =>
+                            {
+                                bool ok = await App.Current.MainPage.DisplayAlert("Anmeldung fehlgeschlagen", "Benutzername oder Passwort ungültig. Versuchen Sie bitte nochmals", null, "OK");
+                            });
+                        }
+                        else
+                        {
+                            Device.BeginInvokeOnMainThread(async () =>
+                            {
+                                bool ok = await App.Current.MainPage.DisplayAlert("Anmeldung fehlgeschlagen", "Versuchen Sie bitte nochmals", null, "OK");
+                            });
+                        }
+
                     });
                     task.Wait();
 
@@ -50,6 +67,10 @@ namespace BioDivCollectorXamarin.Models.LoginModel
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                Device.BeginInvokeOnMainThread(async () =>
+                {
+                    bool ok = await App.Current.MainPage.DisplayAlert("Anmeldung Fehlgeschlagen", "Versuchen Sie bitte nochmals", null, "OK");
+                });
             }
             finally
             {

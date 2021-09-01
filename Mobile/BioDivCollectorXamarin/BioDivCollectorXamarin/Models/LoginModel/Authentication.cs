@@ -108,12 +108,28 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                     var task = client.SendAsync(request).ContinueWith((taskwithmsg) =>
                     {
                         var response = taskwithmsg.Result;
-
-                        var jsonTask = response.Content.ReadAsStringAsync();
-                        jsonTask.Wait();
-                        var jsonObject = jsonTask.Result;
-                        var returnedObject = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonObject);  //Deserialise response
-                        SaveTokens(returnedObject);
+                        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+                            var jsonTask = response.Content.ReadAsStringAsync();
+                            jsonTask.Wait();
+                            var jsonObject = jsonTask.Result;
+                            var returnedObject = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonObject);  //Deserialise response
+                            SaveTokens(returnedObject);
+                        }
+                        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            Device.BeginInvokeOnMainThread(async () =>
+                            {
+                                bool ok = await App.Current.MainPage.DisplayAlert("Anmeldung fehlgeschlagen", "Benutzername oder Passwort ungültig. Versuchen Sie bitte nochmals", null, "OK");
+                            });
+                        }
+                        else
+                        {
+                            Device.BeginInvokeOnMainThread(async () =>
+                            {
+                                bool ok = await App.Current.MainPage.DisplayAlert("Anmeldung fehlgeschlagen", "Versuchen Sie bitte nochmals" , null, "OK");
+                            });
+                        }
                     });
                     task.Wait();
 
@@ -125,6 +141,10 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                 //Delete username and password if login did not work, so that we don't get into an endless loop
                 Preferences.Set("Username", String.Empty);
                 Preferences.Set("Password", String.Empty);
+                Device.BeginInvokeOnMainThread(async () =>
+                {
+                    bool ok = await App.Current.MainPage.DisplayAlert("Anmeldung Fehlgeschlagen", "Versuchen Sie bitte nochmals", null, "OK");
+                });
             }
             finally
             {

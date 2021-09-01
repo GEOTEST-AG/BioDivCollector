@@ -11,6 +11,7 @@
             <Label Text="Sie werden angemeldet. Bitte warten..."
                 VerticalOptions="CenterAndExpand" 
                 HorizontalOptions="CenterAndExpand" HorizontalTextAlignment="Center" TextColor="Black"/>
+            <ActivityIndicator IsRunning="true" BackgroundColor="Transparent" IsVisible="true" Color="{StaticResource BioDivGreen}" Margin="30"/>
         </StackLayout>
         </Grid>
     </ContentPage.Content>

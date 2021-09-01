@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
 using Foundation;
 using UIKit;
 
@@ -24,12 +23,12 @@ namespace BioDivCollectorXamarin.iOS
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
             global::Xamarin.Forms.Forms.Init();
+            new Syncfusion.SfAutoComplete.XForms.iOS.SfAutoCompleteRenderer();
+
             string dbName = "biodivcollector_database.sqlite";
             string folderPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "..", "Library");
             string fullPath = Path.Combine(folderPath, dbName);
             string tilePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            Xamarin.RisePlugin.AutoCompleteTextView.iOS.AutoCompleteTextViewRenderer.Init();
-
             LoadApplication(new App(fullPath,tilePath));
 
             return base.FinishedLaunching(app, options);

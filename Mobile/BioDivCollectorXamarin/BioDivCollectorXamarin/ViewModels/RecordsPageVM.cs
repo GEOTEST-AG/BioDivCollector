@@ -237,6 +237,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Activity = false;
             IsBusy = true;
             SelectedItem = null;
+
             Task.Run(async() =>
             {
                 Activity = true;

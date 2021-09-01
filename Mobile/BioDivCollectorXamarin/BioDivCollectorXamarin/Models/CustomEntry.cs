@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using Xamarin.Forms;
+using Syncfusion.SfAutoComplete.XForms;
 
 namespace BioDivCollectorXamarin.Controls
 {
@@ -45,6 +46,16 @@ namespace BioDivCollectorXamarin.Controls
         public int? TypeId { get; set; }
         public bool Mandatory { get; set; }
     }
+
+	/// <summary>
+	/// Adds id and mandatory parameters to a standard picker/dropdown
+	/// </summary>
+	public class CustomAutoComplete : SfAutoComplete
+	{
+		public int? ValueId { get; set; }
+		public int? TypeId { get; set; }
+		public bool Mandatory { get; set; }
+	}
 
 	/// <summary>
 	/// Adds id and mandatory parameters to a standard date picker and allows it to be nullable

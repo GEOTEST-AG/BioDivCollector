@@ -18,6 +18,12 @@
                 <Setter Property="TextColor"
                     Value="{AppThemeBinding Light={StaticResource LightTextColor}, Dark={StaticResource DarkTextColor}}" />
             </Style>
+            <Style TargetType="Entry">
+                <Setter Property="TextColor"
+                    Value="{AppThemeBinding Light={StaticResource LightTextColor}, Dark={StaticResource DarkTextColor}}" />
+                <Setter Property="BackgroundColor"
+                    Value="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}" />
+            </Style>
             <Style TargetType="Button">
                 <Setter Property="TextColor" Value="White"></Setter>
                 <Setter Property="VisualStateManager.VisualStateGroups">
@@ -194,7 +200,6 @@
                     </VisualStateGroupList>
                 </Setter>
             </Style>
-
             <Style x:Key="mapButtonStyle" TargetType="Button">
                 <Setter Property="HorizontalOptions" Value="End" />
                 <Setter Property="VerticalOptions" Value="End" />

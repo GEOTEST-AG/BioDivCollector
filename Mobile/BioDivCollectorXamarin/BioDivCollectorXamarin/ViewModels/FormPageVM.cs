@@ -13,6 +13,7 @@ using Xamarin.Forms;
 using Xamarin.Forms.PlatformConfiguration;
 using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
 using System.Threading.Tasks;
+using Syncfusion.SfAutoComplete.XForms;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
@@ -24,7 +25,7 @@ namespace BioDivCollectorXamarin.ViewModels
         public Form formType { get; set; }
         private string BDCGUIDtext;
         private List<ReferenceGeometry> Geoms;
-        private CustomPicker AssociatedGeometry;
+        private CustomAutoComplete AssociatedGeometry;
         public bool ReadOnly = false;
         private Dictionary<int, bool> Validation = new Dictionary<int, bool>();
 
@@ -117,17 +118,21 @@ namespace BioDivCollectorXamarin.ViewModels
                                     conn.UpdateWithChildren(queriedrec);
                                     text = txt;
                                 }
-                                textField = new CustomEntry { Text = Form.DetermineText(queriedrec, text, formField.standardValue)};
+                                textField.Text = Form.DetermineText(queriedrec, text, formField.standardValue);
                                 textField.Keyboard = Keyboard.Text;
                                 textField.Placeholder = formField.description;
                                 textField.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
                                 textField.ReturnType = ReturnType.Done;
                                 textField.Margin = new Thickness(0, 0, 0, 10);
                                 textField.ValueId = text.Id;
+                                textField.HeightRequest = 40;
                                 textField.TypeId = formField.typeId;
                                 textField.TextChanged += TextFieldChanged;
                                 textField.IsEnabled = !ReadOnly;
                                 textField.Mandatory = formField.mandatory;
+                                textField.PlaceholderColor = Color.Gray;
+                                textField.SetAppThemeColor(CustomEntry.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
+                                textField.SetAppThemeColor(CustomEntry.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
                                 var empty = String.IsNullOrEmpty(textField.Text);
                                 if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); }
                                 if (ReadOnly)
@@ -199,6 +204,9 @@ namespace BioDivCollectorXamarin.ViewModels
                                 dateField.HeightRequest = 40;
                                 dateField.Mandatory = formField.mandatory;
                                 dateField.VerticalOptions = LayoutOptions.StartAndExpand;
+                                dateField.SetAppThemeColor(CustomEntry.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
+                                dateField.SetAppThemeColor(CustomEntry.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+
                                 dateField.PropertyChanged += DateFieldChanged;
                                 var empty = (dateField.NullableDate == null);
                                 if (formField.mandatory) { Validation.Add((int)dateField.ValueId, !empty); }
@@ -215,6 +223,9 @@ namespace BioDivCollectorXamarin.ViewModels
                                 timeField.HeightRequest = 40;
                                 timeField.VerticalOptions = LayoutOptions.StartAndExpand;
                                 timeField.Mandatory = formField.mandatory;
+                                timeField.SetAppThemeColor(CustomEntry.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
+                                timeField.SetAppThemeColor(CustomEntry.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+
                                 timeField.PropertyChanged += TimeFieldChanged;
                                 if (ReadOnly)
                                 {
@@ -271,7 +282,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             try
                             {
                                 var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                                var textField = new CustomPicker();
+                                var textField = new CustomAutoComplete();
                                 if (text == null)
                                 {
                                     //CreateNew
@@ -282,11 +293,36 @@ namespace BioDivCollectorXamarin.ViewModels
                                     conn.UpdateWithChildren(queriedrec);
                                     text = txt;
                                 }
+                                textField.SetAppThemeColor(SfAutoComplete.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
+                                textField.SetAppThemeColor(SfAutoComplete.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+                                textField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+
                                 List<string> choices = Form.FetchFormChoicesForDropdown(formField.Id);
-                                textField.ItemsSource = choices;
+
+                                textField.AutoCompleteSource = choices;
+
+                                textField.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                                textField.TextHighlightMode = OccurrenceMode.MultipleOccurrence;
+                                textField.SuggestionMode = SuggestionMode.Contains;
+                                textField.DropDownCornerRadius = 10;
+                                textField.HeightRequest = 40;
+                                textField.EnableAutoSize = true;
+                                textField.MultiSelectMode = MultiSelectMode.None;
+                                textField.ShowSuggestionsOnFocus = true;
+                                textField.IsSelectedItemsVisibleInDropDown = false;
+                                textField.DropDownBackgroundColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGrey"];
+                                textField.DropDownTextColor = Color.White;
+                                textField.HighlightedTextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
+                                textField.DropDownItemHeight = 50;
+                                textField.MaximumSuggestion = 50;
+                                textField.EnableSelectionIndicator = true;
+                                textField.LoadMoreText = "WEITERE ERGEBNISSE";
+                                textField.MaximumDropDownHeight = 150;
+                                textField.WatermarkColor = Color.Gray;
+
                                 textField.ValueId = text.Id;
                                 textField.TypeId = formField.Id;
-                                textField.Title = formField.description;
+                                textField.Watermark = formField.description;
                                 textField.IsEnabled = !ReadOnly;
                                 textField.Mandatory = formField.mandatory;
                                 if (formField.mandatory) { Validation.Add((int)textField.ValueId, textField.SelectedItem != null || (text.value != null && text.value != String.Empty)); }
@@ -294,21 +330,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 {
                                     textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                                 }
-                                textField.SelectedIndexChanged += DidSelectFromChoices;
-
-                                if (text.fieldChoiceId != null)
-                                {
-                                    textField.SelectedIndex = choices.FindIndex(a => a.Contains(text.value));
-                                    if (textField.SelectedIndex == -1 && (text.value != null && text.value != String.Empty))
-                                    {
-                                        textField.Title = text.value;
-                                    }
-                                    textField.SelectedItem = text.value;
-                                }
-                                else if (text.value != null && text.value != String.Empty)
-                                {
-                                    textField.Title = text.value;
-                                }
+                                textField.SelectionChanged += DidSelectFromChoices;
                                 textField.Margin = new Thickness(0, 0, 0, 10);
 
                                 Assets.Add(textField);
@@ -338,14 +360,20 @@ namespace BioDivCollectorXamarin.ViewModels
                                 }
 
                                 textField = new CustomEntry { Text = ((double)num.value).ToString("F", CultureInfo.CreateSpecificCulture("de-CH")) };
+
+                                textField.SetAppThemeColor(CustomEntry.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
+                                textField.SetAppThemeColor(CustomEntry.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+
                                 textField.Keyboard = Keyboard.Numeric;
                                 textField.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
                                 textField.ReturnType = ReturnType.Done;
                                 textField.Margin = new Thickness(0, 0, 0, 10);
                                 textField.ValueId = num.Id;
                                 textField.TypeId = formField.typeId;
+                                textField.HeightRequest = 40;
                                 textField.IsEnabled = !ReadOnly;
                                 textField.Mandatory = formField.mandatory;
+                                textField.PlaceholderColor = Color.Gray;
                                 var empty = String.IsNullOrEmpty(textField.Text);
                                 if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); }
                                 if (ReadOnly)
@@ -384,6 +412,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 checkBox.ValueId = boolValue.Id;
                                 checkBox.TypeId = formField.typeId;
                                 checkBox.IsEnabled = !ReadOnly;
+                                checkBox.Color = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
                                 if (ReadOnly) { checkBox.Color = Color.LightGray; }
                                 checkBox.CheckedChanged += BooleanFieldChanged;
                                 Assets.Add(checkBox);
@@ -406,7 +435,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 geomlabel.Margin = new Thickness(0, 10, 0, 0);
                 Assets.Add(geomlabel);
 
-                AssociatedGeometry = new CustomPicker();
+                AssociatedGeometry = new CustomAutoComplete();
                 Geoms = ReferenceGeometry.GetAllGeometries().Where(g => g.status < 3).OrderBy(g => g.geometryName).ToList();
                 foreach (var gm in Geoms)
                 {
@@ -416,10 +445,34 @@ namespace BioDivCollectorXamarin.ViewModels
                     }
                 }
                 var general = new ReferenceGeometry() { geometryName = "Allgemeine Beobachtung" };
-                AssociatedGeometry.ItemsSource = Geoms;
-                AssociatedGeometry.ItemsSource.Insert(0, general);
-                AssociatedGeometry.ItemDisplayBinding = new Binding ("geometryName");
+                var refGeoms = Geoms;
+                refGeoms.Insert(0, general);
+                AssociatedGeometry.AutoCompleteSource = refGeoms.Select(c => c.geometryName).ToList();
+                AssociatedGeometry.ItemsSource = refGeoms;
+                AssociatedGeometry.SelectedItem = new Binding ("geometryName");
                 AssociatedGeometry.TypeId = -999;
+
+                AssociatedGeometry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                AssociatedGeometry.TextHighlightMode = OccurrenceMode.MultipleOccurrence;
+                AssociatedGeometry.SuggestionMode = SuggestionMode.Contains;
+                AssociatedGeometry.DropDownCornerRadius = 10;
+                AssociatedGeometry.HeightRequest = 40;
+                AssociatedGeometry.EnableAutoSize = true;
+                AssociatedGeometry.MultiSelectMode = MultiSelectMode.None;
+                AssociatedGeometry.ShowSuggestionsOnFocus = true;
+                AssociatedGeometry.IsSelectedItemsVisibleInDropDown = false;
+                AssociatedGeometry.DropDownBackgroundColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGrey"];
+                AssociatedGeometry.DropDownTextColor = Color.White;
+                AssociatedGeometry.HighlightedTextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
+                AssociatedGeometry.DropDownItemHeight = 50;
+                AssociatedGeometry.MaximumSuggestion = 50;
+                AssociatedGeometry.EnableSelectionIndicator = true;
+                AssociatedGeometry.LoadMoreText = "WEITERE ERGEBNISSE";
+                AssociatedGeometry.MaximumDropDownHeight = 150;
+                AssociatedGeometry.SetAppThemeColor(SfAutoComplete.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
+                AssociatedGeometry.SetAppThemeColor(SfAutoComplete.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+                AssociatedGeometry.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+
 
                 if (queriedrec.geometry_fk != null)
                 {
@@ -437,7 +490,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     AssociatedGeometry.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                 }
-                AssociatedGeometry.SelectedIndexChanged += DidSelectNewGeometry;
+                AssociatedGeometry.SelectionChanged += DidSelectNewGeometry;
 
                 Assets.Add(AssociatedGeometry);
             }
@@ -564,14 +617,15 @@ namespace BioDivCollectorXamarin.ViewModels
         /// Update the geometry associated with the record with that selected from the picker
         /// </summary>
         /// <param name="choice"></param>
-        private async void UpdateAssociatedGeometry(CustomPicker choice)
+        private async void UpdateAssociatedGeometry(CustomAutoComplete choice)
         {
             await Task.Run(() =>
             {
                 var proj = Project.FetchCurrentProject();
                 if (choice.SelectedIndex > 0)
                 {
-                    var geom = choice.ItemsSource[(int)choice.SelectedIndex] as ReferenceGeometry;
+                    var source = (List<ReferenceGeometry>)choice.ItemsSource;
+                    var geom = source[(int)choice.SelectedIndex] as ReferenceGeometry;
                     using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                     {
                         var queriedrec = conn.Get<Record>(RecId);
@@ -782,7 +836,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="e"></param>
         private void DidSelectFromChoices(object sender, EventArgs e)
         {
-            var choice = sender as CustomPicker;
+            var choice = sender as CustomAutoComplete;
             using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.Id == choice.ValueId).FirstOrDefault();

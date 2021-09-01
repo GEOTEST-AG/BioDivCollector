@@ -217,10 +217,10 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
                         }
                     }
-                    else if (field.GetType() == typeof(CustomPicker))
+                    else if (field.GetType() == typeof(CustomAutoComplete))
                     {
                         //Save the chosen values from the picker
-                        var txtField = (CustomPicker)field;
+                        var txtField = (CustomAutoComplete)field;
                         if (txtField.TypeId != -999)
                         {
                             try

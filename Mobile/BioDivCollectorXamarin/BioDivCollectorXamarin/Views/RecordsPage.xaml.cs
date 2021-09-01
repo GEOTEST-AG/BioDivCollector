@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
-
 using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Views;
 using BioDivCollectorXamarin.ViewModels;
@@ -65,7 +64,6 @@ namespace BioDivCollectorXamarin.Views
                 await Task.Delay(500);
                 await DisplayAlert("BDC GUID kopiert", String.Empty, "OK");
             });
-
         }
 
         /// <summary>
