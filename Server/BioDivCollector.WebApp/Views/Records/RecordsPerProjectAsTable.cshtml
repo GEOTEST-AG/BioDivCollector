@@ -59,6 +59,25 @@
         });
     }
 
+    function changeGroupForRecord(recordId) {
+        modalokclick = false;
+        $('#changeGroup').modal('show');
+        $('#changeGroup').on('hide.bs.modal', function (event) {
+            if (modalokclick) {
+                $('#RecordContent').html('');
+                $('#records-loading-spinner').show();
+                $.ajax(
+                    {
+                        // TODO Change group
+
+                    }
+                );
+}
+            $(this).off('hide.bs.modal');
+        });
+    }
+
+
     function moveRecordAsTable(recordId) {
         console.log("MoveTable");
         modalokclick = false;
@@ -185,10 +204,12 @@
                     <tr>
                         <td>
                             @if ((!rvm.Readonly) && ((bool)ViewData["ReadOnly"] == false) && (rvm.Record.RecordId.ToString() != "00000000-0000-0000-0000-000000000000"))
-                                    {
-                            <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" style="width:42px;" onclick="openEditModal('@rvm.Record.RecordId')"><i class="fa fa-pencil-square-o"></i></button>
-                            <button type="button" class="btn btn-danger" data-original-title="btn btn-light" title="" style="width:42px;" onclick="deleteTableRecordFromProject('@rvm.Record.RecordId')"><i class="icofont-ui-delete"></i></button>
-                                    }
+                            {
+                                <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" style="width:42px;" onclick="openEditModal('@rvm.Record.RecordId')"><i class="fa fa-pencil-square-o"></i></button>
+                                <button type="button" class="btn btn-danger" data-original-title="btn btn-light" title="" style="width:42px;" onclick="deleteTableRecordFromProject('@rvm.Record.RecordId')"><i class="icofont-ui-delete"></i></button>
+                            }
+
+
                         </td>
 
                         @if (rvm.Record.Geometry != null)

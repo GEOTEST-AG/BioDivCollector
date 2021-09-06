@@ -539,6 +539,11 @@ namespace BioDivCollector.WebApp.Controllers
             }
             if (!erfassendeProjects.Contains(p)) ViewData["ReadOnly"] = true;
             else ViewData["ReadOnly"] = false;
+
+
+            if ((User.IsInRole("DM")) || (User.IsInRole("PK")) || (User.IsInRole("PL"))) ViewData["CanChangeGroup"] = true;
+            else ViewData["CanChangeGroup"] = false;
+
             return View(pvm);
         }
 
@@ -789,6 +794,10 @@ namespace BioDivCollector.WebApp.Controllers
             ViewData["withOnlyGeometries"] = withOnlyGeometries;
             if (!erfassendeProjects.Contains(p)) ViewData["ReadOnly"] = true;
             else ViewData["ReadOnly"] = false;
+
+            if ((User.IsInRole("DM")) || (User.IsInRole("PK")) || (User.IsInRole("PL"))) ViewData["CanChangeGroup"] = true;
+            else ViewData["CanChangeGroup"] = false;
+
             if (withOnlyGeometries) return View("RecordsPerProjectPerGeometry", pvm);
             return View(pvm);
         }

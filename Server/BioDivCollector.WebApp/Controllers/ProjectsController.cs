@@ -505,6 +505,7 @@ namespace BioDivCollector.WebApp.Controllers
                                     int projectindex = names.IndexOf("bdcguid_projekt");
                                     int geometryIndex = names.IndexOf("bdcguid_geometrie");
                                     int recordIndex = names.IndexOf("bdcguid_beobachtung");
+                                    int groupIndex = names.IndexOf("group_id");
 
                                     if (result[projectindex] != null)
                                     {
@@ -538,6 +539,18 @@ namespace BioDivCollector.WebApp.Controllers
                                         if (p.ProjectId != null)
                                         {
                                             ProjectGroup pg = db.ProjectsGroups.Where(m => m.ProjectId == p.ProjectId && m.ReadOnly == false && m.Group.GroupUsers.Any(u => u.UserId == user.UserId)).FirstOrDefault();
+
+                                            try
+                                            {
+                                                Guid groupGuid = Guid.Parse(result.GetString(groupIndex));
+                                                pg = db.ProjectsGroups.Where(m => m.ProjectId == p.ProjectId && m.GroupId == groupGuid).FirstOrDefault();
+
+                                            }
+                                            catch(Exception e)
+                                            {
+                                                // no groupid provided, use group for user instead (default)
+                                            }
+
                                             if ((result[geometryIndex] != null) && (!result.IsDBNull(geometryIndex)))
                                             {
 

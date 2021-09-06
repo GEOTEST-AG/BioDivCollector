@@ -192,7 +192,6 @@
     </div>
 </div>
 <!-- End MoveReord-modal -->
-
 <!-- SplitGeometry-modal -->
 
 <div class="modal fade" id="SplitGeometryModal" tabindex="-1" role="dialog" aria-labelledby="SplitGeometryModalLabel" aria-hidden="true" style="z-index:100000;" data-backdrop="static" data-keyboard="false">
@@ -257,4 +256,25 @@
     </div>
 </div>
 <!-- End Change Projectstates-->
+<!-- Change Group for Record -->
+<div class="modal fade" id="changeGroup" tabindex="-1" role="dialog" aria-labelledby="changeGroupLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeGroupLabel">Gruppenzugehörigkeit ändern</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">X</span>
+                </button>
+            </div>
+            <div class="modal-body" id="statechangetext">
+                Gruppe auswählen
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="modalOK" onclick="modalokclick = true;">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Change Group for Record -->
 <!-- End Modals -->

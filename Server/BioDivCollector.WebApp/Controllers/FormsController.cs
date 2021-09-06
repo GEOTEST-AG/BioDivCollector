@@ -818,6 +818,7 @@ namespace BioDivCollector.WebApp.Controllers
                                         "g.geometryname as \"geometriename\", " +
                                         "g.{geometry}, " +
                                         "case when r2.recordid is null then uuid_generate_v4() else r2.recordid end AS \"bdcguid_beobachtung\", " +
+                                        "r2.groupid as \"group_id\", "+
                                         "getrecordchangelogdate(r2.recordid) as changedate, " +
                                         "getrecordchangeloguser(r2.recordid) as changeuser, ";
             sqlCreateViews1 = sqlCreateViews1.Replace("{prefix}", prefix);
@@ -831,6 +832,7 @@ namespace BioDivCollector.WebApp.Controllers
                                         "p.description AS \"beschreibung\", " +
                                         "p2.description AS \"status\", " +
                                         "r2.recordid as \"bdcguid_beobachtung\", " +
+                                        "r2.groupid as \"group_id\", " +
                                         "getrecordchangelogdate(r2.recordid) as changedate, " +
                                         "getrecordchangeloguser(r2.recordid) as changeuser, " +
                                         "r2.geometryid as \"bdcguid_geometrie\", ";
