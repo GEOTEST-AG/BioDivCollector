@@ -156,5 +156,9 @@
 	<string>Damit Sie Ihre Position in der Karte anzeigen können, benötigt diese App Zugriff auf Ihre Position, wenn die App in Gebrauch ist. Wenn Sie den Standort jederzeit abrufen, kann die App bei Bedarf schneller reagieren.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Diese App erfordert Zugriff auf Ihren Kalender für Datums- und Zeitinformationen</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>de</string>
+	</array>
 </dict>
 </plist>

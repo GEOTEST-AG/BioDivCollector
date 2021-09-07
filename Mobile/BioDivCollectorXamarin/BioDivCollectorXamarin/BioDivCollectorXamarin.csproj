@@ -11,6 +11,7 @@
     <None Remove="Models\LoginModel\Auth %28copy%29.xml" />
     <None Remove="Images\locNoEntry.png" />
     <None Remove="Models\LoginModel\Auth.xml" />
+    <None Remove="SfLicence.xml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +25,7 @@
     <EmbeddedResource Include="Models\LoginModel\Auth.xml">
       <IncludeInPackage>false</IncludeInPackage>
     </EmbeddedResource>
+    <EmbeddedResource Include="SfLicence.xml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,8 +49,9 @@
     <PackageReference Include="Xamarin.Essentials.Interfaces" Version="1.7.0" />
     <PackageReference Include="Xamarin.RisePlugin.AutoCompleteTextView" Version="1.0.9" />
     <PackageReference Include="ProjNet" Version="2.0.0" />
+    <PackageReference Include="Syncfusion.Licensing" Version="19.2.0.59" />
+    <PackageReference Include="Syncfusion.Xamarin.SfBusyIndicator" Version="19.2.0.59" />
     <PackageReference Include="Syncfusion.Xamarin.SfAutoComplete" Version="19.2.0.59" />
-    <PackageReference Include="Syncfusion.Xamarin.Core" Version="19.2.0.59" />
   </ItemGroup>
 
   <ItemGroup>

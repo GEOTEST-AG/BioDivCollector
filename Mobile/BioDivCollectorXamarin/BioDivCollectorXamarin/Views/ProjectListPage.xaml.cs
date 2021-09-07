@@ -96,10 +96,7 @@ namespace BioDivCollectorXamarin.Views
         {
             var s = value as int? ?? 0;
             var empty = Record.FetchIfRecordHasOnlyEmptyChildren(s);
-            var sign = "";
-            if (empty)
-            { sign = "⚠️"; }
-            return sign;
+            return empty;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

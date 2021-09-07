@@ -4,12 +4,17 @@
              x:Class="BioDivCollectorXamarin.Views.RecordsPage"
              xmlns:local="clr-namespace:BioDivCollectorXamarin"  
              xmlns:model="clr-namespace:BioDivCollectorXamarin.Models"
+             xmlns:viewModel="clr-namespace:BioDivCollectorXamarin.ViewModels"
              xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views"
+             xmlns:busyindicator="clr-namespace:Syncfusion.SfBusyIndicator.XForms;assembly=Syncfusion.SfBusyIndicator.XForms"
              x:Name="Records"
              Title="Beobachtungen"
              NavigationPage.BackButtonTitle="Beobachtungen"
              BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">
 
+    <ContentPage.BindingContext>
+        <viewModel:RecordsPageVM/>
+    </ContentPage.BindingContext>
    
     <ContentPage.Content>
         <StackLayout Spacing="0">
@@ -38,8 +43,8 @@
                     </ListView.GroupHeaderTemplate>
                 <ListView.ItemTemplate x:DataType="model:FormRec">
                     <DataTemplate>
-                        <ViewCell Height="120">
-                            <ViewCell.ContextActions>
+                        <TextCell Height="120" Text="{Binding String1}" Detail="{Binding String2}">
+                            <TextCell.ContextActions>
                                 <MenuItem 
                                       Text="Entfernen"
                                       IconImageSource="delete.png"
@@ -51,26 +56,10 @@
                                       Command="{Binding Path=BindingContext.BDCGUIDRecordCommand, Source={x:Reference Records}}"
                                       CommandParameter="{Binding .}"
                                     Clicked="GUIDItem_Clicked"/>
-                            </ViewCell.ContextActions>
-                                <StackLayout VerticalOptions="Center" Margin="20,0,0,0" BackgroundColor="{Binding RecId, Converter={StaticResource formFilledOut}}">
-                                    <StackLayout Orientation="Horizontal">
-                                        <Label Text = "{Binding RecId, Converter={StaticResource formFilledOut}}"/>
-                                        <Label Text="{Binding Title}" Style="{DynamicResource ListItemTextStyle}" FontAttributes="Bold" />
-                                    </StackLayout>
-                                    <StackLayout Orientation="Horizontal">
-                                        <Label Text="{Binding Timestamp}" Style="{DynamicResource CaptionStyle}"/>
-                                        <Label Text="{Binding User}" Style="{DynamicResource CaptionStyle}"/>
-                                    </StackLayout>
-                                    <StackLayout Orientation="Horizontal">
-                                        <Label Text="{Binding GeometryName}" IsVisible="{Binding GeometryName, Converter={StaticResource stringToBool}}" Style="{DynamicResource CaptionStyle}" TextColor="Gray" />
-                                        <Label Text=", " IsVisible="{Binding GeometryName, Converter={StaticResource stringToBool}}" Style="{DynamicResource CaptionStyle}" TextColor="Gray" />
-                                        <Label Text="{Binding FormType}" Style="{DynamicResource CaptionStyle}" TextColor="Gray" />
-                                    </StackLayout>
-                                </StackLayout>
-                        </ViewCell>
+                            </TextCell.ContextActions>
+                        </TextCell>
                     </DataTemplate>
                 </ListView.ItemTemplate>
-
             </ListView>
             <StackLayout Padding="10" BackgroundColor="{StaticResource BioDivGrey}" IsVisible="{Binding Activity}" Spacing="0">
                 <ActivityIndicator IsRunning="{Binding Activity}" BackgroundColor="{StaticResource BioDivGrey}" IsVisible="{Binding Activity}" Color="{StaticResource BioDivGreen}"/>

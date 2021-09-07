@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.IEssentials;
 using BioDivCollectorXamarin.Models.LoginModel;
@@ -153,22 +158,6 @@ namespace BioDivCollectorXamarin
         }
 
         /// <summary>
-        /// Preconfigure lists of records
-        /// </summary>
-        private static RecordListModel recordLists;
-        public static RecordListModel RecordLists
-        {
-            get
-            {
-                return recordLists;
-            }
-            set
-            {
-                recordLists = value;
-            }
-        }
-
-        /// <summary>
         /// Initialisation without furhter parameters
         /// </summary>
         public App()
@@ -183,16 +172,16 @@ namespace BioDivCollectorXamarin
         /// <param name="tileLocation"></param>
         public App(string databaseLocation, string tileLocation)
         {
+            LoadXMLLicenceData();
+            var licence = Preferences.Get("sflicence", "");
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(Preferences.Get("sflicence", ""));
             InitializeComponent();
             Device.SetFlags(new string[] { "RadioButton_Experimental", "Shapes_Experimental", "Expander_Experimental" });
-
-            RecordLists = new RecordListModel();
             CurrentUser = User.RetrieveUser();
             BioDivPrefs = new BioDivPreferences();
             Preferences.Set("databaseLocation", databaseLocation);
             TileLocation = tileLocation;
             CurrentProjectId = Preferences.Get("currentProject", "");
-            RecordLists.CreateRecordLists();
             Busy = false;
             CheckConnection();
 
@@ -242,7 +231,6 @@ namespace BioDivCollectorXamarin
                 MainPage = Login.GetPageToView();
             }
             ShowLogin = false;
-            //Authentication.RequestAuthentication("dawes","Bio_Apple4");
         }
 
         /// <summary>
@@ -313,15 +301,23 @@ namespace BioDivCollectorXamarin
         {
             Task.Run(() =>
             {
-                RecordLists = new RecordListModel();
                 var projectId = projectGUID.ToString();
                 App.CurrentProjectId = projectId;
                 Preferences.Set("currentProject", projectId);
                 AppShell.ClearNavigationStacks();
                 MessagingCenter.Send(App.Current, "SetProject");
-                RecordLists.CreateRecordLists();
-                
             });
+        }
+
+        public static void LoadXMLLicenceData()
+        { 
+            var assembly = typeof(SfLicence).GetTypeInfo().Assembly;
+            Stream stream = assembly.GetManifestResourceStream("BioDivCollectorXamarin.SfLicence.xml");
+
+            XDocument doc = XDocument.Load(stream);
+            IEnumerable<string> licences = from s in doc.Descendants("SfLicenceKey")
+                          select s.Attribute("sflicence").Value.ToString();
+            Preferences.Set("sflicence", licences.FirstOrDefault());
         }
     }
 }

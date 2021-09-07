@@ -193,10 +193,13 @@ namespace BioDivCollectorXamarin.Views
             if (formAction == "Entfernen")
             {
                 GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
-                var geom = formRec.Geom;
-                if (ViewModel.Object_pk == geom.Id)
-                { ViewModel.Object_pk = null; }
-                ReferenceGeometry.DeleteGeometry(geom.Id);
+                if (formRec.GeomId != null)
+                {
+                    if (ViewModel.Object_pk == formRec.GeomId)
+                    { ViewModel.Object_pk = null; }
+                    ReferenceGeometry.DeleteGeometry((int)formRec.GeomId);
+                    MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
+                }
             }
 
         }
@@ -217,18 +220,33 @@ namespace BioDivCollectorXamarin.Views
                 }
                 else if (formAction == "GUID Kopieren")
                 {
-                    GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
-                    var geom = formRec.Geom;
-                    var extId = geom.geometryId;
-                    ViewModel.CopyGUID(extId);
-                    await DisplayAlert("BDC GUID kopiert", "", "OK");
+                    try
+                    {
+                        GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
+                        var geom = ReferenceGeometry.GetGeometry((int)formRec.GeomId);
+                        var extId = geom.geometryId;
+                        ViewModel.CopyGUID(extId);
+                        await DisplayAlert("BDC GUID kopiert", "", "OK");
+                    }
+                    catch
+                    {
+
+                    }
                 }
                 else if (formAction == "Geometriename editieren")
                 {
-                    GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
-                    var geom = formRec.Geom;
-                    string newName = await DisplayPromptAsync("Geometriename", "Editieren Sie bitte der Geometriename", accept: "OK", cancel: "Abbrechen",  initialValue: geom.geometryName, keyboard: Keyboard.Text);
-                    geom.ChangeGeometryName(newName);
+                    try
+                    {
+                        GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
+                        var geom = ReferenceGeometry.GetGeometry((int)formRec.GeomId);
+                        string newName = await DisplayPromptAsync("Geometriename", "Editieren Sie bitte der Geometriename", accept: "OK", cancel: "Abbrechen", initialValue: geom.geometryName, keyboard: Keyboard.Text);
+                        geom.ChangeGeometryName(newName);
+                        MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
+                    }
+                    catch
+                    {
+
+                    }
                     
                 }
                 else if (formAction == "Geometrie editieren")
@@ -243,8 +261,10 @@ namespace BioDivCollectorXamarin.Views
         private void SendGeometryToMapForEditing(Button sender)
         {
             GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
-            var geom = formRec.Geom;
-            MessagingCenter.Send<Application, int>(Application.Current, "EditGeometry", geom.Id);
+            if (formRec.GeomId != null)
+            {
+                MessagingCenter.Send<Application, int>(Application.Current, "EditGeometry", (int)formRec.GeomId);
+            }
         }
 
         /// <summary>

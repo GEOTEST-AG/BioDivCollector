@@ -198,7 +198,6 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     {
                         conn.Delete(queriedGeom,true);
                     }
-                    //MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
                 }
 
             }
@@ -273,7 +272,6 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 this.status = 2;
             }
             ReferenceGeometry.SaveGeometry(this);
-            App.RecordLists.CreateRecordLists();
         }
     }
 

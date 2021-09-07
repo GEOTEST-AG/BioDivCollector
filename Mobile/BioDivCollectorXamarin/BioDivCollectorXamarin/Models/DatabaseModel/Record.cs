@@ -18,33 +18,33 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <summary>
         /// Record database definition
         /// </summary>
-            [PrimaryKey, AutoIncrement]
-            public int Id { get; set; }
-            public string recordId { get; set; }
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
+        public string recordId { get; set; }
 
-            [ForeignKey(typeof(Form))]
-            public int formId { get; set; }
+        [ForeignKey(typeof(Form))]
+        public int formId { get; set; }
 
-            public string userName { get; set; }
-            public string fullUserName { get; set; }
-            public DateTime timestamp { get; set; }
-            public DateTime creationTime { get; set; }
-            public int status { get; set; }
+        public string userName { get; set; }
+        public string fullUserName { get; set; }
+        public DateTime timestamp { get; set; }
+        public DateTime creationTime { get; set; }
+        public int status { get; set; }
 
-            public bool readOnly { get; set; }
+        public bool readOnly { get; set; }
 
-            [OneToMany(CascadeOperations = CascadeOperation.All)]
-            public List<TextData> texts { get; set; } = new List<TextData>();
-            [OneToMany(CascadeOperations = CascadeOperation.All)]
-            public List<NumericData> numerics { get; set; } = new List<NumericData>();
-            [OneToMany(CascadeOperations = CascadeOperation.All)]
-            public List<BooleanData> booleans { get; set; } = new List<BooleanData>();
+        [OneToMany(CascadeOperations = CascadeOperation.All)]
+        public List<TextData> texts { get; set; } = new List<TextData>();
+        [OneToMany(CascadeOperations = CascadeOperation.All)]
+        public List<NumericData> numerics { get; set; } = new List<NumericData>();
+        [OneToMany(CascadeOperations = CascadeOperation.All)]
+        public List<BooleanData> booleans { get; set; } = new List<BooleanData>();
 
-            [ForeignKey(typeof(Project))]
-            public int project_fk { get; set; }
+        [ForeignKey(typeof(Project))]
+        public int project_fk { get; set; }
 
-            [ForeignKey(typeof(ReferenceGeometry))]
-            public int? geometry_fk { get; set; }
+        [ForeignKey(typeof(ReferenceGeometry))]
+        public int? geometry_fk { get; set; }
 
 
         /// <summary>
@@ -163,14 +163,12 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     {
                         conn.Delete(record);
                     }
-                    App.RecordLists.CreateRecordLists();
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Could not save data");
             }
-
         }
 
         /// <summary>

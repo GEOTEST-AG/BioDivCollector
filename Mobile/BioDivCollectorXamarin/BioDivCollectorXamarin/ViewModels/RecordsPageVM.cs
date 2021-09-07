@@ -27,7 +27,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// A list of records, organised into groups
         /// </summary>
-        public ObservableCollection<GroupedFormRec> Records { get; set; }
+        public List<GroupedFormRec> Records { get; set; }
 
         /// <summary>
         /// Button command for adding a new record
@@ -154,10 +154,6 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public RecordsPageVM()
         {
-            Activity = false;
-            Title = "Beobachtungen";
-            if (SortBy == String.Empty) SortBy = "Geometrie";
-
             string filterGeom = Preferences.Get("FilterGeometry", String.Empty);
             int filterGeomVal;
             if (filterGeom != String.Empty)
@@ -174,25 +170,8 @@ namespace BioDivCollectorXamarin.ViewModels
             }
 
             ItemTapped = new Command<FormRec>(OnItemSelected);
-
             AddItemCommand = new Command(OnAddItem);
-            CopyBDCGUIDCommand = new BDCGUIDRecordCommand(this);
-            RecordDeleteCommand = new RecordDeleteCommand(this);
-            GeometryDeleteCommand = new GeometryDeleteCommand(this);
-
-
-            MessagingCenter.Subscribe<Application>(App.Current, "RefreshRecords", (sender) =>
-            {
-                UpdateRecords();
-            });
-            MessagingCenter.Subscribe<Application>(App.Current, "RefreshGeometries", (sender) =>
-            {
-                UpdateRecords();
-            });
-            MessagingCenter.Subscribe<Application>(App.Current, "SetProject", (sender) =>
-            {
-                FilterBy = String.Empty;
-            });
+            InitialisePage();
         }
 
         /// <summary>
@@ -201,19 +180,26 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="objectId"></param>
         public RecordsPageVM(int objectId)
         {
+            App.CurrentRoute = "//Records?objectId=" + objectId.ToString();
+            Object_pk = objectId;
+            ItemTapped = new Command<FormRec>(OnItemSelected);
+            AddItemCommand = new Command(OnAddItem);
+            InitialisePage();
+        }
+
+        /// <summary>
+        /// Perform the initialisation tasks common to both initialisations (with and without selected geometry)
+        /// </summary>
+        private void InitialisePage()
+        {
             Activity = false;
             Title = "Beobachtungen";
             if (SortBy == String.Empty) SortBy = "Geometrie";
-            App.CurrentRoute = "//Records?objectId=" + objectId.ToString();
 
-            ItemTapped = new Command<FormRec>(OnItemSelected);
-
-            AddItemCommand = new Command(OnAddItem);
             CopyBDCGUIDCommand = new BDCGUIDRecordCommand(this);
             RecordDeleteCommand = new RecordDeleteCommand(this);
             GeometryDeleteCommand = new GeometryDeleteCommand(this);
 
-            Object_pk = objectId;
 
             MessagingCenter.Subscribe<Application>(App.Current, "RefreshRecords", (sender) =>
             {
@@ -238,11 +224,7 @@ namespace BioDivCollectorXamarin.ViewModels
             IsBusy = true;
             SelectedItem = null;
 
-            Task.Run(async() =>
-            {
-                Activity = true;
-                App.RecordLists.CreateRecordLists();
-            });
+            UpdateRecords();
         }
 
         /// <summary>
@@ -250,116 +232,14 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void UpdateRecords()
         {
-            Activity = true;
-            var recs = new List<GroupedFormRec>();
-            if (recs != null && SortBy != "Formulartyp")
+            Task.Run(async () =>
             {
-                if (FilterBy == "Formulartyp")
-                {
-                    var frm = Form.FetchForm((int)Form_pk);
-                    foreach (var group in App.RecordLists.RecordsByGeometry)
-                    {
-                        var newGroup = new GroupedFormRec();
-                        newGroup.LongGeomName = group.LongGeomName;
-                        newGroup.ShortGeomName = group.ShortGeomName;
-                        newGroup.GeomId = group.GeomId;
-                        newGroup.ShowButton = group.ShowButton;
-                        newGroup.Geom = group.Geom;
-
-                        foreach (FormRec form in group)
-                        {
-                            if (form.FormId == frm.formId)
-                            {
-                                newGroup.Add(form);
-                            }
-                        }
-                        recs.Add(newGroup);
-                    }
-                }
-
-                else if (FilterBy == "Geometrie" && Object_pk != null)
-                {
-                    var obj = ReferenceGeometry.GetGeometry((int)Object_pk);
-                    foreach (var group in App.RecordLists.RecordsByGeometry)
-                    {
-                        try
-                        {
-                                if (group.GeomId == obj.Id)
-                                {
-                                    recs.Add(group);
-                                }
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
-                    }
-                }
-                else
-                {
-                    recs = App.RecordLists.RecordsByGeometry;
-                }
-                Records = new ObservableCollection<GroupedFormRec>(recs);
-            }
-            else if (recs != null && SortBy == "Formulartyp")
-            {
-                if (FilterBy == "Formulartyp")
-                {
-                    var frm = Form.FetchForm((int)Form_pk);
-                    foreach (var group in App.RecordLists.RecordsByForm)
-                    {
-                        var newGroup = new GroupedFormRec();
-                        newGroup.LongGeomName = group.LongGeomName;
-                        newGroup.ShortGeomName = group.ShortGeomName;
-                        newGroup.GeomId = group.GeomId;
-                        newGroup.ShowButton = group.ShowButton;
-                        newGroup.Geom = group.Geom;
-
-                        foreach (FormRec form in group)
-                        {
-                            if (form.FormId == frm.formId)
-                            {
-                                newGroup.Add(form);
-                            }
-                        }
-                        recs.Add(newGroup);
-                    }
-                }
-                else if (FilterBy == "Geometrie" && Object_pk != null)
-                {
-                    var obj = ReferenceGeometry.GetGeometry((int)Object_pk);
-                    foreach (var group in App.RecordLists.RecordsByForm)
-                    {
-                        var newGroup = new GroupedFormRec();
-                        newGroup.LongGeomName = group.LongGeomName;
-                        newGroup.ShortGeomName = group.ShortGeomName;
-                        newGroup.GeomId = group.GeomId;
-                        newGroup.ShowButton = group.ShowButton;
-                        newGroup.Geom = group.Geom;
-
-                        foreach (FormRec form in group)
-                        {
-                            if (form.GeomId == obj.Id)
-                            {
-                                newGroup.Add(form);
-                            }
-                        }
-                        recs.Add(newGroup);
-                    }
-                }
-                else
-                {
-                    recs = App.RecordLists.RecordsByForm;
-                }
-                Records = new ObservableCollection<GroupedFormRec>(recs);
-            }
-            else
-            {
-                Records = new ObservableCollection<GroupedFormRec>();
-            }
-
-            OnPropertyChanged("Records");
-            Activity = false;
+                Activity = true;
+                var proj = Project.FetchCurrentProject();
+                Records = RecordListModel.ListRecords(proj, sortBy, filterBy, Object_pk).ToList();
+                OnPropertyChanged("Records");
+                Activity = false;
+            });
         }
 
 
@@ -415,10 +295,21 @@ namespace BioDivCollectorXamarin.ViewModels
     public class GroupedFormRec : ObservableCollection<FormRec>
     {
         public string LongGeomName { get; set; }
-        public string ShortGeomName { get; set; }
         public int? GeomId { get; set; }
         public bool ShowButton { get; set; }
-        public ReferenceGeometry Geom { get; set; }
+
+        public GroupedFormRec()
+        {
+
+        }
+
+        public GroupedFormRec(List<FormRec> RecList)
+        {
+            foreach (var formRec in RecList)
+            {
+                this.Add(formRec);
+            }
+        }
     }
 
     /// <summary>

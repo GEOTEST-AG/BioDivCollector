@@ -9,13 +9,10 @@ namespace BioDivCollectorXamarin.Models
     /// </summary>
     public class FormRec
     {
-        public string Timestamp { get; set; }
-        public string Title { get; set; }
-        public string FormType { get; set; }
+        public string String1 { get; set; }
+        public string String2 { get; set; }
         public int FormId { get; set; }
         public int RecId { get; set; }
-        public string User { get; set; }
-        public string GeometryName { get; set; }
         public int GeomId { get; set; }
     }
 }

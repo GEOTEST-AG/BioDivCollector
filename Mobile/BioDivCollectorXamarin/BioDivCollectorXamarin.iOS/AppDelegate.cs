@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Foundation;
+using Syncfusion.ListView.XForms.iOS;
 using UIKit;
 
 namespace BioDivCollectorXamarin.iOS
@@ -24,7 +25,7 @@ namespace BioDivCollectorXamarin.iOS
         {
             global::Xamarin.Forms.Forms.Init();
             new Syncfusion.SfAutoComplete.XForms.iOS.SfAutoCompleteRenderer();
-
+            SfListViewRenderer.Init();
             string dbName = "biodivcollector_database.sqlite";
             string folderPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "..", "Library");
             string fullPath = Path.Combine(folderPath, dbName);
