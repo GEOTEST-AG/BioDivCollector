@@ -178,7 +178,6 @@ namespace BioDivCollectorXamarin.ViewModels
                                     conn.UpdateWithChildren(queriedrec);
                                     text = txt;
                                 }
-                                List<string> choices = Form.FetchFormChoicesForDropdown(formField.fieldId);
 
                                 try
                                 {
@@ -282,7 +281,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             try
                             {
                                 var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                                var textField = new CustomAutoComplete();
+                                var dropField = new CustomAutoComplete();
                                 if (text == null)
                                 {
                                     //CreateNew
@@ -293,47 +292,55 @@ namespace BioDivCollectorXamarin.ViewModels
                                     conn.UpdateWithChildren(queriedrec);
                                     text = txt;
                                 }
-                                textField.SetAppThemeColor(SfAutoComplete.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
-                                textField.SetAppThemeColor(SfAutoComplete.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
-                                textField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                                dropField.SetAppThemeColor(SfAutoComplete.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
+                                dropField.SetAppThemeColor(SfAutoComplete.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+                                dropField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
 
-                                List<string> choices = Form.FetchFormChoicesForDropdown(formField.Id);
+                                List<FieldChoice> fieldChoices = Form.FetchFormChoicesForDropdown(formField.Id);
+                                //List<string> choices = fieldChoices.Select(choice => choice.text).ToList();
 
-                                textField.AutoCompleteSource = choices;
+                                dropField.AutoCompleteSource = fieldChoices.Select(choice => choice.text).ToList();
+                                dropField.ItemsSource = fieldChoices;
+                                dropField.SelectedItem = new Binding("text");
 
-                                textField.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-                                textField.TextHighlightMode = OccurrenceMode.MultipleOccurrence;
-                                textField.SuggestionMode = SuggestionMode.Contains;
-                                textField.DropDownCornerRadius = 10;
-                                textField.HeightRequest = 40;
-                                textField.EnableAutoSize = true;
-                                textField.MultiSelectMode = MultiSelectMode.None;
-                                textField.ShowSuggestionsOnFocus = true;
-                                textField.IsSelectedItemsVisibleInDropDown = false;
-                                textField.DropDownBackgroundColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGrey"];
-                                textField.DropDownTextColor = Color.White;
-                                textField.HighlightedTextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
-                                textField.DropDownItemHeight = 50;
-                                textField.MaximumSuggestion = 50;
-                                textField.EnableSelectionIndicator = true;
-                                textField.LoadMoreText = "WEITERE ERGEBNISSE";
-                                textField.MaximumDropDownHeight = 150;
-                                textField.WatermarkColor = Color.Gray;
+                                dropField.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                                dropField.TextHighlightMode = OccurrenceMode.MultipleOccurrence;
+                                dropField.SuggestionMode = SuggestionMode.Contains;
+                                dropField.DropDownCornerRadius = 10;
+                                dropField.HeightRequest = 40;
+                                dropField.EnableAutoSize = true;
+                                dropField.MultiSelectMode = MultiSelectMode.None;
+                                dropField.ShowSuggestionsOnFocus = true;
+                                dropField.IsSelectedItemsVisibleInDropDown = false;
+                                dropField.DropDownBackgroundColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGrey"];
+                                dropField.DropDownTextColor = Color.White;
+                                dropField.HighlightedTextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
+                                dropField.DropDownItemHeight = 50;
+                                dropField.MaximumSuggestion = 50;
+                                dropField.EnableSelectionIndicator = true;
+                                dropField.LoadMoreText = "WEITERE ERGEBNISSE";
+                                dropField.MaximumDropDownHeight = 150;
+                                dropField.WatermarkColor = Color.Gray;
 
-                                textField.ValueId = text.Id;
-                                textField.TypeId = formField.Id;
-                                textField.Watermark = formField.description;
-                                textField.IsEnabled = !ReadOnly;
-                                textField.Mandatory = formField.mandatory;
-                                if (formField.mandatory) { Validation.Add((int)textField.ValueId, textField.SelectedItem != null || (text.value != null && text.value != String.Empty)); }
+                                dropField.ValueId = text.Id;
+                                dropField.TypeId = formField.Id;
+                                dropField.Watermark = formField.description;
+                                dropField.IsEnabled = !ReadOnly;
+                                dropField.Mandatory = formField.mandatory;
+                                if (formField.mandatory) { Validation.Add((int)dropField.ValueId, dropField.SelectedItem != null || (text.value != null && text.value != String.Empty)); }
                                 if (ReadOnly)
                                 {
-                                    textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                                    dropField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                                 }
-                                textField.SelectionChanged += DidSelectFromChoices;
-                                textField.Margin = new Thickness(0, 0, 0, 10);
+                                dropField.SelectionChanged += DidSelectFromChoices;
+                                if (text.fieldChoiceId != null)
+                                {
+                                    var selectedChoiceIndex = fieldChoices.FindIndex(a => a.choiceId == text.fieldChoiceId);
+                                    dropField.SelectedIndex = selectedChoiceIndex;
+                                }
+                                dropField.Margin = new Thickness(0, 0, 0, 10);
 
-                                Assets.Add(textField);
+                                Assets.Add(dropField);
                             }
                             catch (Exception e)
                             {

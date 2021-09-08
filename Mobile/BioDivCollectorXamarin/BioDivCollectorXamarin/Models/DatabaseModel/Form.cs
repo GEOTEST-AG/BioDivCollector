@@ -155,13 +155,13 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="fieldId"></param>
         /// <returns>List of choice strings</returns>
-        public static List<string> FetchFormChoicesForDropdown(int fieldId)
+        public static List<FieldChoice> FetchFormChoicesForDropdown(int fieldId)
         {
             using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 try
                 {
-                    var choices = conn.Table<FieldChoice>().Where(FieldChoice => FieldChoice.formField_fk == fieldId).OrderBy(f => f.order).Select(f => f.text).ToList();
+                    var choices = conn.Table<FieldChoice>().Where(FieldChoice => FieldChoice.formField_fk == fieldId).OrderBy(f => f.order).Select(f => f).ToList();
                     return choices;
                 }
                 catch (Exception e)

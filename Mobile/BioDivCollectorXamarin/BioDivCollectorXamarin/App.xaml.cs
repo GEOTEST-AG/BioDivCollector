@@ -309,6 +309,9 @@ namespace BioDivCollectorXamarin
             });
         }
 
+        /// <summary>
+        /// Load up the licence key from an xml file
+        /// </summary>
         public static void LoadXMLLicenceData()
         { 
             var assembly = typeof(SfLicence).GetTypeInfo().Assembly;
