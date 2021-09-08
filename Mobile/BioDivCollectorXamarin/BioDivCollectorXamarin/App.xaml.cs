@@ -162,6 +162,8 @@ namespace BioDivCollectorXamarin
         /// </summary>
         public App()
         {
+            LoadXMLLicenceData();
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(Preferences.Get("sflicence", ""));
             InitializeComponent();
         }
 

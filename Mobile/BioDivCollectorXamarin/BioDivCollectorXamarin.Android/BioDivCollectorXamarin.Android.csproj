@@ -104,6 +104,9 @@
     <PackageReference Include="Syncfusion.Xamarin.SfBusyIndicator">
       <Version>19.2.0.59</Version>
     </PackageReference>
+    <PackageReference Include="Syncfusion.Licensing">
+      <Version>19.2.0.60</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EntryRenderer.cs" />

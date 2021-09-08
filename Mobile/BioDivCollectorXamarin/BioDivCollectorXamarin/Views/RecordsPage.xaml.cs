@@ -290,10 +290,10 @@ namespace BioDivCollectorXamarin.Views
         {
 
             var button = sender as Button;
-            var geom = button.CommandParameter as ReferenceGeometry;
-            if (geom != null)
+            var geomId = button.CommandParameter as int?;
+            if (geomId != null)
             {
-                Navigation.PushAsync(new FormSelectionPage((int?)geom.Id),true);
+                Navigation.PushAsync(new FormSelectionPage((int?)geomId),true);
             }
             else
             {

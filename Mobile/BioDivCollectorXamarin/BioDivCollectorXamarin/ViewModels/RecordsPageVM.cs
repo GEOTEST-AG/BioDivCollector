@@ -236,7 +236,15 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 Activity = true;
                 var proj = Project.FetchCurrentProject();
-                Records = RecordListModel.ListRecords(proj, sortBy, filterBy, Object_pk).ToList();
+                if (filterBy == "Formulartyp")
+                {
+                    var frm = Form.FetchForm((int)Form_pk);
+                    Records = RecordListModel.ListRecords(proj, sortBy, filterBy, frm.formId).ToList();
+                } else
+                {
+                    Records = RecordListModel.ListRecords(proj, sortBy, filterBy, Object_pk).ToList();
+                }
+                
                 OnPropertyChanged("Records");
                 Activity = false;
             });
