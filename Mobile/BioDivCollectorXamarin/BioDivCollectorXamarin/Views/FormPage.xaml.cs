@@ -16,10 +16,10 @@ namespace BioDivCollectorXamarin.Views
         /// Initialise the form for a specific record
         /// </summary>
         /// <param name="recId"></param>
-        public FormPage(int recId)
+        public FormPage(int? recId, int formId, int? geomId)
         {
             InitializeComponent();
-            BindingContext = ViewModel = new FormPageVM(recId);
+            BindingContext = ViewModel = new FormPageVM(recId, formId, geomId);
 
             MessagingCenter.Subscribe<FormPageVM>(this, "NavigateBack", (sender) =>
             {

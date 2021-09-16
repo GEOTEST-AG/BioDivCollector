@@ -65,7 +65,8 @@ namespace BioDivCollectorXamarin.Views
             }
             else
             {
-                await Navigation.PushAsync(new FormPage(obj.Id), true);
+                var rec = Record.FetchRecord(obj.Id);
+                await Navigation.PushAsync(new FormPage(obj.Id,rec.formId,rec.geometry_fk), true);
             }
             
         }

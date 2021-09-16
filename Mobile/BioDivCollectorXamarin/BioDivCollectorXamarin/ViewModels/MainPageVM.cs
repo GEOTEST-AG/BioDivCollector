@@ -73,7 +73,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             var oldUser = Preferences.Get("Username", String.Empty);
             var oldPassword = Preferences.Get("Password", String.Empty);
-            if (oldUser != String.Empty && oldPassword != String.Empty)
+            if (oldUser != null && oldUser != String.Empty && oldPassword != null && oldPassword != String.Empty)
             {
                 Activity = true;
                 Task.Run(async () => {

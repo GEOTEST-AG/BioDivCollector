@@ -27,7 +27,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// A list of records, organised into groups
         /// </summary>
-        public List<GroupedFormRec> Records { get; set; }
+        public ObservableCollection<GroupedFormRec> Records { get; set; }
 
         /// <summary>
         /// Button command for adding a new record
@@ -239,10 +239,10 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (filterBy == "Formulartyp")
                 {
                     var frm = Form.FetchForm((int)Form_pk);
-                    Records = RecordListModel.ListRecords(proj, sortBy, filterBy, frm.formId).ToList();
+                    Records = new ObservableCollection<GroupedFormRec>(RecordListModel.ListRecords(proj, sortBy, filterBy, frm.formId).ToList());
                 } else
                 {
-                    Records = RecordListModel.ListRecords(proj, sortBy, filterBy, Object_pk).ToList();
+                    Records = new ObservableCollection<GroupedFormRec>(RecordListModel.ListRecords(proj, sortBy, filterBy, Object_pk).ToList());
                 }
                 
                 OnPropertyChanged("Records");
@@ -389,7 +389,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             var rec = parameter as FormRec;
             MessagingCenter.Send<RecordDeleteCommand, FormRec>(this, "DeleteRecord", rec);
-
+            
         }
     }
 

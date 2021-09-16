@@ -3,10 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BioDivCollectorXamarin.Views.RecordsPage"
              xmlns:local="clr-namespace:BioDivCollectorXamarin"  
-             xmlns:model="clr-namespace:BioDivCollectorXamarin.Models"
              xmlns:viewModel="clr-namespace:BioDivCollectorXamarin.ViewModels"
              xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views"
-             xmlns:busyindicator="clr-namespace:Syncfusion.SfBusyIndicator.XForms;assembly=Syncfusion.SfBusyIndicator.XForms"
              x:Name="Records"
              Title="Beobachtungen"
              NavigationPage.BackButtonTitle="Beobachtungen"
@@ -33,8 +31,8 @@
                 <ListView.GroupHeaderTemplate>
                     <DataTemplate>
                         <ViewCell Height="80">
-                            <FlexLayout Direction="Row" BackgroundColor="{DynamicResource BioDivGrey}" VerticalOptions="Fill" HorizontalOptions="Fill">
-                                <Label Text="{Binding LongGeomName}" BackgroundColor="{DynamicResource BioDivGrey}" TextColor="White" Style="{DynamicResource ListItemTextStyle}" FontAttributes="Bold" VerticalTextAlignment="Center" VerticalOptions="FillAndExpand" Padding="10" FlexLayout.Grow="1" FlexLayout.Basis="40"/>
+                            <FlexLayout Direction="Row" BackgroundColor="{StaticResource BioDivGrey}" VerticalOptions="Fill" HorizontalOptions="Fill">
+                                <Label Text="{Binding LongGeomName}" BackgroundColor="{StaticResource BioDivGrey}" TextColor="White" Style="{DynamicResource ListItemTextStyle}" FontAttributes="Bold" VerticalTextAlignment="Center" VerticalOptions="FillAndExpand" Padding="10" FlexLayout.Grow="1" FlexLayout.Basis="40"/>
                                 <Button x:Name ="GUIDButton" Text="Optionen" TextTransform="Uppercase" FontSize="8" FontAttributes="Bold" BackgroundColor="Transparent" BorderColor="White" BorderWidth="2" CornerRadius="5" Clicked="GUIDButton_Clicked"  WidthRequest="55" Padding ="3" HeightRequest="30" Margin="10,25" HorizontalOptions="End" VerticalOptions="Center" FlexLayout.Grow="0" FlexLayout.Basis="75" IsVisible="{Binding ShowButton}"/>
                                 <Button x:Name ="AddButton" Text="+" TextTransform="Uppercase" FontSize="32" Clicked="AddButton_Clicked" CommandParameter="{Binding GeomId}"  WidthRequest="40" HorizontalOptions="End" VerticalOptions="Fill" BackgroundColor="{StaticResource BioDivGrey}" FlexLayout.Grow="0" FlexLayout.Basis="40" Margin="0,0,0,5"/>
                             </FlexLayout>
@@ -43,7 +41,7 @@
                     </ListView.GroupHeaderTemplate>
                 <ListView.ItemTemplate x:DataType="model:FormRec">
                     <DataTemplate>
-                        <TextCell Height="120" Text="{Binding String1}" TextColor="{StaticResource LightTextColor}" Detail="{Binding String2}">
+                        <TextCell Height="120" Text="{Binding String1}" Detail="{Binding String2}">
                             <TextCell.ContextActions>
                                 <MenuItem 
                                       Text="Entfernen"

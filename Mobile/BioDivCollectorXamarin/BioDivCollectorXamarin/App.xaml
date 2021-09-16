@@ -7,7 +7,7 @@
     -->
     <Application.Resources>
         <ResourceDictionary>
-            <Color x:Key="Primary">#3BB50B</Color>
+            <Color x:Key="Primary">#000000</Color>
             <Color x:Key="BioDivGreen">#3BB50B</Color>
             <Color x:Key="BioDivGrey">#36404A</Color>
             <Color x:Key="LightBackgroundColor">#FFFFFF</Color>

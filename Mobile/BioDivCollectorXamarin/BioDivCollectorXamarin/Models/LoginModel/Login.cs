@@ -162,9 +162,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                 catch (Exception ex)
                 {
                     //Use refresh token and show a page whilst we are waiting for the token to return
-
-                    Authentication.RequestRefreshTokenAsync();
-                    return new LoginPage();
+                    return new MainPage();
                 }
 
             }
@@ -218,9 +216,6 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                     var token = Preferences.Get("AccessToken", "");
                     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                    Preferences.Set("Username", String.Empty);
-                    Preferences.Set("Password", String.Empty);
-
                     var values = new Dictionary<string, string>
                     {
                         { "client_id", auth.ClientId },
@@ -238,9 +233,11 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                 Console.WriteLine(e);
             }
 
-            Preferences.Set("AccessToken", "");
+            Preferences.Set("Username", String.Empty);
+            Preferences.Set("Password", String.Empty);
+            Preferences.Set("AccessToken", String.Empty);
             Preferences.Set("AccessTokenExpiry", DateTime.UtcNow.ToString());
-            Preferences.Set("RefreshToken", "");
+            Preferences.Set("RefreshToken", String.Empty);
             Preferences.Set("RefreshTokenExpiry", DateTime.UtcNow.ToString());
 
             //Delete cookies
@@ -262,7 +259,6 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                 Android.Webkit.CookieManager.Instance.RemoveAllCookie();
                 Android.Webkit.CookieManager.Instance.Flush();
 #endif
-
             Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful");
         }
     }

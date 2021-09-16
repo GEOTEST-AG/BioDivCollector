@@ -118,6 +118,8 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                         }
                         else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
+                            Preferences.Set("Username", String.Empty);
+                            Preferences.Set("Password", String.Empty);
                             Device.BeginInvokeOnMainThread(async () =>
                             {
                                 bool ok = await App.Current.MainPage.DisplayAlert("Anmeldung fehlgeschlagen", "Benutzername oder Passwort ungültig. Versuchen Sie bitte nochmals", null, "OK");
@@ -125,6 +127,8 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                         }
                         else
                         {
+                            Preferences.Set("Username", String.Empty);
+                            Preferences.Set("Password", String.Empty);
                             Device.BeginInvokeOnMainThread(async () =>
                             {
                                 bool ok = await App.Current.MainPage.DisplayAlert("Anmeldung fehlgeschlagen", "Versuchen Sie bitte nochmals" , null, "OK");
@@ -158,7 +162,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
         public static async Task RequestRefreshTokenAsync()
         {
             
-            string localRefreshToken = Preferences.Get("RefreshToken", "");
+            string localRefreshToken = Preferences.Get("RefreshToken", String.Empty);
 
             var auth = Authentication.AuthParams;
            
@@ -209,6 +213,8 @@ namespace BioDivCollectorXamarin.Models.LoginModel
         private static void loginErrorHandler()
         {
             Login.Logout();
+            Preferences.Set("Username", String.Empty);
+            Preferences.Set("Password", String.Empty);
             Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful");
         }
 

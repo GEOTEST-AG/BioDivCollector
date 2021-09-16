@@ -158,7 +158,7 @@ namespace BioDivCollectorXamarin
         }
 
         /// <summary>
-        /// Initialisation without furhter parameters
+        /// Initialisation without further parameters
         /// </summary>
         public App()
         {

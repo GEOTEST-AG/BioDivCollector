@@ -52,11 +52,11 @@ namespace BioDivCollectorXamarin.Views
         private void FormListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
             var form = e.Item as Form;
-            var rec = Record.CreateRecord(form.formId, (int?)ViewModel.Object_pk);
-            if (rec != null)
-            {
-                Navigation.PushAsync(new FormPage(rec.Id),true);
-            }
+            //var rec = Record.CreateRecord(form.formId, (int?)ViewModel.Object_pk);
+            //if (rec != null)
+            //{
+                Navigation.PushAsync(new FormPage(null, form.formId, (int?)ViewModel.Object_pk),true);
+            //}
         }
     }
 }

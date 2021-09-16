@@ -26,6 +26,11 @@
                                 <On Platform="Android" Value="Gray" /> 
                             </OnPlatform>
                         </Entry.PlaceholderColor>
+                        <Entry.BackgroundColor>
+                            <OnPlatform x:TypeArguments="Color">
+                                <On Platform="Android" Value="White" /> 
+                            </OnPlatform>
+                        </Entry.BackgroundColor>
                     </Entry>
                 </Grid>
                 <Grid>
@@ -41,6 +46,11 @@
                                 <On Platform="Android" Value="Gray" /> 
                             </OnPlatform>
                         </Entry.PlaceholderColor>
+                        <Entry.BackgroundColor>
+                            <OnPlatform x:TypeArguments="Color">
+                                <On Platform="Android" Value="White" /> 
+                            </OnPlatform>
+                        </Entry.BackgroundColor>
                     </Entry>
                 </Grid>
                 <StackLayout Orientation="Horizontal" VerticalOptions="CenterAndExpand" Spacing="0">

@@ -1,5 +1,4 @@
-﻿using BioDivCollectorXamarin.Models;
-using BioDivCollectorXamarin.Models.DatabaseModel;
+﻿using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Controls;
 using SQLite;
 using SQLiteNetExtensions.Extensions;
@@ -7,11 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using Xamarin.Essentials;
 using Xamarin.Forms;
-using Xamarin.Forms.PlatformConfiguration;
-using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
 using System.Threading.Tasks;
 using Syncfusion.SfAutoComplete.XForms;
 
@@ -22,6 +18,8 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public List<View> Assets = new List<View>();
         public int RecId;
+        private bool NewRecord;
+        public Record queriedrec { get; set; }
         public Form formType { get; set; }
         private string BDCGUIDtext;
         private List<ReferenceGeometry> Geoms;
@@ -40,22 +38,32 @@ namespace BioDivCollectorXamarin.ViewModels
         /// The relevant data is then extracted from the database for the specific field, and added as the initial value for that field.
         /// </summary>
         /// <param name="recId">recordID</param>
-        public FormPageVM(int recId)
+        public FormPageVM(int? recId, int formId, int? geomId)
         {
 
             using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 //Get the record and its corresponding variable values
-                var queriedrec = conn.GetWithChildren<Record>(recId);
-                ReadOnly = queriedrec.readOnly;
-                RecId = recId;
+                if (recId != null)
+                {
+                    queriedrec = conn.GetWithChildren<Record>(recId);
+                    ReadOnly = queriedrec.readOnly;
+                    RecId = (int)recId;
+                }
+                else
+                {
+                    queriedrec = Record.CreateRecord(formId, geomId);
+                    RecId = queriedrec.Id;
+                    NewRecord = true;
+                }
+                
+                var fontSize = 16;
                 var txts = queriedrec.texts;
                 var nums = queriedrec.numerics;
                 var bools = queriedrec.booleans;
                 //Compile the GUID
                 BDCGUIDtext = "<<BDC><" + queriedrec.recordId + ">>";
 
-                var formId = queriedrec.formId;
                 var formTemp = conn.Table<Form>().Where(Form => Form.formId == formId).FirstOrDefault();
                 formType = conn.GetWithChildren<Form>(formTemp.Id);
                 foreach (var formField in formType.formFields.OrderBy(f => f.order))
@@ -111,13 +119,14 @@ namespace BioDivCollectorXamarin.ViewModels
                                 if (text == null)
                                 {
                                     //CreateNew
-                                    var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = recId };
+                                    var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = RecId };
                                     conn.Insert(txt);
                                     txts.Add(txt);
                                     queriedrec.texts = txts;
-                                    conn.UpdateWithChildren(queriedrec);
                                     text = txt;
                                 }
+                                var localReadOnly = ReadOnly;
+                                if (formField.standardValue!=null && formField.standardValue.Substring(0,1) == "=") { localReadOnly = true; }
                                 textField.Text = Form.DetermineText(queriedrec, text, formField.standardValue);
                                 textField.Keyboard = Keyboard.Text;
                                 textField.Placeholder = formField.description;
@@ -126,16 +135,17 @@ namespace BioDivCollectorXamarin.ViewModels
                                 textField.Margin = new Thickness(0, 0, 0, 10);
                                 textField.ValueId = text.Id;
                                 textField.HeightRequest = 40;
+                                textField.FontSize = fontSize;
                                 textField.TypeId = formField.typeId;
                                 textField.TextChanged += TextFieldChanged;
-                                textField.IsEnabled = !ReadOnly;
+                                textField.IsEnabled = !localReadOnly;
                                 textField.Mandatory = formField.mandatory;
                                 textField.PlaceholderColor = Color.Gray;
                                 textField.SetAppThemeColor(CustomEntry.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
                                 textField.SetAppThemeColor(CustomEntry.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
                                 var empty = String.IsNullOrEmpty(textField.Text);
                                 if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); }
-                                if (ReadOnly)
+                                if (localReadOnly)
                                 {
                                     textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                                 }
@@ -171,11 +181,10 @@ namespace BioDivCollectorXamarin.ViewModels
                                 if (text == null)
                                 {
                                     //CreateNew
-                                    var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = recId };
+                                    var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = RecId };
                                     conn.Insert(txt);
                                     txts.Add(txt);
                                     queriedrec.texts = txts;
-                                    conn.UpdateWithChildren(queriedrec);
                                     text = txt;
                                 }
 
@@ -199,6 +208,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 dateField.TypeId = formField.typeId;
                                 dateField.Format = "dd MMMM yyyy";
                                 dateField.IsEnabled = !ReadOnly;
+                                dateField.FontSize = fontSize;
                                 dateField.WidthRequest = 170;
                                 dateField.HeightRequest = 40;
                                 dateField.Mandatory = formField.mandatory;
@@ -218,6 +228,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 timeField.TypeId = formField.typeId;
                                 timeField.Format = "HH:mm";
                                 timeField.IsEnabled = !ReadOnly;
+                                timeField.FontSize = fontSize;
                                 timeField.WidthRequest = 70;
                                 timeField.HeightRequest = 40;
                                 timeField.VerticalOptions = LayoutOptions.StartAndExpand;
@@ -285,11 +296,10 @@ namespace BioDivCollectorXamarin.ViewModels
                                 if (text == null)
                                 {
                                     //CreateNew
-                                    var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = recId };
+                                    var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = RecId };
                                     conn.Insert(txt);
                                     txts.Add(txt);
                                     queriedrec.texts = txts;
-                                    conn.UpdateWithChildren(queriedrec);
                                     text = txt;
                                 }
                                 dropField.SetAppThemeColor(SfAutoComplete.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
@@ -297,7 +307,6 @@ namespace BioDivCollectorXamarin.ViewModels
                                 dropField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
 
                                 List<FieldChoice> fieldChoices = Form.FetchFormChoicesForDropdown(formField.Id);
-                                //List<string> choices = fieldChoices.Select(choice => choice.text).ToList();
 
                                 dropField.AutoCompleteSource = fieldChoices.Select(choice => choice.text).ToList();
                                 dropField.ItemsSource = fieldChoices;
@@ -312,6 +321,11 @@ namespace BioDivCollectorXamarin.ViewModels
                                 dropField.MultiSelectMode = MultiSelectMode.None;
                                 dropField.ShowSuggestionsOnFocus = true;
                                 dropField.IsSelectedItemsVisibleInDropDown = false;
+                                if (Device.RuntimePlatform == Device.Android)
+                                {
+                                    dropField.BorderColor = Color.Black;
+                                }
+                                dropField.TextSize = fontSize;
                                 dropField.DropDownBackgroundColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGrey"];
                                 dropField.DropDownTextColor = Color.White;
                                 dropField.HighlightedTextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
@@ -357,11 +371,10 @@ namespace BioDivCollectorXamarin.ViewModels
                                 if (num == null)
                                 {
                                     //CreateNew
-                                    var nm = new NumericData { numericId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = recId };
+                                    var nm = new NumericData { numericId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = RecId };
                                     conn.Insert(nm);
                                     nums.Add(nm);
                                     queriedrec.texts = txts;
-                                    conn.UpdateWithChildren(queriedrec);
                                     num = nm;
 
                                 }
@@ -378,6 +391,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 textField.ValueId = num.Id;
                                 textField.TypeId = formField.typeId;
                                 textField.HeightRequest = 40;
+                                textField.FontSize = fontSize;
                                 textField.IsEnabled = !ReadOnly;
                                 textField.Mandatory = formField.mandatory;
                                 textField.PlaceholderColor = Color.Gray;
@@ -405,11 +419,10 @@ namespace BioDivCollectorXamarin.ViewModels
                                 if (boolValue == null)
                                 {
                                     //CreateNew
-                                    boolValue = new BooleanData { booleanId = Guid.NewGuid().ToString(), title = String.Empty, value = false, formFieldId = formField.fieldId, record_fk = recId };
+                                    boolValue = new BooleanData { booleanId = Guid.NewGuid().ToString(), title = String.Empty, value = false, formFieldId = formField.fieldId, record_fk = RecId };
                                     conn.Insert(boolValue);
                                     bools.Add(boolValue);
                                     queriedrec.booleans = bools;
-                                    conn.UpdateWithChildren(queriedrec);
                                 }
                                 if (boolValue != null)
                                 {
@@ -464,6 +477,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 AssociatedGeometry.SuggestionMode = SuggestionMode.Contains;
                 AssociatedGeometry.DropDownCornerRadius = 10;
                 AssociatedGeometry.HeightRequest = 40;
+                AssociatedGeometry.TextSize = fontSize;
                 AssociatedGeometry.EnableAutoSize = true;
                 AssociatedGeometry.MultiSelectMode = MultiSelectMode.None;
                 AssociatedGeometry.ShowSuggestionsOnFocus = true;
@@ -496,6 +510,10 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (ReadOnly)
                 {
                     AssociatedGeometry.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                }
+                if (Device.RuntimePlatform == Device.Android)
+                {
+                    AssociatedGeometry.BorderColor = Color.Black;
                 }
                 AssociatedGeometry.SelectionChanged += DidSelectNewGeometry;
 
@@ -586,6 +604,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void OnCancel()
         {
+            if (NewRecord) { Record.DeleteRecord(RecId); } //Delete any temporary record
             // This will pop the current page off the navigation stack
             MessagingCenter.Send<FormPageVM>(this, "NavigateBack");
         }
@@ -595,8 +614,8 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private async void OnSave()
         {
-            Form.SaveValuesFromFormFields(Assets, RecId);
             UpdateAssociatedGeometry(AssociatedGeometry);
+            Form.SaveValuesFromFormFields(Assets, RecId);
 
             MessagingCenter.Send<Xamarin.Forms.Application>(App.Current, "RefreshGeometries");
             // This will pop the current page off the navigation stack
@@ -624,42 +643,37 @@ namespace BioDivCollectorXamarin.ViewModels
         /// Update the geometry associated with the record with that selected from the picker
         /// </summary>
         /// <param name="choice"></param>
-        private async void UpdateAssociatedGeometry(CustomAutoComplete choice)
+        private async void UpdateAssociatedGeometry(SfAutoComplete choice)
         {
-            await Task.Run(() =>
+            var proj = Project.FetchCurrentProject();
+            if (choice.SelectedIndex > 0)
             {
-                var proj = Project.FetchCurrentProject();
-                if (choice.SelectedIndex > 0)
+                var source = (List<ReferenceGeometry>)choice.ItemsSource;
+                var geom = source[(int)choice.SelectedIndex] as ReferenceGeometry;
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 {
-                    var source = (List<ReferenceGeometry>)choice.ItemsSource;
-                    var geom = source[(int)choice.SelectedIndex] as ReferenceGeometry;
-                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                    queriedrec.geometry_fk = geom.Id;
+                    queriedrec.project_fk = proj.Id;
+                    if (queriedrec.status != -1)
                     {
-                        var queriedrec = conn.Get<Record>(RecId);
-                        queriedrec.geometry_fk = geom.Id;
-                        queriedrec.project_fk = proj.Id;
-                        if (queriedrec.status != -1)
-                        {
-                            queriedrec.status = 2;
-                        }
-                        conn.Update(queriedrec);
+                        queriedrec.status = 2;
                     }
+                    conn.Update(queriedrec);
                 }
-                else
+            }
+            else
+            {
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                    queriedrec.geometry_fk = null;
+                    queriedrec.project_fk = proj.Id;
+                    if (queriedrec.status != -1)
                     {
-                        var queriedrec = conn.Get<Record>(RecId);
-                        queriedrec.geometry_fk = null;
-                        queriedrec.project_fk = proj.Id;
-                        if (queriedrec.status != -1)
-                        {
-                            queriedrec.status = 2;
-                        }
-                        conn.Update(queriedrec);
+                        queriedrec.status = 2;
                     }
+                    conn.Update(queriedrec);
                 }
-            });
+            }
         }
 
         /// <summary>
@@ -718,8 +732,6 @@ namespace BioDivCollectorXamarin.ViewModels
             using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 text.value = String.Empty;
-                //conn.Update(text);
-                Record.UpdateRecord(text.record_fk);
             }
         }
 

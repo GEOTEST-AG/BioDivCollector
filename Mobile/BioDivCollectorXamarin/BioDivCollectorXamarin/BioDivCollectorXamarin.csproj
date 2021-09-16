@@ -5,6 +5,9 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_1;</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="Images\loc.png" />
     <None Remove="Images\locSaved.png" />
@@ -25,7 +28,9 @@
     <EmbeddedResource Include="Models\LoginModel\Auth.xml">
       <IncludeInPackage>false</IncludeInPackage>
     </EmbeddedResource>
-    <EmbeddedResource Include="SfLicence.xml" />
+    <EmbeddedResource Include="SfLicence.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -40,11 +45,8 @@
     <PackageReference Include="Xam.Plugin.Geolocator" Version="4.5.0.6" />
     <PackageReference Include="Xamarin.Auth.Extensions" Version="1.7.0" />
     <PackageReference Include="Xamarin.Auth.XamarinForms" Version="1.7.0" />
-    <PackageReference Include="Xamarin.CommunityToolkit" Version="1.2.0" />
-    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2083" />  
     <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
     <PackageReference Include="Mapsui" Version="2.0.3" />
-    <PackageReference Include="Mapsui.Forms" Version="2.0.3" />
     <PackageReference Include="BruTile.MbTiles" Version="2.2.0" />
     <PackageReference Include="Xamarin.Essentials.Interfaces" Version="1.7.0" />
     <PackageReference Include="Xamarin.RisePlugin.AutoCompleteTextView" Version="1.0.9" />
@@ -52,6 +54,9 @@
     <PackageReference Include="Syncfusion.Licensing" Version="19.2.0.60" />
     <PackageReference Include="Syncfusion.Xamarin.SfBusyIndicator" Version="19.2.0.60" />
     <PackageReference Include="Syncfusion.Xamarin.SfAutoComplete" Version="19.2.0.60" />
+    <PackageReference Include="Mapsui.Forms" Version="2.0.3" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />
+    <PackageReference Include="Xamarin.CommunityToolkit" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -116,7 +116,7 @@ namespace BioDivCollectorXamarin.Views
         private void RecordListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
             var rec = e.Item as FormRec;
-            Navigation.PushAsync(new FormPage(rec.RecId),true);
+            Navigation.PushAsync(new FormPage(rec.RecId, rec.FormId, rec.GeomId),true);
         }
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace BioDivCollectorXamarin.Views
                         GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
                         var geom = ReferenceGeometry.GetGeometry((int)formRec.GeomId);
                         string newName = await DisplayPromptAsync("Geometriename", "Editieren Sie bitte der Geometriename", accept: "OK", cancel: "Abbrechen", initialValue: geom.geometryName, keyboard: Keyboard.Text);
-                        geom.ChangeGeometryName(newName);
+                        if (newName != null) { geom.ChangeGeometryName(newName); }
                         MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
                     }
                     catch

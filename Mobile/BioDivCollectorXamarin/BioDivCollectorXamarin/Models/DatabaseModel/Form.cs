@@ -228,11 +228,12 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                 if (txtField.SelectedItem != null)
                                 {
                                     var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == txtField.ValueId).FirstOrDefault(); //Get the existing data from the database
-                                    var choiceString = txtField.SelectedItem.ToString();
-                                    text.value = choiceString; //update the text from the field
+                                    var choice = txtField.SelectedIndex;
+                                    var choiceString = txtField.AutoCompleteSource[choice];
                                     var chosen = conn.Table<FieldChoice>().Select(t => t).Where(mychoice => mychoice.formField_fk == txtField.TypeId).Where(mychoice => mychoice.text == choiceString).FirstOrDefault(); //Find the corresponding dropdown choice from the database
                                     if (chosen != null)
                                     {
+                                        text.value = chosen.text; //update the text from the choice
                                         text.fieldChoiceId = chosen.choiceId; //Update the database entry with the dropdown choice id
                                         conn.Update(text);
                                         Record.UpdateRecord(text.record_fk); //Write back to the db

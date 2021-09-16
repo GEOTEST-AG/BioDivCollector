@@ -81,7 +81,7 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         private async void RequestGeometryName(string defaultName)
         {
-            string result = await DisplayPromptAsync("Geometriename", "Bitte geben Sie eine Geometriename ein", accept:"Speichern", cancel:"Abbrechen", initialValue: defaultName);
+            string result = await DisplayPromptAsync("Geometriename", "Bitte geben Sie eine Geometriename ein", accept:"Speichern", cancel:"Abbrechen");
             MessagingCenter.Send<MapPage, string>(this, "GeometryName", result);
         }
 
