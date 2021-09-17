@@ -52,7 +52,6 @@
     <PackageReference Include="Xamarin.RisePlugin.AutoCompleteTextView" Version="1.0.9" />
     <PackageReference Include="ProjNet" Version="2.0.0" />
     <PackageReference Include="Syncfusion.Licensing" Version="19.2.0.60" />
-    <PackageReference Include="Syncfusion.Xamarin.SfBusyIndicator" Version="19.2.0.60" />
     <PackageReference Include="Syncfusion.Xamarin.SfAutoComplete" Version="19.2.0.60" />
     <PackageReference Include="Mapsui.Forms" Version="2.0.3" />
     <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />

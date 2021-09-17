@@ -569,7 +569,16 @@ namespace BioDivCollectorXamarin.ViewModels
 
         }
 
-
+        /// <summary>
+        /// Carry out tasks on leaving the view
+        /// </summary>
+        public void OnDisappearing()
+        {
+            if (NewRecord)
+            {
+                Record.DeleteRecord(RecId); //Delete any temporary record
+            }
+        }
 
         /// <summary>
         /// Check if the save button can be pressed: check whether all of the mandatory components have been filled out
@@ -604,7 +613,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void OnCancel()
         {
-            if (NewRecord) { Record.DeleteRecord(RecId); } //Delete any temporary record
+            if (NewRecord)
+            {
+                Record.DeleteRecord(RecId); //Delete any temporary record
+            } 
             // This will pop the current page off the navigation stack
             MessagingCenter.Send<FormPageVM>(this, "NavigateBack");
         }
@@ -614,6 +626,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private async void OnSave()
         {
+            NewRecord = false;
             UpdateAssociatedGeometry(AssociatedGeometry);
             Form.SaveValuesFromFormFields(Assets, RecId);
 

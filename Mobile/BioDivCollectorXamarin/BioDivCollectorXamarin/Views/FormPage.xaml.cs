@@ -40,6 +40,12 @@ namespace BioDivCollectorXamarin.Views
             ViewModel.OnAppearing();
         }
 
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            ViewModel.OnDisappearing();
+        }
+
         /// <summary>
         /// Return to the bottom of the tab stack
         /// </summary>
