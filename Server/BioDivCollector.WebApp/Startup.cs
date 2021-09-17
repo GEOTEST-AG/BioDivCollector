@@ -304,8 +304,9 @@ namespace BioDivCollector.WebApp
             */
             var provider = new FileExtensionContentTypeProvider();
             provider.Mappings[".apk"] = "application/vnd.android.package-archive";
+            provider.Mappings[".aab"] = "application/x-authorware-bin";
 
-            
+
 
             app.UseStaticFiles();
             {
