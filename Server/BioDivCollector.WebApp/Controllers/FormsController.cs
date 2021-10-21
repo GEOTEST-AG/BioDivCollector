@@ -814,6 +814,7 @@ namespace BioDivCollector.WebApp.Controllers
                                         "p.projectname as \"projektname\", " +
                                         "p.description AS \"beschreibung\", " +
                                         "p2.description AS \"status\", " +
+                                        "thirdparty.name as \"extprogramme\"," +
                                         "g.geometryid as \"bdcguid_geometrie\", " +
                                         "g.geometryname as \"geometriename\", " +
                                         "g.{geometry}, " +
@@ -831,6 +832,7 @@ namespace BioDivCollector.WebApp.Controllers
                                         "p.projectname as \"projektname\", " +
                                         "p.description AS \"beschreibung\", " +
                                         "p2.description AS \"status\", " +
+                                        "thirdparty.name as \"extprogramme\"," +
                                         "r2.recordid as \"bdcguid_beobachtung\", " +
                                         "r2.groupid as \"group_id\", " +
                                         "getrecordchangelogdate(r2.recordid) as changedate, " +
@@ -842,12 +844,14 @@ namespace BioDivCollector.WebApp.Controllers
                                         "INNER JOIN projectstatuses p2 on p2.id = p.projectstatusid " +
                                         "LEFT JOIN geometries g ON g.projectid = p.projectid " +
                                         "LEFT JOIN records r2 ON r2.geometryid = g.geometryid " +
+                                        "LEFT JOIN (select p.projectid, string_agg(name::text, ';') as name from projectsthirdpartytools p inner join thirdpartytools t ON (t.thirdpartytoolid = p.thirdpartytoolid) group by p.projectid) as thirdparty ON thirdparty.projectid = p.projectid" +
                                         "WHERE p.statusid <> 3 AND g.statusid <> 3 AND g.{geometry} IS NOT NULL AND (r2.statusid <> 3 or r2.statusid is null) {ogd_true}" +
                                         "ORDER BY g.geometryname; ";
 
             string sqlCreateViewsGeneral2 = "FROM projects p " +
                                         "INNER JOIN projectstatuses p2 on p2.id = p.projectstatusid " +
                                         "LEFT JOIN records r2 ON r2.projectid = p.projectid " +
+                                        "LEFT JOIN (select p.projectid, string_agg(name::text, ';') as name from projectsthirdpartytools p inner join thirdpartytools t ON (t.thirdpartytoolid = p.thirdpartytoolid) group by p.projectid) as thirdparty ON thirdparty.projectid = p.projectid" +
                                         "WHERE p.statusid <> 3 AND (r2.statusid <> 3 or r2.statusid is null) and r2.groupid is not null {ogd_true};";
 
             string sqlGeometrieView = sqlCreateViews1;

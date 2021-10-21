@@ -50,7 +50,7 @@ namespace BioDivCollector.DB.Models.Domain
         /// <summary>
         /// Projekt hat Artendaten von welchen externen Tools
         /// </summary>
-        [DisplayName("Dies ist ein Projekt mit Artendaten von")]
+        [DisplayName("Projektdaten mit GUID-Bezug zu Daten in folgenden Anwendungen")]
         public List<ProjectThirdPartyTool> ProjectThirdPartyTools { get; set; }
         [NotMapped]
         public string ProjectThirdPartyToolsString { get; set; }
