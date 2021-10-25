@@ -319,15 +319,33 @@
     <ImageAsset Include="Assets.xcassets\RecordsIcon.imageset\outline_list_alt_black_24pt_3x.png">
       <Visible>false</Visible>
     </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\LogoTiny.imageset\Contents.json" />
-    <ImageAsset Include="Assets.xcassets\Background.imageset\Contents.json" />
-    <ImageAsset Include="Assets.xcassets\Background.imageset\main_bg.jpg" />
-    <ImageAsset Include="Assets.xcassets\Background.imageset\main_bg-1.jpg" />
-    <ImageAsset Include="Assets.xcassets\Background.imageset\main_bg-2.jpg" />
-    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\Contents.json" />
-    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small.png" />
-    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small-1.png" />
-    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small-2.png" />
+    <ImageAsset Include="Assets.xcassets\LogoTiny.imageset\Contents.json">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\Background.imageset\Contents.json">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\Background.imageset\main_bg.jpg">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\Background.imageset\main_bg-1.jpg">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\Background.imageset\main_bg-2.jpg">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\Contents.json">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small.png">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small-1.png">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small-2.png">
+      <Visible>false</Visible>
+    </ImageAsset>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -370,11 +388,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\" />
-    <Folder Include="Assets.xcassets\LogoTiny.imageset\" />
     <Folder Include="Assets.xcassets\Background.imageset\" />
+    <Folder Include="Assets.xcassets\LogoTiny.imageset\" />
     <Folder Include="Assets.xcassets\LogoV1Small.imageset\" />
-    <Folder Include="Assets.xcassets\LogoV1small.imageset\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\MapModel.cs" Condition=" '$(EnableDefaultCompileItems)' == 'true' ">
