@@ -107,7 +107,10 @@ namespace BioDivCollectorXamarin.ViewModels
                         label.FontAttributes = FontAttributes.Bold;
                         label.Margin = new Thickness(0, 10, 0, 0);
                         label.SetAppThemeColor(Label.TextColorProperty, Color.Black, Color.White);
-                        Assets.Add(label);
+                        if (formField.typeId != 31) //Add label next to checkbox for boolean
+                        {
+                            Assets.Add(label);
+                        }
 
                         if (formField.typeId == 11 || formField.typeId == 61)
                         {
@@ -428,14 +431,30 @@ namespace BioDivCollectorXamarin.ViewModels
                                 {
                                     checkBox.IsChecked = (bool)boolValue.value;
                                 }
-                                checkBox.Margin = new Thickness(0, 0, 0, 10);
+                                checkBox.Margin = new Thickness(0, 0, 0, 0);
                                 checkBox.ValueId = boolValue.Id;
                                 checkBox.TypeId = formField.typeId;
                                 checkBox.IsEnabled = !ReadOnly;
                                 checkBox.Color = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
                                 if (ReadOnly) { checkBox.Color = Color.LightGray; }
                                 checkBox.CheckedChanged += BooleanFieldChanged;
-                                Assets.Add(checkBox);
+                                checkBox.VerticalOptions = LayoutOptions.Fill;
+                                checkBox.HorizontalOptions = LayoutOptions.Start;
+                                label.VerticalOptions = LayoutOptions.Fill;
+                                label.VerticalTextAlignment = TextAlignment.Center;
+                                label.Margin = new Thickness(0, 0, 0, 0);
+                                var stack = new CustomStackLayout()
+                                {
+                                    Orientation = StackOrientation.Horizontal,
+                                    HorizontalOptions = LayoutOptions.Start,
+                                    VerticalOptions = LayoutOptions.Fill,
+                                    Children =
+                                {
+                                    checkBox,label
+                                }
+                                };
+                                stack.Margin = new Thickness(0, 0, 0, 10);
+                                Assets.Add(stack);
                             }
                             catch (Exception e)
                             {
