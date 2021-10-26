@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Xamarin.Forms.5.0.0.2012\build\Xamarin.Forms.props" Condition="Exists('..\packages\Xamarin.Forms.5.0.0.2012\build\Xamarin.Forms.props')" />
   <PropertyGroup>
@@ -10,6 +10,8 @@
     <RootNamespace>BioDivCollectorXamarin.iOS.Test</RootNamespace>
     <AssemblyName>BioDivCollectorXamarin.iOS.Test</AssemblyName>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,13 +30,15 @@
     <MtouchArch>x86_64</MtouchArch>
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <DeviceSpecificBuild>false</DeviceSpecificBuild>
-    <MtouchVerbosity></MtouchVerbosity>
+    <MtouchVerbosity>
+    </MtouchVerbosity>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\iPhone\Release</OutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodesignKey>iPhone Developer</CodesignKey>
@@ -44,13 +48,15 @@
     <MtouchLink>SdkOnly</MtouchLink>
     <MtouchArch>ARM64</MtouchArch>
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
-    <MtouchVerbosity></MtouchVerbosity>
+    <MtouchVerbosity>
+    </MtouchVerbosity>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\iPhoneSimulator\Release</OutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodesignKey>iPhone Developer</CodesignKey>
@@ -58,7 +64,8 @@
     <MtouchLink>None</MtouchLink>
     <MtouchArch>x86_64</MtouchArch>
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
-    <MtouchVerbosity></MtouchVerbosity>
+    <MtouchVerbosity>
+    </MtouchVerbosity>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <DebugSymbols>true</DebugSymbols>
@@ -79,12 +86,55 @@
     <MtouchLink>SdkOnly</MtouchLink>
     <MtouchArch>ARM64</MtouchArch>
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
-    <MtouchVerbosity></MtouchVerbosity>
+    <MtouchVerbosity>
+    </MtouchVerbosity>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BruTile, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\BruTile.4.0.0\lib\netstandard2.0\BruTile.dll</HintPath>
+    </Reference>
+    <Reference Include="Fizzler, Version=1.2.0.0, Culture=neutral, PublicKeyToken=4ebff4844e382110, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fizzler.1.2.0\lib\netstandard2.0\Fizzler.dll</HintPath>
+    </Reference>
+    <Reference Include="HarfBuzzSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\HarfBuzzSharp.2.6.1.7\lib\xamarinios1.0\HarfBuzzSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Mapsui, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mapsui.3.0.1\lib\netstandard2.0\Mapsui.dll</HintPath>
+    </Reference>
+    <Reference Include="Mapsui.Geometries, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mapsui.3.0.1\lib\netstandard2.0\Mapsui.Geometries.dll</HintPath>
+    </Reference>
+    <Reference Include="Mapsui.Rendering.Skia, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mapsui.3.0.1\lib\netstandard2.0\Mapsui.Rendering.Skia.dll</HintPath>
+    </Reference>
+    <Reference Include="ShimSkiaSharp, Version=0.5.7.1, Culture=neutral, PublicKeyToken=dafe96fe6c845a74, processorArchitecture=MSIL">
+      <HintPath>..\packages\ShimSkiaSharp.0.5.7.1\lib\netstandard2.0\ShimSkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp, Version=2.80.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\SkiaSharp.2.80.2\lib\xamarinios1.0\SkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.HarfBuzz, Version=2.80.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\SkiaSharp.HarfBuzz.2.80.2\lib\netstandard2.0\SkiaSharp.HarfBuzz.dll</HintPath>
+    </Reference>
+    <Reference Include="Svg.Custom, Version=0.5.7.1, Culture=neutral, PublicKeyToken=dafe96fe6c845a74, processorArchitecture=MSIL">
+      <HintPath>..\packages\Svg.Custom.0.5.7.1\lib\netstandard2.1\Svg.Custom.dll</HintPath>
+    </Reference>
+    <Reference Include="Svg.Model, Version=0.5.7.1, Culture=neutral, PublicKeyToken=dafe96fe6c845a74, processorArchitecture=MSIL">
+      <HintPath>..\packages\Svg.Model.0.5.7.1\lib\netstandard2.0\Svg.Model.dll</HintPath>
+    </Reference>
+    <Reference Include="Svg.Skia, Version=0.5.7.1, Culture=neutral, PublicKeyToken=dafe96fe6c845a74, processorArchitecture=MSIL">
+      <HintPath>..\packages\Svg.Skia.0.5.7.1\lib\netstandard2.1\Svg.Skia.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
+    <Reference Include="Topten.RichTextKit, Version=0.4.145.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Topten.RichTextKit.0.4.145\lib\netstandard2.0\Topten.RichTextKit.dll</HintPath>
+    </Reference>
+    <Reference Include="Xamarin.CommunityToolkit, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xamarin.CommunityToolkit.1.2.0\lib\xamarinios10\Xamarin.CommunityToolkit.dll</HintPath>
+    </Reference>
     <Reference Include="Xamarin.iOS" />
     <Reference Include="MonoTouch.NUnitLite" />
     <Reference Include="Xamarin.Forms.Core">
@@ -99,20 +149,11 @@
     <Reference Include="Xamarin.Forms.Xaml">
       <HintPath>..\packages\Xamarin.Forms.5.0.0.2012\lib\Xamarin.iOS10\Xamarin.Forms.Xaml.dll</HintPath>
     </Reference>
-    <Reference Include="Xamarin.CommunityToolkit">
-      <HintPath>..\packages\Xamarin.CommunityToolkit.1.1.0\lib\xamarinios10\Xamarin.CommunityToolkit.dll</HintPath>
-    </Reference>
     <Reference Include="System.Drawing.Common.dll" />
     <Reference Include="OpenTK-1.0" />
     <Reference Include="System.Numerics" />
-    <Reference Include="HarfBuzzSharp">
-      <HintPath>..\packages\HarfBuzzSharp.2.6.1\lib\Xamarin.iOS\HarfBuzzSharp.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="SkiaSharp">
-      <HintPath>..\packages\SkiaSharp.1.68.2.1\lib\xamarinios1.0\SkiaSharp.dll</HintPath>
     </Reference>
     <Reference Include="SkiaSharp.Extended.Svg">
       <HintPath>..\packages\SkiaSharp.Svg.1.60.0\lib\netstandard2.0\SkiaSharp.Extended.Svg.dll</HintPath>
@@ -122,24 +163,6 @@
     </Reference>
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="BruTile">
-      <HintPath>..\packages\BruTile.2.1.2\lib\netstandard1.1\BruTile.dll</HintPath>
-    </Reference>
-    <Reference Include="Topten.RichTextKit">
-      <HintPath>..\packages\Topten.RichTextKit.0.1.118\lib\netstandard2.0\Topten.RichTextKit.dll</HintPath>
-    </Reference>
-    <Reference Include="Mapsui">
-      <HintPath>..\packages\Mapsui.2.0.3\lib\Xamarin.iOS\Mapsui.dll</HintPath>
-    </Reference>
-    <Reference Include="Mapsui.Geometries">
-      <HintPath>..\packages\Mapsui.2.0.3\lib\Xamarin.iOS\Mapsui.Geometries.dll</HintPath>
-    </Reference>
-    <Reference Include="Mapsui.Rendering.Skia">
-      <HintPath>..\packages\Mapsui.2.0.3\lib\Xamarin.iOS\Mapsui.Rendering.Skia.dll</HintPath>
-    </Reference>
-    <Reference Include="Mapsui.UI.iOS">
-      <HintPath>..\packages\Mapsui.2.0.3\lib\Xamarin.iOS\Mapsui.UI.iOS.dll</HintPath>
-    </Reference>
     <Reference Include="System.Buffers">
       <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
     </Reference>
@@ -178,6 +201,7 @@
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
     <None Include="packages.config" />
@@ -195,5 +219,15 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <Import Project="..\packages\Xamarin.Forms.5.0.0.2012\build\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.5.0.0.2012\build\Xamarin.Forms.targets')" />
-  <Import Project="..\packages\Xamarin.CommunityToolkit.1.1.0\build\Xamarin.CommunityToolkit.targets" Condition="Exists('..\packages\Xamarin.CommunityToolkit.1.1.0\build\Xamarin.CommunityToolkit.targets')" />
+  <Import Project="..\packages\Xamarin.CommunityToolkit.1.2.0\build\Xamarin.CommunityToolkit.targets" Condition="Exists('..\packages\Xamarin.CommunityToolkit.1.2.0\build\Xamarin.CommunityToolkit.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Xamarin.CommunityToolkit.1.2.0\build\Xamarin.CommunityToolkit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.CommunityToolkit.1.2.0\build\Xamarin.CommunityToolkit.targets'))" />
+    <Error Condition="!Exists('..\packages\HarfBuzzSharp.2.6.1.7\build\xamarinios1.0\HarfBuzzSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\HarfBuzzSharp.2.6.1.7\build\xamarinios1.0\HarfBuzzSharp.targets'))" />
+    <Error Condition="!Exists('..\packages\SkiaSharp.2.80.2\build\xamarinios1.0\SkiaSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SkiaSharp.2.80.2\build\xamarinios1.0\SkiaSharp.targets'))" />
+  </Target>
+  <Import Project="..\packages\HarfBuzzSharp.2.6.1.7\build\xamarinios1.0\HarfBuzzSharp.targets" Condition="Exists('..\packages\HarfBuzzSharp.2.6.1.7\build\xamarinios1.0\HarfBuzzSharp.targets')" />
+  <Import Project="..\packages\SkiaSharp.2.80.2\build\xamarinios1.0\SkiaSharp.targets" Condition="Exists('..\packages\SkiaSharp.2.80.2\build\xamarinios1.0\SkiaSharp.targets')" />
 </Project>

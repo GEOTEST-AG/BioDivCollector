@@ -21,6 +21,8 @@
     <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
     <AndroidUseAapt2>true</AndroidUseAapt2>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -46,11 +48,54 @@
     <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BruTile, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\BruTile.4.0.0\lib\netstandard2.0\BruTile.dll</HintPath>
+    </Reference>
+    <Reference Include="Fizzler, Version=1.2.0.0, Culture=neutral, PublicKeyToken=4ebff4844e382110, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fizzler.1.2.0\lib\netstandard2.0\Fizzler.dll</HintPath>
+    </Reference>
+    <Reference Include="HarfBuzzSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\HarfBuzzSharp.2.6.1.7\lib\monoandroid1.0\HarfBuzzSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Java.Interop" />
+    <Reference Include="Mapsui, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mapsui.3.0.1\lib\netstandard2.0\Mapsui.dll</HintPath>
+    </Reference>
+    <Reference Include="Mapsui.Geometries, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mapsui.3.0.1\lib\netstandard2.0\Mapsui.Geometries.dll</HintPath>
+    </Reference>
+    <Reference Include="Mapsui.Rendering.Skia, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mapsui.3.0.1\lib\netstandard2.0\Mapsui.Rendering.Skia.dll</HintPath>
+    </Reference>
+    <Reference Include="ShimSkiaSharp, Version=0.5.7.1, Culture=neutral, PublicKeyToken=dafe96fe6c845a74, processorArchitecture=MSIL">
+      <HintPath>..\packages\ShimSkiaSharp.0.5.7.1\lib\netstandard2.0\ShimSkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp, Version=2.80.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\SkiaSharp.2.80.2\lib\monoandroid1.0\SkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.HarfBuzz, Version=2.80.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\SkiaSharp.HarfBuzz.2.80.2\lib\netstandard2.0\SkiaSharp.HarfBuzz.dll</HintPath>
+    </Reference>
+    <Reference Include="Svg.Custom, Version=0.5.7.1, Culture=neutral, PublicKeyToken=dafe96fe6c845a74, processorArchitecture=MSIL">
+      <HintPath>..\packages\Svg.Custom.0.5.7.1\lib\netstandard2.1\Svg.Custom.dll</HintPath>
+    </Reference>
+    <Reference Include="Svg.Model, Version=0.5.7.1, Culture=neutral, PublicKeyToken=dafe96fe6c845a74, processorArchitecture=MSIL">
+      <HintPath>..\packages\Svg.Model.0.5.7.1\lib\netstandard2.0\Svg.Model.dll</HintPath>
+    </Reference>
+    <Reference Include="Svg.Skia, Version=0.5.7.1, Culture=neutral, PublicKeyToken=dafe96fe6c845a74, processorArchitecture=MSIL">
+      <HintPath>..\packages\Svg.Skia.0.5.7.1\lib\netstandard2.1\Svg.Skia.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="Mono.Android" />
+    <Reference Include="Topten.RichTextKit, Version=0.4.145.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Topten.RichTextKit.0.4.145\lib\netstandard2.0\Topten.RichTextKit.dll</HintPath>
+    </Reference>
     <Reference Include="Xamarin.Android.NUnitLite" />
+    <Reference Include="Xamarin.CommunityToolkit, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xamarin.CommunityToolkit.1.2.0\lib\monoandroid10.0\Xamarin.CommunityToolkit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainActivity.cs" />
@@ -59,6 +104,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Resources\AboutResources.txt" />
     <None Include="Assets\AboutAssets.txt" />
     <None Include="Properties\AndroidManifest.xml" />
@@ -86,4 +132,15 @@
     <AndroidResource Include="Resources\values\strings.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
+  <Import Project="..\packages\Xamarin.CommunityToolkit.1.2.0\build\Xamarin.CommunityToolkit.targets" Condition="Exists('..\packages\Xamarin.CommunityToolkit.1.2.0\build\Xamarin.CommunityToolkit.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Xamarin.CommunityToolkit.1.2.0\build\Xamarin.CommunityToolkit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.CommunityToolkit.1.2.0\build\Xamarin.CommunityToolkit.targets'))" />
+    <Error Condition="!Exists('..\packages\HarfBuzzSharp.2.6.1.7\build\monoandroid1.0\HarfBuzzSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\HarfBuzzSharp.2.6.1.7\build\monoandroid1.0\HarfBuzzSharp.targets'))" />
+    <Error Condition="!Exists('..\packages\SkiaSharp.2.80.2\build\monoandroid1.0\SkiaSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SkiaSharp.2.80.2\build\monoandroid1.0\SkiaSharp.targets'))" />
+  </Target>
+  <Import Project="..\packages\HarfBuzzSharp.2.6.1.7\build\monoandroid1.0\HarfBuzzSharp.targets" Condition="Exists('..\packages\HarfBuzzSharp.2.6.1.7\build\monoandroid1.0\HarfBuzzSharp.targets')" />
+  <Import Project="..\packages\SkiaSharp.2.80.2\build\monoandroid1.0\SkiaSharp.targets" Condition="Exists('..\packages\SkiaSharp.2.80.2\build\monoandroid1.0\SkiaSharp.targets')" />
 </Project>

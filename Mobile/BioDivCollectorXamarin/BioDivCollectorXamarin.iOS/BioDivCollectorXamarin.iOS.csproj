@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -393,13 +393,7 @@
     </PackageReference>
     <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
     <PackageReference Include="Mapsui">
-      <Version>2.0.3</Version>
-    </PackageReference>
-    <PackageReference Include="Mapsui.Forms">
-      <Version>2.0.3</Version>
-    </PackageReference>
-    <PackageReference Include="BruTile.MbTiles">
-      <Version>2.2.0</Version>
+      <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="Syncfusion.Xamarin.Core">
       <Version>19.2.0.60</Version>
@@ -410,6 +404,9 @@
     <PackageReference Include="Syncfusion.Licensing">
       <Version>19.2.0.60</Version>
     </PackageReference>
+    <PackageReference Include="Xamarin.Forms">
+      <Version>5.0.0.2012</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
@@ -419,13 +416,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\" />
-    <Folder Include="Assets.xcassets\LogoTiny.imageset\" />
     <Folder Include="Assets.xcassets\Background.imageset\" />
-    <Folder Include="Assets.xcassets\LogoV1Small.imageset\" />
-    <Folder Include="Assets.xcassets\LogoV1small.imageset\" />
-    <Folder Include="Assets.xcassets\undo.imageset\" />
     <Folder Include="Assets.xcassets\clear.imageset\" />
+    <Folder Include="Assets.xcassets\LogoTiny.imageset\" />
+    <Folder Include="Assets.xcassets\LogoV1Small.imageset\" />
+    <Folder Include="Assets.xcassets\undo.imageset\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\MapModel.cs" Condition=" '$(EnableDefaultCompileItems)' == 'true' ">
