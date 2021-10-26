@@ -50,6 +50,8 @@ namespace BioDivCollectorXamarin.Android.Test
 			global::Xamarin.Android.NUnitLite.Resource.Layout.Runner = global::BioDivCollectorXamarin.Android.Test.Resource.Layout.Runner;
 			global::Xamarin.Android.NUnitLite.Resource.Layout.test_result = global::BioDivCollectorXamarin.Android.Test.Resource.Layout.test_result;
 			global::Xamarin.Android.NUnitLite.Resource.Layout.test_suite = global::BioDivCollectorXamarin.Android.Test.Resource.Layout.test_suite;
+			global::Xamarin.CommunityToolkit.Resource.Id.cameratexture = global::BioDivCollectorXamarin.Android.Test.Resource.Id.cameratexture;
+			global::Xamarin.CommunityToolkit.Resource.Layout.CameraFragment = global::BioDivCollectorXamarin.Android.Test.Resource.Layout.CameraFragment;
 		}
 		
 		public partial class Attribute
@@ -92,6 +94,9 @@ namespace BioDivCollectorXamarin.Android.Test
 		
 		public partial class Id
 		{
+			
+			// aapt resource value: 0x7F020014
+			public const int cameratexture = 2130837524;
 			
 			// aapt resource value: 0x7F020000
 			public const int CreditsButton = 2130837504;
@@ -167,19 +172,22 @@ namespace BioDivCollectorXamarin.Android.Test
 		{
 			
 			// aapt resource value: 0x7F030000
-			public const int options = 2130903040;
+			public const int CameraFragment = 2130903040;
 			
 			// aapt resource value: 0x7F030001
-			public const int results = 2130903041;
+			public const int options = 2130903041;
 			
 			// aapt resource value: 0x7F030002
-			public const int Runner = 2130903042;
+			public const int results = 2130903042;
 			
 			// aapt resource value: 0x7F030003
-			public const int test_result = 2130903043;
+			public const int Runner = 2130903043;
 			
 			// aapt resource value: 0x7F030004
-			public const int test_suite = 2130903044;
+			public const int test_result = 2130903044;
+			
+			// aapt resource value: 0x7F030005
+			public const int test_suite = 2130903045;
 			
 			static Layout()
 			{
