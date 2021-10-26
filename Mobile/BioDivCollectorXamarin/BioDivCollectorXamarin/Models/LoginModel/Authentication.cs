@@ -210,6 +210,9 @@ namespace BioDivCollectorXamarin.Models.LoginModel
             
         }
 
+        /// <summary>
+        /// This logs the user out again completely if there is an error
+        /// </summary>
         private static void loginErrorHandler()
         {
             Login.Logout();

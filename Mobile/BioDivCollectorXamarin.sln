@@ -109,4 +109,10 @@ Global
 		RESX_NeutralResourcesLanguage = de-CH
 		SolutionGuid = {B58E0C6E-7978-4D27-B9BD-D84F9FF8C071}
 	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = PrefixedHierarchical
+		version = 1.2
+	EndGlobalSection
 EndGlobal
