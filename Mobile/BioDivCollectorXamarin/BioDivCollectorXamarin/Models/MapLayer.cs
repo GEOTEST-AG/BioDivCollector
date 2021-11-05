@@ -101,17 +101,24 @@ namespace BioDivCollectorXamarin.Models
                 opacity = value;
                 if (Name != null)
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                    try
                     {
-                        var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.title == Name).Where(Layer => Layer.visible == enabled).FirstOrDefault();
-                        if (existingLayer != null)
+                        using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                         {
-                            existingLayer.opacity = opacity;
-                            conn.Update(existingLayer);
+                            var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.title == Name).Where(Layer => Layer.visible == enabled).FirstOrDefault();
+                            if (existingLayer != null)
+                            {
+                                existingLayer.opacity = opacity;
+                                conn.Update(existingLayer);
+                            }
                         }
+                        OnPropertyChanged("Opacity");
+                        OnPropertyChanged("MapLayers");
                     }
-                    OnPropertyChanged("Opacity");
-                    OnPropertyChanged("MapLayers");
+                    catch (Exception e)
+                    {
+
+                    }
                 }
 
             }

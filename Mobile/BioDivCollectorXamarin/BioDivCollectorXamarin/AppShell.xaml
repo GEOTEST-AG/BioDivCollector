@@ -12,30 +12,10 @@
         https://docs.microsoft.com/xamarin/xamarin-forms/app-fundamentals/shell/
     -->
 
-    <Shell.Resources>
-        <ResourceDictionary>
-            <Style x:Key="BaseStyle" TargetType="Element">
-                <Setter Property="Shell.BackgroundColor" Value="{StaticResource BioDivGrey}" />
-                <Setter Property="Shell.ForegroundColor" Value="White" />
-                <Setter Property="Shell.ForegroundColor" Value="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource LightBackgroundColor}}" />
-                <Setter Property="Shell.TitleColor" Value="White" />
-                <Setter Property="Shell.DisabledColor" Value="#B4FFFFFF" />
-                <Setter Property="Shell.UnselectedColor" Value="#95FFFFFF" />
-                <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource BioDivGreen}" />
-                <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource BioDivGrey}"/>
-                <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource BioDivGrey}"/>
-                <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource LightBackgroundColor}"/>
-            </Style>
-            <Style TargetType="TabBar" BasedOn="{StaticResource BaseStyle}" />
-            <Style TargetType="FlyoutItem" BasedOn="{StaticResource BaseStyle}" />
-        </ResourceDictionary>
-    </Shell.Resources>
-
     <TabBar>
-        <ShellContent Title="{x:Static resources:AppResources.TabProjects}" Icon="Project.png" Route="Projects" ContentTemplate="{DataTemplate local:ProjectsPage}" />
+        <ShellContent Title="{x:Static resources:AppResources.TabProjects}" Icon="Project.png" Route="Projects" ContentTemplate="{DataTemplate local:ProjectsPage}"/>
         <ShellContent Title="{x:Static resources:AppResources.TabMap}" Icon="MapIcon2.png" ContentTemplate="{DataTemplate local:MapPage}" Route="Map"/>
         <ShellContent Title="{x:Static resources:AppResources.TabRecords}" Icon="List.png" ContentTemplate="{DataTemplate local:RecordsPage}" Route="Records"/>
     </TabBar>
-
 
 </Shell>

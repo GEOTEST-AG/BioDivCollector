@@ -226,6 +226,18 @@
                     </VisualStateGroupList>
                 </Setter>
             </Style>
+            <Style x:Key="BaseStyle" TargetType="Element">
+                <Setter Property="Shell.BackgroundColor" Value="{StaticResource BioDivGrey}" />
+                <Setter Property="Shell.ForegroundColor" Value="White" />
+                <Setter Property="Shell.TitleColor" Value="White" />
+                <Setter Property="Shell.DisabledColor" Value="#B4FFFFFF" />
+                <Setter Property="Shell.UnselectedColor" Value="#95FFFFFF" />
+                <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource BioDivGrey}"/>
+                <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource BioDivGrey}"/>
+                <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource LightBackgroundColor}"/>
+                <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource BioDivGreen}" />
+            </Style>
+            <Style TargetType="TabBar" BasedOn="{StaticResource BaseStyle}" ApplyToDerivedTypes="True"/>
         </ResourceDictionary>        
     </Application.Resources>
 </Application>
