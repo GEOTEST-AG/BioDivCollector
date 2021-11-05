@@ -179,7 +179,7 @@
 
                         @foreach (BioDivCollector.DB.Models.Domain.Form form in Model.Forms)
                             {
-                        @foreach (BioDivCollector.DB.Models.Domain.FormField formfield in form.FormFormFields.Select(fff => fff.FormField).OrderBy(m => m.Order))
+                        @foreach (BioDivCollector.DB.Models.Domain.FormField formfield in form.FormFormFields.Select(fff => fff.FormField).Where(m=>m.FieldTypeId!=FieldTypeEnum.Header).OrderBy(m => m.Order))
                                 {
                         <th>@formfield.Title</th>
                                 }
@@ -253,8 +253,8 @@
                     </td>
                         @foreach (BioDivCollector.DB.Models.Domain.Form form in Model.Forms)
                                 {
-                        @foreach (BioDivCollector.DB.Models.Domain.FormField formfield in form.FormFormFields.Select(fff => fff.FormField).OrderBy(m => m.Order))
-                                    {
+                        @foreach (BioDivCollector.DB.Models.Domain.FormField formfield in form.FormFormFields.Select(fff => fff.FormField).Where(m => m.FieldTypeId != FieldTypeEnum.Header).OrderBy(m => m.Order))
+                        {
                     <td>
                         @if (rvm.Record.FormId == form.FormId)
                         {
