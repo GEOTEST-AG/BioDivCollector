@@ -61,6 +61,136 @@ namespace BioDivCollector.WebApp.Controllers
 
         }
 
+        public async Task<IActionResult> EditBigFields(int id)
+        {
+            if ((!User.IsInRole("DM")) && (!User.IsInRole("PL")) && (!User.IsInRole("PK"))) return RedirectToAction("NotAllowed", "Home");
+
+
+            FormField ff = await db.FormFields.Include(m => m.FieldChoices).ThenInclude(u => u.HiddenFieldChoices)
+                .Include(m=>m.PublicMotherFormField).ThenInclude(zz=>zz.FieldChoices).Include(m=>m.HiddenFieldChoices)              
+                .Where(m => m.FormFieldId == id).FirstOrDefaultAsync();
+
+            List<BigFieldChoice> bfcs = new List<BigFieldChoice>();
+            foreach (FieldChoice fc in ff.FieldChoices)
+            {
+                BigFieldChoice bfc = new BigFieldChoice() { FieldChoice = fc, isHidden = true };
+                if (ff.HiddenFieldChoices.Where(m => m.FormField == ff && m.FieldChoice == fc).Any()) bfc.isHidden = false;
+                bfcs.Add(bfc);
+            }
+            if (ff.PublicMotherFormField != null)
+            {
+                foreach (FieldChoice fc in ff.PublicMotherFormField?.FieldChoices)
+                {
+                    BigFieldChoice bfc = new BigFieldChoice() { FieldChoice = fc, isHidden = true };
+                    if (ff.HiddenFieldChoices.Where(m => m.FormField == ff && m.FieldChoice == fc).Any()) bfc.isHidden = false;
+                    bfcs.Add(bfc);
+                }
+            }
+            User user = Helpers.UserHelper.GetCurrentUser(User, db);
+            ViewData["readonly"] = false;
+
+            FormFormField firstFormFormField = await db.FormsFormFields.
+                    Include(m => m.Form).ThenInclude(cl => cl.FormChangeLogs).ThenInclude(fcl => fcl.ChangeLog).ThenInclude(xx => xx.User)
+                    .Where(m => m.FormFieldId == ff.FormFieldId).FirstOrDefaultAsync();
+            if ((firstFormFormField != null) && (firstFormFormField.Form.FormChangeLogs != null) && (firstFormFormField.Form.FormChangeLogs.Count > 0))
+            {
+                if (firstFormFormField.Form.FormChangeLogs[0].ChangeLog.User.UserId != user.UserId) ViewData["readonly"] = true;
+
+            }
+
+            if (User.IsInRole("DM")) ViewData["readonly"] = false;
+
+            ViewData["FormFieldId"] = ff.FormFieldId;
+            return View(bfcs);
+
+        }
+
+        public async Task<IActionResult> EditBigFieldsState(int id, int fieldchoice, bool state)
+        {
+            HiddenFieldChoice hfc = await db.HiddenFieldChoices.Where(m => m.FormField.FormFieldId == id && m.FieldChoice.FieldChoiceId == fieldchoice).FirstOrDefaultAsync();
+            if ((hfc == null) && (state==false))
+            {
+                FormField ff = await db.FormFields.FindAsync(id);
+                FieldChoice fc = await db.FieldChoices.FindAsync(fieldchoice);
+
+                hfc = new HiddenFieldChoice() { FormField = ff, FieldChoice = fc };
+                db.HiddenFieldChoices.Add(hfc);
+                db.Entry(hfc).State = EntityState.Added;
+            }
+            else if ((hfc != null) && (state==true))
+            {
+                db.HiddenFieldChoices.Remove(hfc);
+                db.Entry(hfc).State = EntityState.Deleted;
+            }
+
+            await db.SaveChangesAsync();
+            return Content("OK");
+
+
+        }
+
+        public async Task<IActionResult> EditBigFieldsText(int id, int fieldchoice, string text)
+        {
+            
+            FieldChoice fc = await db.FieldChoices.FindAsync(fieldchoice);
+
+            fc.Text = text;
+            db.Entry(fc).State = EntityState.Modified;
+            
+
+            await db.SaveChangesAsync();
+            return Content("OK");
+        }
+
+        public async Task<IActionResult> EditBigFieldsOrder(int id, int fieldchoice, int order)
+        {
+
+            FieldChoice fc = await db.FieldChoices.FindAsync(fieldchoice);
+
+            fc.Order = order;
+            db.Entry(fc).State = EntityState.Modified;
+
+
+            await db.SaveChangesAsync();
+            return Content("OK");
+        }
+
+        public async Task<IActionResult> EditBigFieldsRemove(int id, int fieldchoice)
+        {
+
+            FieldChoice fc = await db.FieldChoices.Include(m=>m.HiddenFieldChoices).Where(m=>m.FieldChoiceId==fieldchoice).FirstOrDefaultAsync();
+
+            HiddenFieldChoice hfc = await db.HiddenFieldChoices.Where(m => m.FormField.FormFieldId == id && m.FieldChoice.FieldChoiceId == fieldchoice).FirstOrDefaultAsync();
+            if (hfc != null) 
+            {
+                fc.HiddenFieldChoices.Remove(hfc);
+                db.HiddenFieldChoices.Remove(hfc);
+                db.Entry(hfc).State = EntityState.Deleted;
+            } 
+            db.FieldChoices.Remove(fc);
+            db.Entry(fc).State = EntityState.Deleted;
+
+
+            await db.SaveChangesAsync();
+            return RedirectToAction("EditBigFields", new { @id = id });
+        }
+
+        public async Task<IActionResult> EditBigFieldsAdd(int id, string text)
+        {
+            FormField ff = await db.FormFields.FindAsync(id);
+            FieldChoice fc = new FieldChoice() { FormField = ff, Text = text };
+            if (ff.FieldChoices != null) fc.Order = ff.FieldChoices.Count();
+            else ff.FieldChoices = new List<FieldChoice>();
+
+            ff.FieldChoices.Add(fc);
+
+            db.Entry(ff).State = EntityState.Modified;
+
+
+            await db.SaveChangesAsync();
+            return RedirectToAction("EditBigFields", new { @id = id });
+        }
+
         private async Task<List<LookupTableViewModel>> CreateLookupTableViewModel()
         {
             List<FormField> formFields = await db.FormFields.Include(m => m.FormFieldForms).ThenInclude(m => m.Form).ToListAsync();
@@ -458,7 +588,9 @@ namespace BioDivCollector.WebApp.Controllers
                 fps.Add(fp);
             }
 
-            Form f = db.Forms.Find(id);
+            Form f = await db.Forms.
+                Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.FieldChoices).Where(m => m.FormId == id)
+                .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).ThenInclude(mo => mo.FieldChoices).FirstOrDefaultAsync();
             if (f == null) return NotFound();
             if (fps.Where(m => m.Form.FormId == f.FormId && m.Editable == true).Count() == 0) return RedirectToAction("NotAllowed", "Home");
 
@@ -514,21 +646,33 @@ namespace BioDivCollector.WebApp.Controllers
                 FormFieldPoco ffp = new FormFieldPoco() { type = "select", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
 
                 List<OptionsPoco> values = new List<OptionsPoco>();
-                foreach (FieldChoice fc in ff.FieldChoices.OrderBy(m => m.Order))
+
+                if (ff.FieldChoices.Count < 50)
                 {
-                    OptionsPoco op = new OptionsPoco() { label = fc.Text, value = fc.FieldChoiceId.ToString() };
-                    if ((origFormField!=null))
+
+                    foreach (FieldChoice fc in ff.FieldChoices.OrderBy(m => m.Order))
                     {
-                        if (!origFormField.HiddenFieldChoices.Where(m => m.FormField == origFormField && m.FieldChoice == fc).Any()) op.visible = true;
-                        else op.visible = false;
+                        OptionsPoco op = new OptionsPoco() { label = fc.Text, value = fc.FieldChoiceId.ToString() };
+                        if ((origFormField != null))
+                        {
+                            if (!origFormField.HiddenFieldChoices.Where(m => m.FormField == origFormField && m.FieldChoice == fc).Any()) op.visible = true;
+                            else op.visible = false;
+                        }
+                        else
+                        {
+                            if (!ff.HiddenFieldChoices.Where(m => m.FormField == origFormField && m.FieldChoice == fc).Any()) op.visible = true;
+                            else op.visible = false;
+                        }
+                        values.Add(op);
                     }
-                    else
-                    {
-                        if (!ff.HiddenFieldChoices.Where(m => m.FormField == origFormField && m.FieldChoice == fc).Any()) op.visible = true;
-                        else op.visible = false;
-                    }
+
+                }
+                else
+                {
+                    OptionsPoco op = new OptionsPoco() { label = "Zu viele Einträge in Liste. Bitte separat editieren", value = "0", visible=true };
                     values.Add(op);
                 }
+
                 ffp.values = values;
                 return ffp;
             }
@@ -554,10 +698,10 @@ namespace BioDivCollector.WebApp.Controllers
 
         public async Task<IActionResult> CreateFormBuilderJson(int id)
         {
-            Form form = await db.Forms.Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.FieldChoices)
-                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.HiddenFieldChoices)
+            Form form = await db.Forms.Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
+                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
                 .Include(m=>m.FormChangeLogs).ThenInclude(m=>m.ChangeLog).ThenInclude(m=>m.User)
-                .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).ThenInclude(mo => mo.FieldChoices)
+                .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo=>mo.PublicMotherFormField)
                 .Where(m => m.FormId == id).FirstOrDefaultAsync();
             if (form == null) return NotFound();
 
@@ -566,8 +710,18 @@ namespace BioDivCollector.WebApp.Controllers
             List<FormFieldPoco> ffps = new List<FormFieldPoco>();
             foreach (FormField ff in form.FormFormFields.Select(fff => fff.FormField).OrderBy(m => m.Order))
             {
+                if (ff.FieldTypeId == FieldTypeEnum.Choice)
+                {
+                    await db.Entry(ff).Collection(m => m.HiddenFieldChoices).LoadAsync();
+                    await db.Entry(ff).Collection(m => m.FieldChoices).LoadAsync();
+                }
+
                 if (ff.PublicMotherFormField != null)
                 {
+                    if (ff.FieldTypeId == FieldTypeEnum.Choice)
+                    {
+                        await db.Entry(ff.PublicMotherFormField).Collection(m => m.FieldChoices).LoadAsync();
+                    }
                     FormFieldPoco ffp = CreateFormFieldPocosFormField(ff.PublicMotherFormField, ff);
                     ffp.name = ff.FormFieldId.ToString();
                     ffp.mandatory = ff.Mandatory;
@@ -693,68 +847,78 @@ namespace BioDivCollector.WebApp.Controllers
                     FormField origFormField = ff;
                     if (ff.PublicMotherFormField != null) origFormField = ff.PublicMotherFormField;
 
-                    foreach (OptionsPoco op in ffp.values)
+                    if (origFormField.FieldChoices == null) origFormField.FieldChoices = new List<FieldChoice>();
+
+                    if (origFormField.FieldChoices.Count < 50)
                     {
-                        try
+                        foreach (OptionsPoco op in ffp.values)
                         {
-                            FieldChoice alreadyFieldChoiceExist = origFormField.FieldChoices?.Where(m => m.Text == op.label).FirstOrDefault();
-                            if (alreadyFieldChoiceExist != null)
+                            try
                             {
-                                if (alreadyFieldChoiceExist.Order != i) alreadyFieldChoiceExist.Order = i;
-                                if (alreadyFieldChoiceExist.Text != op.label) alreadyFieldChoiceExist.Text = op.label;
-
-                                usedFieldChoices.Add(alreadyFieldChoiceExist);
-                                db.Entry(alreadyFieldChoiceExist).State = EntityState.Modified;
-
-                                // set visibility: visible -> no entry in hidden
-                                if (op.visible && ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff).Any())
-                                    db.HiddenFieldChoices.RemoveRange(ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff));
-                                else if (!op.visible && !ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff).Any())
+                                FieldChoice alreadyFieldChoiceExist = origFormField.FieldChoices?.Where(m => m.Text == op.label).FirstOrDefault();
+                                if (alreadyFieldChoiceExist != null)
                                 {
-                                    HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = alreadyFieldChoiceExist, FormField = ff };
-                                    db.HiddenFieldChoices.Add(hfc);
+                                    if (alreadyFieldChoiceExist.Order != i) alreadyFieldChoiceExist.Order = i;
+                                    if (alreadyFieldChoiceExist.Text != op.label) alreadyFieldChoiceExist.Text = op.label;
+
+                                    usedFieldChoices.Add(alreadyFieldChoiceExist);
+                                    db.Entry(alreadyFieldChoiceExist).State = EntityState.Modified;
+
+                                    // set visibility: visible -> no entry in hidden
+                                    if (op.visible && ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff).Any())
+                                        db.HiddenFieldChoices.RemoveRange(ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff));
+                                    else if (!op.visible && !ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff).Any())
+                                    {
+                                        HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = alreadyFieldChoiceExist, FormField = ff };
+                                        db.HiddenFieldChoices.Add(hfc);
+                                    }
+                                }
+                                else
+                                {
+                                    FieldChoice newFieldChoice = new FieldChoice() { Text = op.label, FormField = ff, Order = i };
+                                    if (ff.FieldChoices == null) origFormField.FieldChoices = new List<FieldChoice>();
+                                    ff.FieldChoices.Add(newFieldChoice);
+                                    db.FieldChoices.Add(newFieldChoice);
+                                    usedFieldChoices.Add(newFieldChoice);
+                                    db.Entry(newFieldChoice).State = EntityState.Added;
+
+                                    // set visibility: visible -> no entry in hidden
+                                    
+                                    // disable for the first entry
+                                    
+                                    /*if (!op.visible)
+                                    {
+                                        HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = newFieldChoice, FormField = ff };
+                                        db.HiddenFieldChoices.Add(hfc);
+                                    }*/
+
                                 }
                             }
-                            else
+                            catch (Exception e)
                             {
-                                FieldChoice newFieldChoice = new FieldChoice() { Text = op.label, FormField = ff, Order = i };
-                                if (ff.FieldChoices == null) origFormField.FieldChoices = new List<FieldChoice>();
-                                ff.FieldChoices.Add(newFieldChoice);
-                                db.FieldChoices.Add(newFieldChoice);
-                                usedFieldChoices.Add(newFieldChoice);
-                                db.Entry(newFieldChoice).State = EntityState.Added;
-
-                                // set visibility: visible -> no entry in hidden
-                                if (!op.visible )
-                                {
-                                    HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = newFieldChoice, FormField = ff };
-                                    db.HiddenFieldChoices.Add(hfc);
-                                }
+                                // could not parse value
                             }
+                            i++;
+
                         }
-                        catch (Exception e)
+
+                        await db.SaveChangesAsync();
+                        // delete not used FieldChoices
+                        List<FieldChoice> toRemoveFieldChoices = origFormField.FieldChoices?.Where(m => usedFieldChoices.All(m2 => m2.FieldChoiceId != m.FieldChoiceId)).ToList();
+                        foreach (FieldChoice toRemoveFC in toRemoveFieldChoices)
                         {
-                            // could not parse value
+                            // delete all references in textdata
+                            List<TextData> referenzeTextDatas = await db.TextData.Where(m => m.FieldChoiceId == toRemoveFC.FieldChoiceId).ToListAsync();
+                            foreach (TextData td in referenzeTextDatas)
+                            {
+                                td.FieldChoice = null;
+                                db.Entry(td).State = EntityState.Modified;
+                            }
+
+
+                            db.FieldChoices.Remove(toRemoveFC);
+                            db.Entry(toRemoveFC).State = EntityState.Deleted;
                         }
-                        i++;
-
-                    }
-                    await db.SaveChangesAsync();
-                    // delete not used FieldChoices
-                    List<FieldChoice> toRemoveFieldChoices = origFormField.FieldChoices?.Where(m => usedFieldChoices.All(m2 => m2.FieldChoiceId != m.FieldChoiceId)).ToList();
-                    foreach (FieldChoice toRemoveFC in toRemoveFieldChoices)
-                    {
-                        // delete all references in textdata
-                        List<TextData> referenzeTextDatas = await db.TextData.Where(m => m.FieldChoiceId == toRemoveFC.FieldChoiceId).ToListAsync();
-                        foreach (TextData td in referenzeTextDatas)
-                        {
-                            td.FieldChoice = null;
-                            db.Entry(td).State = EntityState.Modified;
-                        }
-
-
-                        db.FieldChoices.Remove(toRemoveFC);
-                        db.Entry(toRemoveFC).State = EntityState.Deleted;
                     }
 
                 }
@@ -1249,6 +1413,12 @@ namespace BioDivCollector.WebApp.Controllers
     {
         public FormField FormField { get; set; }
         public List<Form> UsedInForms { get; set; }
+    }
+
+    public class BigFieldChoice
+    {
+        public FieldChoice FieldChoice { get; set; }
+        public bool isHidden { get; set; }
     }
 
 }

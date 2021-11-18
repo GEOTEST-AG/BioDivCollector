@@ -50,6 +50,31 @@
                                     <span asp-validation-for="Title" class="text-danger"></span>
                                 </div>
                             </div>
+
+                            <div class="col-md-12">
+                                <span style="margin-top:10px;font-weight:bold;">Auswahlfelder mit mehr als 50 Einträgen bitte hier editieren:</span>
+                                
+                                <ul style="padding-left: 20px; list-style-type: disc; padding-bottom:20px;">
+
+
+                                    @foreach (BioDivCollector.DB.Models.Domain.FormFormField fff in Model.FormFormFields)
+                                    {
+                                        if ((fff.FormField.FieldChoices != null) && (fff.FormField.FieldChoices.Count > 50))
+                                            {
+                                            <li>@Html.ActionLink(fff.FormField.Title, "EditBigFields", null, new { id = fff.FormField.FormFieldId }) </li>
+                                            }
+
+                                            if ((fff.FormField.PublicMotherFormField?.FieldChoices != null) && (fff.FormField.PublicMotherFormField.FieldChoices.Count > 50))
+                                            {
+                                            <li>@Html.ActionLink(fff.FormField.Title, "EditBigFields", null, new { id = fff.FormField.FormFieldId }) </li>
+                                            }
+                                        
+                                    }
+
+
+                                </ul>
+                            </div>
+
                             <hr />
                             <div class="col-md-12">
                                 Formular
