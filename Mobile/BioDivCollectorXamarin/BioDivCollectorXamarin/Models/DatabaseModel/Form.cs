@@ -1,4 +1,4 @@
-﻿using SQLite;
+using SQLite;
 using SQLiteNetExtensions.Attributes;
 using SQLiteNetExtensions.Extensions;
 using System;
@@ -335,6 +335,21 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
                                     conn.Update(text);
                                     Record.UpdateRecord(text.record_fk);
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine("Could not save data" + e);
+                                }
+                            }
+                            else if (subview.GetType() == typeof(CustomCheckBox)) //Tick boxes
+                            {
+                                try
+                                {
+                                    var checkField = (CustomCheckBox)subview;
+                                    var boolValue = conn.Table<BooleanData>().Select(n => n).Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.Id == checkField.ValueId).FirstOrDefault();
+                                    boolValue.value = checkField.IsChecked;
+                                    conn.Update(boolValue);
+                                    Record.UpdateRecord(boolValue.record_fk);
                                 }
                                 catch (Exception e)
                                 {
