@@ -60,7 +60,6 @@
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <BundleAssemblies>false</BundleAssemblies>
     <AndroidPackageFormat>aab</AndroidPackageFormat>
-    <EnableLLVM>false</EnableLLVM>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Android" />
