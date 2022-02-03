@@ -10,7 +10,7 @@
 
     <ContentPage.Content>
         <StackLayout Spacing="0">
-            <ScrollView VerticalOptions="FillAndExpand" BackgroundColor="Transparent" Padding="15,15,15,500">
+            <ScrollView VerticalOptions="FillAndExpand" BackgroundColor="Transparent" Padding="15,15,15,400">
                 <StackLayout x:Name="FormElementStack" Spacing="3" BackgroundColor="Transparent">
                 <!--Elements here added in code-->
                 </StackLayout>
