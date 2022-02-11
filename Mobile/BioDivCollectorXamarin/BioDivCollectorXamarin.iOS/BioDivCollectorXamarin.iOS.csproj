@@ -391,23 +391,23 @@
       <Version>1.7.0</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.CommunityToolkit">
-      <Version>1.2.0</Version>
+      <Version>2.0.0</Version>
     </PackageReference>
-    <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.7.1" />
     <PackageReference Include="Mapsui">
-      <Version>3.0.1</Version>
+      <Version>3.0.2</Version>
     </PackageReference>
     <PackageReference Include="Syncfusion.Xamarin.Core">
-      <Version>19.3.0.46</Version>
+      <Version>19.4.0.50</Version>
     </PackageReference>
     <PackageReference Include="Syncfusion.Licensing">
-      <Version>19.3.0.46</Version>
+      <Version>19.4.0.50</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Forms">
-      <Version>5.0.0.2196</Version>
+      <Version>5.0.0.2337</Version>
     </PackageReference>
     <PackageReference Include="Mapsui.Forms">
-      <Version>3.0.1</Version>
+      <Version>3.0.2</Version>
     </PackageReference>
     <PackageReference Include="BruTile.MbTiles">
       <Version>4.0.0</Version>

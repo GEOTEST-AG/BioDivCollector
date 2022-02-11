@@ -38,7 +38,7 @@
                             </FlexLayout>
                         </ViewCell>
                     </DataTemplate>
-                    </ListView.GroupHeaderTemplate>
+                </ListView.GroupHeaderTemplate>
                 <ListView.ItemTemplate x:DataType="model:FormRec">
                     <DataTemplate>
                         <TextCell Height="120" Text="{Binding String1}" Detail="{Binding String2}">
