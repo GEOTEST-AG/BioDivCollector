@@ -119,7 +119,7 @@
     <PackageReference Include="ProjNet" Version="2.0.0" />
     <PackageReference Include="SQLite" Version="3.13.0" />
     <PackageReference Include="SQLiteNetExtensions" Version="2.1.0" />
-    <PackageReference Include="Syncfusion.Licensing" Version="19.3.0.46" />
+    <PackageReference Include="Syncfusion.Licensing" Version="19.4.0.50" />
     <PackageReference Include="Syncfusion.Xamarin.Core" Version="19.4.0.50" />
     <PackageReference Include="Syncfusion.Xamarin.SfAutoComplete" Version="19.3.0.46" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
