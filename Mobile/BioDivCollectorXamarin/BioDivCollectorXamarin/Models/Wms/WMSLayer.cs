@@ -22,6 +22,7 @@ namespace BioDivCollectorXamarin.Models.Wms
 
         public static ITileSource CreateTileSource(string urlString, string layerName, string CRS)
         {
+            urlString = urlString.Replace("&Request=GetCapabilities", "");
             var schema = new GlobalSphericalMercator("png", YAxis.OSM, 0, 21, null);
             var layers = new List<string>();
             layers.Add(layerName);
