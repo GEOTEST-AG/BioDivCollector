@@ -149,7 +149,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 geom.userName = App.CurrentUser.userId;
                 geom.fullUserName = App.CurrentUser.firstName + " " + App.CurrentUser.name;
                 geom.timestamp = DateTime.Now;
-                geom.status = 1;
+                geom.status = 2;
                 conn.Update(geom);
             }
         }

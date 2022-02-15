@@ -19,17 +19,17 @@
             <ListView.ItemTemplate>
                 <DataTemplate  x:DataType="model:MapLayer">
                     <ViewCell>
-                        <Frame Margin="10,5" CornerRadius="10" HasShadow="False" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}">
+                        <Frame Margin="10,5" CornerRadius="10" HasShadow="False" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}" BackgroundColor="Transparent" >
                         <StackLayout Orientation="Horizontal" HorizontalOptions="Fill" HeightRequest="200" Padding="10" >
                             <StackLayout HorizontalOptions="FillAndExpand" >
                                 <StackLayout Orientation="Horizontal" VerticalOptions="Start" HorizontalOptions="FillAndExpand" >
                                     <CheckBox x:Name="{Binding Name}"  IsChecked="{Binding Enabled, Mode=TwoWay}" VerticalOptions="Center" HorizontalOptions="Start" Color="{StaticResource BioDivGreen}" />
-                                    <Label Text="{Binding Name}" LineBreakMode="WordWrap" Style="{DynamicResource ListItemTextStyle}" TextColor="Black" FontSize="16" FontAttributes="Bold" VerticalTextAlignment="Center" VerticalOptions="Center" HeightRequest="100" HorizontalOptions="FillAndExpand" />
+                                    <Label Text="{Binding Name}" LineBreakMode="WordWrap" Style="{DynamicResource ListItemTextStyle}" FontSize="16" FontAttributes="Bold" VerticalTextAlignment="Center" VerticalOptions="Center" HeightRequest="100" HorizontalOptions="FillAndExpand" />
                                 </StackLayout>
                                 <Slider Value="{Binding Opacity, Mode=TwoWay}" HorizontalOptions="FillAndExpand" VerticalOptions="End" MinimumTrackColor="{StaticResource BioDivGreen}" MaximumTrackColor="{StaticResource BioDivGrey}" ThumbColor="{StaticResource BioDivGreen}" Maximum="1.0" />
                                 <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand" Margin="5" HeightRequest="18">
-                                    <Label Text="Lokaler Speicher:" VerticalOptions="FillAndExpand" VerticalTextAlignment="Center" Margin="0" TextColor="Black"/>
-                                    <Label Text="{Binding LocalStorageString}" VerticalOptions="FillAndExpand" VerticalTextAlignment="Center" Margin="0" TextColor="Black"/>
+                                    <Label Text="Lokaler Speicher:" VerticalOptions="FillAndExpand" VerticalTextAlignment="Center" Margin="0" />
+                                    <Label Text="{Binding LocalStorageString}" VerticalOptions="FillAndExpand" VerticalTextAlignment="Center" Margin="0"/>
                                 </StackLayout>
                                 <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
                                     <Button ImageSource="delete.png" Style="{StaticResource DangerButtonStyle}" FontSize="Small" Margin="0,10,0,0" WidthRequest="50" HeightRequest="40" Command="{Binding BindingContext.DeleteLayerCommand, Source={x:Reference MapLayers}}" CommandParameter="{Binding .}" HorizontalOptions="Start"/>

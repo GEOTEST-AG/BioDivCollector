@@ -22,7 +22,48 @@ namespace BioDivCollectorXamarin.Models.Wms
 
         public static ITileSource CreateTileSource(string urlString, string layerName, string CRS)
         {
+            /*
             urlString = urlString.Replace("&Request=GetCapabilities", "");
+            urlString = urlString.Replace("&request=GetCapabilities", "");
+            
+
+            var urlStr = urlString;
+            var provider2 = new WmsProvider(urlString)
+            {
+                ContinueOnError = true,
+                TimeOut = 2000,
+                CRS = "EPSG:3857"
+            };
+            urlString = provider2.GetRequestUrl(new Mapsui.Geometries.BoundingBox(new Mapsui.Geometries.Point(0,200000), new Mapsui.Geometries.Point(0, 200000)),256,256);
+            urlString = urlString.Split("?").FirstOrDefault() + "?SERVICE=WMS";
+            var schema = new GlobalSphericalMercator("png", YAxis.OSM, 0, 21, null);
+            var layers = new List<string>();
+            layers.Add(layerName);
+            var styles = new List<string>();
+            
+            if (!urlString.ToLower().Contains("&version="))
+            {
+                urlString = urlString + "&version=1.1.1";
+            }
+            if (!urlString.ToLower().Contains("&crs="))
+            {
+                urlString = urlString + "&CRS=" + CRS;
+            }
+            if (!urlString.ToLower().Contains("&format="))
+            {
+                urlString = urlString + "&format=png";
+            }
+            if (!urlString.ToLower().Contains("&transparent="))
+            {
+                urlString = urlString + "&transparent=true";
+            }
+            
+            var request = new WmscRequest(new Uri(urlString), schema, layers, new string[0].ToList());
+            var provider = new HttpTileProvider(request);
+            */
+
+            urlString = urlString.Replace("&Request=GetCapabilities", "");
+            urlString = urlString.Replace("&request=GetCapabilities", "");
             var schema = new GlobalSphericalMercator("png", YAxis.OSM, 0, 21, null);
             var layers = new List<string>();
             layers.Add(layerName);
@@ -45,6 +86,7 @@ namespace BioDivCollectorXamarin.Models.Wms
             }
             var request = new WmscRequest(new Uri(urlString), schema, layers, new string[0].ToList());
             var provider = new HttpTileProvider(request);
+
             return new TileSource(provider, schema);
         }
 

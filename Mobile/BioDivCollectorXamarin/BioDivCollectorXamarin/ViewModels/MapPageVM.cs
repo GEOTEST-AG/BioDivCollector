@@ -1151,26 +1151,35 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void UndoLastTempPoint()
         {
-            if (TempCoordinates.Count > 1)
+            try
             {
-                if (TempCoordinates[0].X == TempCoordinates[TempCoordinates.Count - 1].X && TempCoordinates[0].Y == TempCoordinates[TempCoordinates.Count - 1].Y)
+                if (TempCoordinates.Count > 1)
                 {
-                    //Keep start and end coordinates of polygon
-                    TempCoordinates.RemoveAt(TempCoordinates.Count - 2);
-                } else
-                {
-                    TempCoordinates.RemoveAt(TempCoordinates.Count - 1);
+                    if (TempCoordinates[0].X == TempCoordinates[TempCoordinates.Count - 1].X && TempCoordinates[0].Y == TempCoordinates[TempCoordinates.Count - 1].Y)
+                    {
+                        //Keep start and end coordinates of polygon
+                        TempCoordinates.RemoveAt(TempCoordinates.Count - 2);
+                    }
+                    else
+                    {
+                        TempCoordinates.RemoveAt(TempCoordinates.Count - 1);
+                    }
+                    if (TempCoordinates.Count == 2 && TempCoordinates[0].X == TempCoordinates[TempCoordinates.Count - 1].X && TempCoordinates[0].Y == TempCoordinates[TempCoordinates.Count - 1].Y)
+                    {
+                        //Delete the joining point of a polygon if we only have 2 points the same
+                        TempCoordinates.RemoveAt(TempCoordinates.Count - 1);
+                    }
+
+                    MessagingCenter.Send<MapPageVM>(this, "ShapeDrawingUndone");
+                    (ClearGeomCommand as Command).ChangeCanExecute();
+                    (UndoGeomCommand as Command).ChangeCanExecute();
                 }
-                if (TempCoordinates.Count == 2 && TempCoordinates[0].X == TempCoordinates[TempCoordinates.Count - 1].X && TempCoordinates[0].Y == TempCoordinates[TempCoordinates.Count - 1].Y)
-                {
-                    //Delete the joining point of a polygon if we only have 2 points the same
-                    TempCoordinates.RemoveAt(TempCoordinates.Count - 1);
-                }
-                
-                MessagingCenter.Send<MapPageVM>(this, "ShapeDrawingUndone");
-                (ClearGeomCommand as Command).ChangeCanExecute();
-                (UndoGeomCommand as Command).ChangeCanExecute();
             }
+            catch
+            {
+
+            }
+            
         }
 
         /// <summary>
