@@ -63,7 +63,7 @@
                                         Direction="Column">
 
                                 <Label Text="{Binding CurrentProject.projectName}"
-                                       HeightRequest="60"
+                                       MinimumHeightRequest="60"
                                        FontAttributes="Bold"
                                        TextColor="{StaticResource BioDivGreen}"
                                        FontSize="Large"
