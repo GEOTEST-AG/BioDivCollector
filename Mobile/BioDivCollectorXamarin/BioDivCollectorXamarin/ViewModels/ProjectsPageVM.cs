@@ -189,6 +189,7 @@ namespace BioDivCollectorXamarin.ViewModels
             CurrentProject = Project.FetchProject(projectGUID);
             ChangesMessageVisible = Project.ProjectHasUnsavedChanges(projectGUID);
             Preferences.Set("FilterGeometry", String.Empty);
+            SyncCommand.RaiseCanExecuteChanged();
         }
 
         /// <summary>

@@ -212,7 +212,15 @@ namespace BioDivCollectorXamarin.ViewModels
                                 dateField.Format = "dd MMMM yyyy";
                                 dateField.IsEnabled = !ReadOnly;
                                 dateField.FontSize = fontSize;
-                                dateField.WidthRequest = 170;
+                                var screenWidth = Application.Current.MainPage.Width;
+                                if (screenWidth > 350)
+                                {
+                                    dateField.WidthRequest = 170;
+                                }
+                                else
+                                {
+                                    dateField.WidthRequest = 130;
+                                }
                                 dateField.HeightRequest = 40;
                                 dateField.Mandatory = formField.mandatory;
                                 dateField.VerticalOptions = LayoutOptions.StartAndExpand;
@@ -232,7 +240,15 @@ namespace BioDivCollectorXamarin.ViewModels
                                 timeField.Format = "HH:mm";
                                 timeField.IsEnabled = !ReadOnly;
                                 timeField.FontSize = fontSize;
-                                timeField.WidthRequest = 70;
+                                if (screenWidth > 350)
+                                {
+                                    timeField.WidthRequest = 70;
+                                }
+                                else
+                                {
+                                    timeField.WidthRequest = 60;
+                                }
+                                
                                 timeField.HeightRequest = 40;
                                 timeField.VerticalOptions = LayoutOptions.StartAndExpand;
                                 timeField.Mandatory = formField.mandatory;
@@ -544,7 +560,7 @@ namespace BioDivCollectorXamarin.ViewModels
             DeleteButton.ImageSource = "delete.png";
             DeleteButton.Command = DeleteCommand;
             DeleteButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["DangerButtonStyle"];
-            DeleteButton.Margin = new Thickness(0, 10);
+            DeleteButton.Margin = new Thickness(0, 10, 5, 10);
             DeleteButton.CornerRadius = 10;
             DeleteButton.TextTransform = TextTransform.Uppercase;
             DeleteButton.WidthRequest = 50;
@@ -555,7 +571,7 @@ namespace BioDivCollectorXamarin.ViewModels
             GUIDButton.Command = GUIDCommand;
             GUIDButton.HorizontalOptions = LayoutOptions.FillAndExpand;
             GUIDButton.TextColor = Color.White;
-            GUIDButton.Margin = new Thickness(0, 10);
+            GUIDButton.Margin = new Thickness(5, 10, 0, 10);
             GUIDButton.CornerRadius = 10;
             GUIDButton.TextTransform = TextTransform.Uppercase;
             GUIDButton.WidthRequest = 250;

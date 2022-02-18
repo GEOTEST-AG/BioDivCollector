@@ -42,16 +42,18 @@
                                          CompressedLayout.IsHeadless="True"
                                          Opacity="1"
                                          Margin="10">
-                                <Label HeightRequest="30"
+                                <Label MinimumHeightRequest="30"
                                        Text="{Binding projectName}"
                                        FontSize="Large"
                                        FontAttributes="Bold"
-                                       Opacity="1" />
+                                       Opacity="1"
+                                       FlexLayout.Grow="1"/>
                                 <Label HeightRequest="30"
                                        Text="{Binding projectNumber}"
                                        TextColor="Gray"
                                        Opacity="1" 
-                                       FontSize="Medium"/>
+                                       FontSize="Medium"
+                                       FlexLayout.Grow="0"/>
 
                                 <xct:Expander HorizontalOptions="Fill">
                                     <xct:Expander.Header HorizontalOptions="Fill">
