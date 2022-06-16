@@ -64,6 +64,17 @@ namespace BioDivCollector.WebApp.Controllers
                     gvm.ShowOnly = false;
                     groups.Add(gvm);
                 }
+                else if ((User.IsInRole("PL")) || (User.IsInRole("PM")))
+                {
+                    GroupViewModel gvm = new GroupViewModel() { Group = g };
+                    gvm.Editable = false;
+
+                    if (projects.Where(m => m.ProjectGroups.Select(m => m.Group).Contains(g)).Any()) gvm.Editable = true;
+
+                    gvm.ShowOnly = true;
+                    groups.Add(gvm);
+
+                }
                 // only readable
                 else if (g.GroupUsers.Any(m => m.UserId == user.UserId))
                 {
@@ -71,17 +82,6 @@ namespace BioDivCollector.WebApp.Controllers
                     gvm.Editable = false;
                     gvm.ShowOnly = false;
                     groups.Add(gvm);
-                }
-                else if ((User.IsInRole("PL")) || (User.IsInRole("PM")))
-                {
-                    GroupViewModel gvm = new GroupViewModel() { Group = g };
-                    gvm.Editable = false;
-
-                    if (projects.Where(m => m.ProjectGroups.Select(m=>m.Group).Contains(g)).Any()) gvm.Editable = true;
-
-                    gvm.ShowOnly = true;
-                    groups.Add(gvm);
-
                 }
             }
 

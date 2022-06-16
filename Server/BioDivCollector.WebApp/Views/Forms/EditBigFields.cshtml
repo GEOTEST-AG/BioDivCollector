@@ -36,8 +36,21 @@
 
                 </div>
                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-primary" style="margin-top:20px;" onclick="window.history.back();">Zurück zum Formular</button>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="alert alert-info dark" role="alert">
+                                Alle Änderungen an dieser Liste wirken sich sofort auf ALLE Formulare aus, die das Allgemeine Feld mit dieser Optionenliste verwenden. Es gibt keine 'Zurück' Funktion oder 'Abbrechenfunktion'.<br />
+                                Einzig die Auswahl der Sichtbarkeit einer Option wirkt sich nur auf das EINE Formular aus, aus dem die Liste geöffnet wurde.
+                            </div>
+                            
+                        </div>
+                    </div>
 
                     <div class="row">
+
 
                         @if (!(bool)ViewData["readonly"])
                         {
@@ -79,7 +92,7 @@
                                             Wert
                                         </th>
                                         <th>
-                                            Aktion
+                                            Aktion (Sortierung editieren)
                                         </th>
                                     </tr>
                                 </thead>
@@ -89,6 +102,7 @@
                                         <tr>
                                             <td>
                                                 @bfc.FieldChoice.Order
+                                                
                                             </td>
                                             <td>
                                                 @bfc.FieldChoice.FieldChoiceId
@@ -127,7 +141,14 @@
                                             <td>
                                                 @if (!(bool)ViewData["readonly"])
                                                 {
-                                                    <button type="button" onclick="deleteOption('@bfc.FieldChoice.FieldChoiceId')" class="btn btn-danger" style="width:auto;"><i class="icofont-ui-delete"></i></button>
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <button type="button" onclick="deleteOption('@bfc.FieldChoice.FieldChoiceId')" class="btn btn-danger" style="width:auto;"><i class="icofont-ui-delete"></i></button>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <input type="text" id="order_@bfc.FieldChoice.FieldChoiceId" class="form-control myordertextbox" value="@bfc.FieldChoice.Order" />
+                                                        </div>
+                                                    </div>
                                                 }
 
                                             </td>
@@ -153,9 +174,16 @@
 
 
                                 $('.mytextbox').bind('input propertychange', function () {
-                                    console.log(this.id.replace('text_', ''));
                                     $.ajax({
                                         url: "@Url.Action("EditBigFieldsText", "Forms")/" + ffid + "?fieldchoice=" + this.id.replace('text_','') + "&text=" + $(this).val(),
+                                        cache: false
+                                    });
+                                });
+
+
+                                $('.myordertextbox').bind('input propertychange', function () {
+                                    $.ajax({
+                                        url: "@Url.Action("EditBigFieldsOrder", "Forms")/" + ffid + "?fieldchoice=" + this.id.replace('order_','') + "&order=" + $(this).val(),
                                         cache: false
                                     });
                                 });

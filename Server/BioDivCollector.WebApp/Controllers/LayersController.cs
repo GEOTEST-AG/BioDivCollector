@@ -103,7 +103,7 @@ namespace BioDivCollector.WebApp.Controllers
                 string returnlist = "{\"items\":[ ";
                 foreach (WMSLayer we in _LayerCache.Where(  m=>(m.Title!=null) && (m.Name!=null) && (m.Title.Contains(search) || m.Name.Contains(search))))
                 {
-                    returnlist += "{\"ID\":\"" + we.Name + "\",\"Title\":\"" + we.Title + "\"},";
+                    returnlist += "{\"ID\":\"" + we.Name.Replace("\"", "\\\"") + "\",\"Title\":\"" + we.Title.Replace("\"", "\\\"") + "\"},";
                 }
 
 
