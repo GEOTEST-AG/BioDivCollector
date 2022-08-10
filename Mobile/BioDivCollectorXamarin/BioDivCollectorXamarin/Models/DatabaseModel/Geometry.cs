@@ -72,6 +72,21 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         }
 
         /// <summary>
+        /// Get geometry by guID geometry id
+        /// </summary>
+        /// <param name="geomId"></param>
+        /// <returns></returns>
+        public static ReferenceGeometry GetGeometry(string geometryId)
+        {
+            ReferenceGeometry queriedGeom;
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            {
+                queriedGeom = conn.Table<ReferenceGeometry>().Where(geom => geom.geometryId == geometryId).FirstOrDefault();
+            }
+            return queriedGeom;
+        }
+
+        /// <summary>
         /// Get all geometries for the current project
         /// </summary>
         /// <returns></returns>
@@ -108,7 +123,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="pointList"></param>
         /// <param name="name"></param>
-        public static void SaveGeometry(List<Mapsui.Geometries.Point> pointList, string name)
+        public static string SaveGeometry(List<Mapsui.Geometries.Point> pointList, string name)
         {
             var geom = new ReferenceGeometry();
             geom.geometryId = Guid.NewGuid().ToString();
@@ -132,6 +147,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 conn.UpdateWithChildren(project);
 
             }
+            return geom.geometryId;
         }
 
 

@@ -668,6 +668,7 @@ namespace BioDivCollectorXamarin.ViewModels
             MessagingCenter.Send<Xamarin.Forms.Application>(App.Current, "RefreshGeometries");
             // This will pop the current page off the navigation stack
             await Shell.Current.GoToAsync("//Records");
+            MessagingCenter.Send<FormPageVM>(this, "GoBackToMap");
         }
 
         /// <summary>
