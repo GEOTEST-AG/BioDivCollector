@@ -291,13 +291,26 @@ namespace BioDivCollectorXamarin.Views
 
             var button = sender as Button;
             var geomId = button.CommandParameter as int?;
-            if (geomId != null)
+
+            var formList = Form.FetchFormsForProject();
+            int i = formList.Count;
+
+            if (i == 1)
             {
-                Navigation.PushAsync(new FormSelectionPage((int?)geomId),true);
+                Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
             }
             else
             {
-                Navigation.PushAsync(new FormSelectionPage(null),true);
+
+                if (geomId != null)
+                {
+                    Navigation.PushAsync(new FormSelectionPage((int?)geomId), true);
+                }
+                else
+                {
+                    Navigation.PushAsync(new FormSelectionPage(null), true);
+                }
+
             }
             
         }
