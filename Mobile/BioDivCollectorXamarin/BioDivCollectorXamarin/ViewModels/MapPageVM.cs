@@ -1089,19 +1089,23 @@ namespace BioDivCollectorXamarin.ViewModels
                 
                 var geom = ReferenceGeometry.GetGeometry(geomId);
 
-                if (i == 1){
-                    Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geom.Id), true);
-                }
-                else 
-                { 
-                    if (geomId != null)
-                    {
-                        Navigation.PushAsync(new FormSelectionPage((int?)geom.Id), true);
+                if (string.IsNullOrEmpty(geomName) == false)
+                {
+                    if (i == 1){
+                        Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geom.Id), true);
                     }
-                    else
-                    {
-                        Navigation.PushAsync(new FormSelectionPage(null), true);
+                    else 
+                    { 
+                        if (geomId != null)
+                        {
+                            Navigation.PushAsync(new FormSelectionPage((int?)geom.Id), true);
+                        }
+                        else
+                        {
+                            Navigation.PushAsync(new FormSelectionPage(null), true);
+                        }
                     }
+
                 }
 
                 GeomToEdit = 0;
