@@ -1012,6 +1012,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             GeomToEdit = 0;
             CancelAddingMapGeometry();
+
         }
 
         /// <summary>
@@ -1078,7 +1079,9 @@ namespace BioDivCollectorXamarin.ViewModels
                 Mapsui.Geometries.Point point = TempCoordinates[0];
                 var coords = point.ToDoubleArray();
                 var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
-                //MessagingCenter.Send<MapPageVM, string>(this, "RequestGeometryName", coordString);
+
+                var formList = Form.FetchFormsForProject();
+                int i = formList.Count;
 
                 string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie eine Geometriename ein", accept:"Speichern", cancel:"Abbrechen");
 
@@ -1086,13 +1089,19 @@ namespace BioDivCollectorXamarin.ViewModels
                 
                 var geom = ReferenceGeometry.GetGeometry(geomId);
 
-                if (geomId != null)
-                {
-                    Navigation.PushAsync(new FormSelectionPage((int?)geom.Id), true);
+                if (i == 1){
+                    Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geom.Id), true);
                 }
-                else
-                {
-                    Navigation.PushAsync(new FormSelectionPage(null), true);
+                else 
+                { 
+                    if (geomId != null)
+                    {
+                        Navigation.PushAsync(new FormSelectionPage((int?)geom.Id), true);
+                    }
+                    else
+                    {
+                        Navigation.PushAsync(new FormSelectionPage(null), true);
+                    }
                 }
 
                 GeomToEdit = 0;
