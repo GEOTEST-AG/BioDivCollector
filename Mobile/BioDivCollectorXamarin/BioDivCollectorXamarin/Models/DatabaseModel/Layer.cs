@@ -17,6 +17,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             public string title { get; set; }
             public string url { get; set; }
             public string wmsLayer { get; set; }
+            public string uuid { get; set; }
 
             public bool visible { get; set; }
             public double opacity { get; set; }

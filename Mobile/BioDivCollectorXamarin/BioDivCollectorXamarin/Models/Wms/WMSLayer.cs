@@ -15,12 +15,12 @@ namespace BioDivCollectorXamarin.Models.Wms
     class WMSLayer
     {
         //Tiled WMS
-        public static ILayer CreateWMSLayer(string urlString, string layerName, string CRS, string layerTitle)
+        public static ILayer CreateWMSLayer(string urlString, string layerName, string CRS, string layerTitle, string wmsId)
         {
-            return new TileLayer(CreateTileSource(urlString, layerName, CRS));
+            return new TileLayer(CreateTileSource(urlString, layerName, CRS, wmsId));
         }
 
-        public static ITileSource CreateTileSource(string urlString, string layerName, string CRS)
+        public static ITileSource CreateTileSource(string urlString, string layerName, string CRS, string wmsId = null)
         {
             /*
             urlString = urlString.Replace("&Request=GetCapabilities", "");
@@ -62,12 +62,24 @@ namespace BioDivCollectorXamarin.Models.Wms
             var provider = new HttpTileProvider(request);
             */
 
-            urlString = urlString.Replace("&Request=GetCapabilities", "");
-            urlString = urlString.Replace("&request=GetCapabilities", "");
-            var schema = new GlobalSphericalMercator("png", YAxis.OSM, 0, 21, null);
+            //urlString = urlString.Replace("&Request=GetCapabilities", "");
+            //urlString = urlString.Replace("&request=GetCapabilities", "");
+
+            //layerName = "cst_Bericht";
+
+            
+
+            var format = "image/png";
+            if (urlString.Contains("image/jpg"))
+                { format = "image/jpg"; }
+            else if (urlString.Contains("image/jpeg"))
+                { format = "image/jpeg"; }
+            urlString = "https://test.biodivcollector.ch/ProxyWMSSecure/" + wmsId + "?";
+            var schema = new GlobalSphericalMercator(format, YAxis.OSM, 0, 21, null);
             var layers = new List<string>();
             layers.Add(layerName);
             var styles = new List<string>();
+            
             if (!urlString.ToLower().Contains("&version="))
             {
                 urlString = urlString + "&version=1.3.0";
@@ -78,7 +90,7 @@ namespace BioDivCollectorXamarin.Models.Wms
             }
             if (!urlString.ToLower().Contains("&format="))
             {
-                urlString = urlString + "&format=png";
+                urlString = urlString + "&format=" + format;
             }
             if (!urlString.ToLower().Contains("&transparent="))
             {
@@ -90,6 +102,11 @@ namespace BioDivCollectorXamarin.Models.Wms
             return new TileSource(provider, schema);
         }
 
+        ////Geobrowser Proxy WMS
+        //public static ILayer CreateWMSSecureLayer()
+        //{
+        //    return new TileLayer(CreateTileSource("https://test.biodivcollector.ch/ProxyWMSSecure/88?", "cst_Bericht", "EPSG:3857", "73"));
+        //}
 
         //Full Image WMS
         public static ILayer CreateWMSImageLayer(string urlString, string layerName, string CRS, string layerTitle)

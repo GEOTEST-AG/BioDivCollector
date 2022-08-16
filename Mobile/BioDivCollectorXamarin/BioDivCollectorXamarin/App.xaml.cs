@@ -20,7 +20,7 @@ namespace BioDivCollectorXamarin
         /// <summary>
         /// Quickly configure the app to the test server or production server
         /// </summary>
-        public static bool IsTest = false;
+        public static bool IsTest = true;
 
         /// <summary>
         /// Keeps track of the current user

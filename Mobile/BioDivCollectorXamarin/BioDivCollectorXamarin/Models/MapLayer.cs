@@ -134,6 +134,12 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         public long LocalStorage { get; set; }
 
+        public string ID { get; set; }
+
+        public string WmsLayer { get; set; }
+
+        public string URL { get; set; }
+
         /// <summary>
         /// A string representing the local storage value, but converted to the appropriate unit (Byte, MB, GB)
         /// </summary>
@@ -160,6 +166,9 @@ namespace BioDivCollectorXamarin.Models
             Opacity = mapsuiLayer.Opacity;
             MapsuiLayer = mapsuiLayer;
             LocalStorage = 0;
+            ID = null;
+            WmsLayer = null;
+            URL = null;
         }
 
         public MapLayer()
