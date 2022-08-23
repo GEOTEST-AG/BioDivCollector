@@ -13,7 +13,6 @@ namespace BioDivCollectorXamarin.Views
     {
         MapPageVM ViewModel;
         
-
         /// <summary>
         /// Initialise the map and listen for geometry selection
         /// </summary>
@@ -38,7 +37,6 @@ namespace BioDivCollectorXamarin.Views
                     RequestGeometryName(arg);
                 });
             });
-
         }
 
         /// <summary>

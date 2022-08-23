@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -1080,42 +1082,20 @@ namespace BioDivCollectorXamarin.ViewModels
                 var coords = point.ToDoubleArray();
                 var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
 
-                var formList = Form.FetchFormsForProject();
-                int i = formList.Count;
-
                 string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie eine Geometriename ein", accept:"Speichern", cancel:"Abbrechen");
-
                 string geomId = ReferenceGeometry.SaveGeometry(TempCoordinates, geomName);
-                
+
                 var geom = ReferenceGeometry.GetGeometry(geomId);
 
                 if (string.IsNullOrEmpty(geomName) == false)
                 {
-                    if (i == 1){
-                        Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geom.Id), true);
-                    }
-                    else 
-                    { 
-                        if (geomId != null)
-                        {
-                            Navigation.PushAsync(new FormSelectionPage((int?)geom.Id), true);
-                        }
-                        else
-                        {
-                            Navigation.PushAsync(new FormSelectionPage(null), true);
-                        }
-                    }
-
+                    Shell.Current.GoToAsync($"//Records?objectId={geom.Id}", true);
+                    MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
                 }
 
                 GeomToEdit = 0;
                 RemoveTempGeometry();
                 RefreshShapes();
-
-                MessagingCenter.Subscribe<FormPageVM>(this, "GoBackToMap", (sender) =>
-                {
-                    Navigation.PopToRootAsync();
-                });
             }
         }
 

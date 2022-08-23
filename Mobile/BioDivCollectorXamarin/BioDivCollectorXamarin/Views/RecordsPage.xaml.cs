@@ -46,7 +46,7 @@ namespace BioDivCollectorXamarin.Views
             {
                 if (ObjectId != null && ObjectId != String.Empty)
                 {
-                    BindingContext = ViewModel = new RecordsPageVM(Int32.Parse(ObjectId));
+                    BindingContext = ViewModel = new RecordsPageVM(Int32.Parse(ObjectId), Navigation);
                 }
                 else
                 {
@@ -64,6 +64,20 @@ namespace BioDivCollectorXamarin.Views
                 await Task.Delay(500);
                 await DisplayAlert("BDC GUID kopiert", String.Empty, "OK");
             });
+
+            MessagingCenter.Subscribe<MapPageVM, string>(this, "GenerateNewForm", (sender, geomId) =>
+            {
+                var formList = Form.FetchFormsForProject();
+                int i = formList.Count;
+
+                var geom = ReferenceGeometry.GetGeometry(geomId);
+
+                AddFormToNewGeometry(i, formList, geom, geomId);
+                MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
+            });
+
+
+            
         }
 
         /// <summary>
@@ -315,5 +329,37 @@ namespace BioDivCollectorXamarin.Views
             
         }
 
+        /// <summary>
+        /// Navigate to the form or form selection page if a new geometry is added
+        /// </summary>
+        /// <param name="i"></param>
+        /// <param name="formList"></param>
+        /// <param name="geom"></param>
+        /// <param name="geomId"></param>
+        void AddFormToNewGeometry(int i, List<Form> formList, ReferenceGeometry geom, string geomId)
+        {
+            int geomId2 = geom.Id;
+            if (i == 1)
+            {
+                var formid = formList.FirstOrDefault().formId;
+
+
+                if (formid != null)
+                {
+                    Navigation.PushAsync(new FormPage(null, formid, geomId2), true);
+                }
+            }
+            else
+            {
+                if (geomId == null)
+                {
+                    Navigation.PushAsync(new FormSelectionPage(null), true);
+                }
+                else
+                {
+                    Navigation.PushAsync(new FormSelectionPage(geomId2), true);
+                }
+            }
+        }
     }
 }

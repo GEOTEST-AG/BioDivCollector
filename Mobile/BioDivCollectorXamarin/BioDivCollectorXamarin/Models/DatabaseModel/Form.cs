@@ -115,7 +115,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             {
                 try
                 {
-                    var formTemp = conn.Table<Form>().Where(Form => Form.formId == formId).FirstOrDefault();
+                    var projekt = Project.FetchCurrentProject();
+                    var formTemp = conn.Table<Form>().Where(Form => Form.formId == formId).Where(Form => Form.project_fk == projekt.Id).FirstOrDefault();
                     var formType = conn.GetWithChildren<Form>(formTemp.Id);
                     var formFields = formType.formFields.Where(FormField => FormField.useInRecordTitle == true).ToList();
                     return formFields;

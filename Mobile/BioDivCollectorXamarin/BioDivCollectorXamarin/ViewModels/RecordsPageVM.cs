@@ -55,6 +55,11 @@ namespace BioDivCollectorXamarin.ViewModels
         public GeometryDeleteCommand GeometryDeleteCommand { get; set; }
 
         /// <summary>
+        /// The page navigation
+        /// </summary>
+        public INavigation Navigation { get; set; }
+
+        /// <summary>
         /// The selected/filtered object
         /// </summary>
         private int? object_pk;
@@ -178,8 +183,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// Initialisation with a selected geometry
         /// </summary>
         /// <param name="objectId"></param>
-        public RecordsPageVM(int objectId)
+        public RecordsPageVM(int objectId, INavigation navigation)
         {
+            Navigation = navigation;
+
             App.CurrentRoute = "//Records?objectId=" + objectId.ToString();
             Object_pk = objectId;
             ItemTapped = new Command<FormRec>(OnItemSelected);
