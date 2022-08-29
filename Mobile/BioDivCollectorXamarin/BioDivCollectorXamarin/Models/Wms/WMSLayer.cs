@@ -74,7 +74,7 @@ namespace BioDivCollectorXamarin.Models.Wms
                 { format = "image/jpg"; }
             else if (urlString.Contains("image/jpeg"))
                 { format = "image/jpeg"; }
-            urlString = "https://test.biodivcollector.ch/ProxyWMSSecure/" + wmsId + "?";
+            urlString = "https://biodivcollector.ch/ProxyWMSSecure/" + wmsId + "?";
             var schema = new GlobalSphericalMercator(format, YAxis.OSM, 0, 21, null);
             var layers = new List<string>();
             layers.Add(layerName);
@@ -101,12 +101,6 @@ namespace BioDivCollectorXamarin.Models.Wms
 
             return new TileSource(provider, schema);
         }
-
-        ////Geobrowser Proxy WMS
-        //public static ILayer CreateWMSSecureLayer()
-        //{
-        //    return new TileLayer(CreateTileSource("https://test.biodivcollector.ch/ProxyWMSSecure/88?", "cst_Bericht", "EPSG:3857", "73"));
-        //}
 
         //Full Image WMS
         public static ILayer CreateWMSImageLayer(string urlString, string layerName, string CRS, string layerTitle)
