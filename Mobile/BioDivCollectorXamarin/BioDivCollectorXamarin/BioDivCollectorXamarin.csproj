@@ -16,6 +16,7 @@
     <None Remove="Images\locNoEntry.png" />
     <None Remove="Models\LoginModel\Auth.xml" />
     <None Remove="SfLicence.xml" />
+    <None Remove="Fonts\MaterialIcons-Regular.ttf" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +33,7 @@
     <EmbeddedResource Include="SfLicence.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="Fonts\MaterialIcons-Regular.ttf" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,6 +13,7 @@ using BioDivCollectorXamarin.Models.LoginModel;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 
+[assembly: ExportFont("MaterialIcons-Regular.ttf", Alias = "Material")]
 namespace BioDivCollectorXamarin
 {
     public partial class App : Application

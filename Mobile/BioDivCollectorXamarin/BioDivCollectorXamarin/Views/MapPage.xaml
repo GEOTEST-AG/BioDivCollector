@@ -20,10 +20,10 @@
                 <Grid VerticalOptions="FillAndExpand">
                     <mapsui:MapView x:Name="MapsuiMapView" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" BackgroundColor="Gray" MapLongClicked="MapsuiMapView_MapLongClicked" MapClicked="MapsuiMapView_MapClicked" />
                     <StackLayout WidthRequest="50" Padding="10,20,10,20" VerticalOptions="End" HorizontalOptions="End">
-                        <Button x:Name="AddMapGeometryButton" ImageSource="baseline_add_location_alt_white_24dp.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding AddMapGeometryCommand}" BackgroundColor="{Binding AddMapGeometryButtonBackgroundColour}" />
-                        <Button x:Name="GPSButton" ImageSource="outline_gps_fixed_white_24dp.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding GPSButtonCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
-                        <Button x:Name="LayersButton" ImageSource="outline_layers_white_24dp.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding LayersButtonCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
-                        <Button x:Name="SaveButton" ImageSource="outline_save_white_24dp.png" Style="{StaticResource mapButtonStyle}"  Command ="{Binding SaveMapCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
+                        <Button x:Name="AddMapGeometryButton" Text="&#xef3a;" Style="{StaticResource mapButtonStyle}" Command ="{Binding AddMapGeometryCommand}" BackgroundColor="{Binding AddMapGeometryButtonBackgroundColour}" />
+                        <Button x:Name="GPSButton" Text="&#xe1b3;" Style="{StaticResource mapButtonStyle}" Command ="{Binding GPSButtonCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
+                        <Button x:Name="LayersButton" Text="&#xe53b;" Style="{StaticResource mapButtonStyle}" Command ="{Binding LayersButtonCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
+                        <Button x:Name="SaveButton" Text="&#xe161;" Style="{StaticResource mapButtonStyle}"  Command ="{Binding SaveMapCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
                     </StackLayout>
                     <StackLayout WidthRequest="50" Padding="10,20,10,20" VerticalOptions="End" HorizontalOptions="Start">
                         <Button x:Name="ClearButton" ImageSource="clear.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding ClearGeomCommand}" BackgroundColor="{StaticResource BioDivGreen}" IsVisible="{Binding CanAddMapGeometry}"/>

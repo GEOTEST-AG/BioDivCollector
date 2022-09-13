@@ -14,6 +14,8 @@ using Mapsui;
 using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Projection;
+using Mapsui.Providers;
+using Mapsui.Styles;
 using Mapsui.UI;
 using Mapsui.Utilities;
 using Xamarin.Essentials;
@@ -91,7 +93,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Background colour of the add map geometry button (green for active, grey for inactive)
         /// </summary>
-        public Color AddMapGeometryButtonBackgroundColour { get; set; }
+        public Xamarin.Forms.Color AddMapGeometryButtonBackgroundColour { get; set; }
 
         /// <summary>
         /// Validation of the add map geometry button
@@ -150,6 +152,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// The temporary shape creation layer
         /// </summary>
         private ILayer TempLayer;
+
+        private ILayer GPSPointLayer;
+        private ILayer GPSLayer;
+        private ILayer BearingLayer;
 
         /// <summary>
         /// The current geometry type to be created
@@ -221,7 +227,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Navigation = navigation;
             VMGPSButton = GPSButton;
             VMGeomEditButton = AddMapGeometryButton;
-            VMGeomEditButton.BackgroundColor = (Color)Application.Current.Resources["BioDivGrey"];
+            VMGeomEditButton.BackgroundColor = (Xamarin.Forms.Color)Application.Current.Resources["BioDivGrey"];
             GeometryType = String.Empty;
             Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
 
@@ -233,10 +239,10 @@ namespace BioDivCollectorXamarin.ViewModels
             mapView.IsNorthingButtonVisible = false;
             mapView.IsMyLocationButtonVisible = false;
             mapView.IsZoomButtonVisible = false;
-            mapView.MyLocationLayer.IsMoving = true;
+            mapView.MyLocationLayer.IsMoving = false;
             mapView.MyLocationFollow = false;
             mapView.RotationLock = true;
-            mapView.MyLocationEnabled = true;
+            mapView.MyLocationEnabled = false;
             mapView.Info += MapOnInfo;
             OSAppTheme currentTheme = Application.Current.RequestedTheme;
             if (currentTheme == OSAppTheme.Dark)
@@ -259,7 +265,6 @@ namespace BioDivCollectorXamarin.ViewModels
             Mapsui.Geometries.Point centre = new Mapsui.Geometries.Point(positionLong, positionLat);
             var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(centre.X, centre.Y);
 
-            VMMapView.MyLocationLayer.UpdateMyLocation(new Mapsui.UI.Forms.Position(centre.Y, centre.X), false);
             VMMapView.Map.Limiter = new ViewportLimiterKeepWithin
             {
                 PanLimits = new BoundingBox(SphericalMercator.FromLonLat(-180, -90),SphericalMercator.FromLonLat(180, 90))
@@ -844,13 +849,13 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void ShowPosition()
         {
-            VMMapView.MyLocationFollow = gps.HasLocationPermission;
-            VMMapView.MyLocationEnabled = gps.HasLocationPermission;
-            VMGPSButton.ImageSource = "outline_gps_fixed_white_24dp.png";
-            if (CurrentPosition != null && (CurrentPosition.Latitude != 0 && CurrentPosition.Longitude != 0))
+            Device.BeginInvokeOnMainThread(() =>
             {
-                VMMapView.MyLocationLayer.UpdateMyLocation(new Mapsui.UI.Forms.Position(CurrentPosition.Latitude, CurrentPosition.Longitude),false);
-            }
+                UpdateLocation();
+                Preferences.Set("GPS", true);
+                Preferences.Set("GPS_Centred", true);
+                VMGPSButton.Text = "\ue1b3";
+            });
         }
 
         /// <summary>
@@ -858,13 +863,13 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void ShowPositionNotCentered()
         {
-            VMMapView.MyLocationFollow = false;
-            VMMapView.MyLocationEnabled = gps.HasLocationPermission;
-            VMGPSButton.ImageSource = "outline_gps_not_fixed_white_24dp.png";
-            if (CurrentPosition != null && (CurrentPosition.Latitude != 0 && CurrentPosition.Longitude != 0))
+            Device.BeginInvokeOnMainThread(() =>
             {
-                VMMapView.MyLocationLayer.UpdateMyLocation(new Mapsui.UI.Forms.Position(CurrentPosition.Latitude, CurrentPosition.Longitude), false);
-            }
+                UpdateLocation();
+                Preferences.Set("GPS", true);
+                Preferences.Set("GPS_Centred", false);
+                VMGPSButton.Text = "\ue1b4";
+            });
         }
 
         /// <summary>
@@ -872,12 +877,357 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void StopShowingPosition()
         {
-            VMMapView.MyLocationEnabled = false;
-            VMMapView.MyLocationFollow = false;
-            VMGPSButton.ImageSource = "outline_gps_off_white_24dp.png";
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                RemoveGPSLayers();
+                Preferences.Set("GPS", false);
+                Preferences.Set("GPS_Centred", false);
+                VMGPSButton.Text = "\ue1b5";
+            });
         }
 
-        
+        /// <summary>
+        /// Update the current GPS location on receiving a notification from the GPS object
+        /// </summary>
+        /// <param name="latitude"></param>
+        /// <param name="longitude"></param>
+        /// <param name="accuracy"></param>
+        /// <param name="heading"></param>
+        /// <param name="speed"></param>
+        private void UpdateLocation()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                var lat = Preferences.Get("LastPositionLatitude", 0.0);
+                var lon = Preferences.Get("LastPositionLongitude", 0.0);
+                var accuracy = Preferences.Get("LastPositionAccuracy", 0.0);
+                var heading = Preferences.Get("LastPositionHeading", 0.0);
+                var prevlat = Preferences.Get("PrevLastPositionLatitude", 0.0);
+                var prevlon = Preferences.Get("PrevLastPositionLongitude", 0.0);
+                var prevaccuracy = Preferences.Get("PrevLastPositionAccuracy", 0.0);
+                var prevheading = Preferences.Get("PrevLastPositionHeading", 0.0);
+                var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
+
+                if (lat != 0 && lon != 0)
+                {
+                    if (lat != prevlat || lon != prevlon || accuracy != prevaccuracy || layerCount < 2)
+                    {
+                        try
+                        {
+                            AddGPSLayer(lat, lon, accuracy, heading);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                            Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                        }
+                    }
+                    else if (Math.Abs(prevheading - heading) > 1 && lat == prevlat && lon == prevlon && accuracy == prevaccuracy)
+                    {
+                        try
+                        {
+                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                            AddBearingLayer(lat, lon, accuracy, heading);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                            Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                        }
+                    }
+                }
+            });
+
+        }
+
+        private void AddGPSLayer(double latitude, double longitude, double accuracy, double heading)
+        {
+
+            Task.Run(() =>
+            {
+                GPSLayer = CreateGPSLayer(latitude, longitude, accuracy, heading);
+                GPSPointLayer = CreateGPSPointLayer(latitude, longitude, accuracy, heading);
+                BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
+                var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").ToArray();
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        if (gpsLayers.Count() > 0)
+                        {
+                            VMMapView.Map.Layers.LayerRemoved += Layers_LayerRemoved;
+                            MessagingCenter.Subscribe<MapPageVM>(this, "gpsLayersRemoved", (sender) => {
+                                VMMapView.Map.Layers.Add(GPSLayer);
+                                VMMapView.Map.Layers.Add(GPSPointLayer);
+                                VMMapView.Map.Layers.Add(BearingLayer);
+                                MessagingCenter.Unsubscribe<MapPageVM>(this, "gpsLayersRemoved");
+                            });
+                            VMMapView.Map.Layers.Remove(gpsLayers);
+                        }
+                        else
+                        {
+                            VMMapView.Map.Layers.Add(GPSLayer);
+                            VMMapView.Map.Layers.Add(GPSPointLayer);
+                            VMMapView.Map.Layers.Add(BearingLayer);
+                        }
+                    }
+                    catch
+                    {
+                        Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                        Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                        Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                        Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                    }
+                });
+
+            });
+        }
+
+        private void Layers_LayerRemoved(ILayer layer)
+        {
+            MessagingCenter.Send<MapPageVM>(this, "gpsLayersRemoved");
+        }
+
+        private void AddBearingLayer(double latitude, double longitude, double accuracy, double heading)
+        {
+
+            Task.Run(() =>
+            {
+                BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
+                var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "Bearing").ToArray();
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        if (gpsLayers.Count() > 0)
+                        {
+                            VMMapView.Map.Layers.LayerRemoved += Layers_BearingLayerRemoved;
+                            MessagingCenter.Subscribe<MapPageVM>(this, "bearingLayerRemoved", (sender) => {
+                                VMMapView.Map.Layers.Add(BearingLayer);
+                                MessagingCenter.Unsubscribe<MapPageVM>(this, "bearingLayerRemoved");
+                            });
+                            VMMapView.Map.Layers.Remove(gpsLayers);
+                        }
+                        else
+                        {
+                            VMMapView.Map.Layers.Add(BearingLayer);
+                        }
+                    }
+                    catch
+                    {
+                        Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                        Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                        Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                        Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                    }
+                });
+
+            });
+        }
+
+        private void Layers_BearingLayerRemoved(ILayer layer)
+        {
+            MessagingCenter.Send<MapPageVM>(this, "bearingLayerRemoved");
+        }
+
+        private void RemoveGPSLayers()
+        {
+            var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").ToList();
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                foreach (var layer in gpsLayers)
+                {
+                    VMMapView.Map.Layers.Remove(layer);
+                }
+            });
+        }
+
+
+        private ILayer CreateGPSLayer(double latitude, double longitude, double accuracy, double heading)
+        {
+            var c = new Mapsui.UI.Forms.Circle
+            {
+                Center = new Mapsui.UI.Forms.Position(latitude, longitude),
+                Radius = Mapsui.UI.Forms.Distance.FromMeters(accuracy),
+                StrokeWidth = 3,
+                Quality = 60
+            };
+
+            c.Feature.Styles = new List<IStyle>(){ new VectorStyle
+            {
+                Fill = new Mapsui.Styles.Brush(Mapsui.Styles.Color.FromArgb(80,66,135,245)),
+                Outline = null,
+                Line =
+                    {
+                        Color = Mapsui.Styles.Color.Transparent,
+                        Width = 5
+                    }
+            } };
+            var points = new List<Feature>() { c.Feature };
+            ILayer gpsLayer = MapModel.CreatePolygonLayer(points, Mapsui.Styles.Color.Transparent, Mapsui.Styles.Color.FromArgb(80, 66, 135, 245));
+            gpsLayer.Name = "GPS";
+            gpsLayer.IsMapInfoLayer = false;
+            return gpsLayer;
+        }
+
+        private ILayer CreateGPSPointLayer(double latitude, double longitude, double accuracy, double heading)
+        {
+            var point = SphericalMercator.FromLonLat(longitude, latitude);
+
+            var feature = new Feature
+            {
+                Geometry = point,
+                ["Name"] = "GPS",
+                ["Label"] = "GPS"
+            };
+
+            var points = new List<Feature>() { feature };
+            var path = "BioDivCollectorXamarin.Images.loc.png";
+            var bitmapId = MapModel.GetBitmapIdForEmbeddedResource(path);
+            var style = new SymbolStyle { BitmapId = bitmapId, SymbolScale = 0.40, SymbolOffset = new Offset(0, 0) };
+            ILayer gpsLayer = new Mapsui.Layers.Layer("Points")
+            {
+                CRS = "EPSG:3857",
+                DataSource = new MemoryProvider(points),
+                IsMapInfoLayer = false,
+                Style = style
+            };
+            gpsLayer.Name = "Bearing";
+            gpsLayer.IsMapInfoLayer = false;
+            return gpsLayer;
+        }
+
+        private ILayer CreateBearingLayer(double latitude, double longitude, double accuracy, double heading)
+        {
+            //Polygon
+            var polygon = new Mapsui.Geometries.Polygon();
+
+            var R = 6378.1; //Radius of the Earth
+            var brng = (Math.PI / 180) * heading; //Bearing is 90 degrees converted to radians.
+            var d = accuracy / 1000;
+            var d2 = accuracy / 2000;
+
+            var lat1 = (Math.PI / 180) * latitude; //Current lat point converted to radians
+            var lon1 = (Math.PI / 180) * longitude; //Current long point converted to radians
+
+            var lat1a = Math.Asin(Math.Sin(lat1) * Math.Cos(d2 / R) + Math.Cos(lat1) * Math.Sin(d2 / R) * Math.Cos(brng - (30 * Math.PI / 180)));
+            var lon1a = lon1 + Math.Atan2(Math.Sin(brng - (30 * Math.PI / 180)) * Math.Sin(d2 / R) * Math.Cos(lat1), Math.Cos(d2 / R) - Math.Sin(lat1) * Math.Sin(lat1a));
+
+            var lat1b = Math.Asin(Math.Sin(lat1) * Math.Cos(d2 / R) + Math.Cos(lat1) * Math.Sin(d2 / R) * Math.Cos(brng - (15 * Math.PI / 180)));
+            var lon1b = lon1 + Math.Atan2(Math.Sin(brng - (15 * Math.PI / 180)) * Math.Sin(d2 / R) * Math.Cos(lat1), Math.Cos(d2 / R) - Math.Sin(lat1) * Math.Sin(lat1b));
+
+            var lat1c = Math.Asin(Math.Sin(lat1) * Math.Cos(d2 / R) + Math.Cos(lat1) * Math.Sin(d2 / R) * Math.Cos(brng));
+            var lon1c = lon1 + Math.Atan2(Math.Sin(brng) * Math.Sin(d2 / R) * Math.Cos(lat1), Math.Cos(d2 / R) - Math.Sin(lat1) * Math.Sin(lat1c));
+
+            var lat1d = Math.Asin(Math.Sin(lat1) * Math.Cos(d2 / R) + Math.Cos(lat1) * Math.Sin(d2 / R) * Math.Cos(brng + (15 * Math.PI / 180)));
+            var lon1d = lon1 + Math.Atan2(Math.Sin(brng + (15 * Math.PI / 180)) * Math.Sin(d2 / R) * Math.Cos(lat1), Math.Cos(d2 / R) - Math.Sin(lat1) * Math.Sin(lat1d));
+
+            var lat1e = Math.Asin(Math.Sin(lat1) * Math.Cos(d2 / R) + Math.Cos(lat1) * Math.Sin(d2 / R) * Math.Cos(brng + (30 * Math.PI / 180)));
+            var lon1e = lon1 + Math.Atan2(Math.Sin(brng + (30 * Math.PI / 180)) * Math.Sin(d2 / R) * Math.Cos(lat1), Math.Cos(d2 / R) - Math.Sin(lat1) * Math.Sin(lat1e));
+
+            var lat2 = Math.Asin(Math.Sin(lat1) * Math.Cos(d / R) + Math.Cos(lat1) * Math.Sin(d / R) * Math.Cos(brng - (30 * Math.PI / 180)));
+            var lon2 = lon1 + Math.Atan2(Math.Sin(brng - (30 * Math.PI / 180)) * Math.Sin(d / R) * Math.Cos(lat1), Math.Cos(d / R) - Math.Sin(lat1) * Math.Sin(lat2));
+
+            var lat3 = Math.Asin(Math.Sin(lat1) * Math.Cos(d / R) + Math.Cos(lat1) * Math.Sin(d / R) * Math.Cos(brng - (20 * Math.PI / 180)));
+            var lon3 = lon1 + Math.Atan2(Math.Sin(brng - (20 * Math.PI / 180)) * Math.Sin(d / R) * Math.Cos(lat1), Math.Cos(d / R) - Math.Sin(lat1) * Math.Sin(lat3));
+
+            var lat4 = Math.Asin(Math.Sin(lat1) * Math.Cos(d / R) + Math.Cos(lat1) * Math.Sin(d / R) * Math.Cos(brng - (10 * Math.PI / 180)));
+            var lon4 = lon1 + Math.Atan2(Math.Sin(brng - (10 * Math.PI / 180)) * Math.Sin(d / R) * Math.Cos(lat1), Math.Cos(d / R) - Math.Sin(lat1) * Math.Sin(lat4));
+
+            var lat5 = Math.Asin(Math.Sin(lat1) * Math.Cos(d / R) + Math.Cos(lat1) * Math.Sin(d / R) * Math.Cos(brng));
+            var lon5 = lon1 + Math.Atan2(Math.Sin(brng) * Math.Sin(d / R) * Math.Cos(lat1), Math.Cos(d / R) - Math.Sin(lat1) * Math.Sin(lat5));
+
+            var lat6 = Math.Asin(Math.Sin(lat1) * Math.Cos(d / R) + Math.Cos(lat1) * Math.Sin(d / R) * Math.Cos(brng + (10 * Math.PI / 180)));
+            var lon6 = lon1 + Math.Atan2(Math.Sin(brng + (10 * Math.PI / 180)) * Math.Sin(d / R) * Math.Cos(lat1), Math.Cos(d / R) - Math.Sin(lat1) * Math.Sin(lat6));
+
+            var lat7 = Math.Asin(Math.Sin(lat1) * Math.Cos(d / R) + Math.Cos(lat1) * Math.Sin(d / R) * Math.Cos(brng + (20 * Math.PI / 180)));
+            var lon7 = lon1 + Math.Atan2(Math.Sin(brng + (20 * Math.PI / 180)) * Math.Sin(d / R) * Math.Cos(lat1), Math.Cos(d / R) - Math.Sin(lat1) * Math.Sin(lat7));
+
+            var lat8 = Math.Asin(Math.Sin(lat1) * Math.Cos(d / R) + Math.Cos(lat1) * Math.Sin(d / R) * Math.Cos(brng + (30 * Math.PI / 180)));
+            var lon8 = lon1 + Math.Atan2(Math.Sin(brng + (30 * Math.PI / 180)) * Math.Sin(d / R) * Math.Cos(lat1), Math.Cos(d / R) - Math.Sin(lat1) * Math.Sin(lat8));
+
+            lat1a = lat1a * 180 / Math.PI;
+            lon1a = lon1a * 180 / Math.PI;
+            lat1b = lat1b * 180 / Math.PI;
+            lon1b = lon1b * 180 / Math.PI;
+            lat1c = lat1c * 180 / Math.PI;
+            lon1c = lon1c * 180 / Math.PI;
+            lat1d = lat1d * 180 / Math.PI;
+            lon1d = lon1d * 180 / Math.PI;
+            lat1e = lat1e * 180 / Math.PI;
+            lon1e = lon1e * 180 / Math.PI;
+            lat2 = lat2 * 180 / Math.PI;
+            lon2 = lon2 * 180 / Math.PI;
+            lat3 = lat3 * 180 / Math.PI;
+            lon3 = lon3 * 180 / Math.PI;
+            lat4 = lat4 * 180 / Math.PI;
+            lon4 = lon4 * 180 / Math.PI;
+            lat5 = lat5 * 180 / Math.PI;
+            lon5 = lon5 * 180 / Math.PI;
+            lat6 = lat6 * 180 / Math.PI;
+            lon6 = lon6 * 180 / Math.PI;
+            lat7 = lat7 * 180 / Math.PI;
+            lon7 = lon7 * 180 / Math.PI;
+            lat8 = lat8 * 180 / Math.PI;
+            lon8 = lon8 * 180 / Math.PI;
+
+            var pt1e = SphericalMercator.FromLonLat(lon1e, lat1e);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1e.X, pt1e.Y));
+            var pt1d = SphericalMercator.FromLonLat(lon1d, lat1d);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1d.X, pt1d.Y));
+            var pt1c = SphericalMercator.FromLonLat(lon1c, lat1c);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1c.X, pt1c.Y));
+            var pt1b = SphericalMercator.FromLonLat(lon1b, lat1b);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1b.X, pt1b.Y));
+            var pt1a = SphericalMercator.FromLonLat(lon1a, lat1a);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1a.X, pt1a.Y));
+            var pt2 = SphericalMercator.FromLonLat(lon2, lat2);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt2.X, pt2.Y));
+            var pt3 = SphericalMercator.FromLonLat(lon3, lat3);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt3.X, pt3.Y));
+            var pt4 = SphericalMercator.FromLonLat(lon4, lat4);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt4.X, pt4.Y));
+            var pt5 = SphericalMercator.FromLonLat(lon5, lat5);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt5.X, pt5.Y));
+            var pt6 = SphericalMercator.FromLonLat(lon6, lat6);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt6.X, pt6.Y));
+            var pt7 = SphericalMercator.FromLonLat(lon7, lat7);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt7.X, pt7.Y));
+            var pt8 = SphericalMercator.FromLonLat(lon8, lat8);
+            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt8.X, pt8.Y));
+
+
+            var bearingfeature = new Feature
+            {
+                Geometry = polygon,
+                ["Name"] = "Bearing",
+                ["Label"] = "Bearing"
+            };
+
+            bearingfeature.Styles = new List<IStyle>(){ new VectorStyle
+            {
+                Fill = new Mapsui.Styles.Brush(Mapsui.Styles.Color.FromArgb(150,66,135,245)),
+                Outline = null,
+                Line = null
+            } };
+
+
+            var points = new List<Feature>() { bearingfeature };
+            ILayer gpsLayer = MapModel.CreatePolygonLayer(points, Mapsui.Styles.Color.Transparent, Mapsui.Styles.Color.Transparent);
+            gpsLayer.Name = "Bearing";
+            gpsLayer.IsMapInfoLayer = false;
+            return gpsLayer;
+        }
+
+
         /// <summary>
         /// Keep track of the bounding box when the map is scrolled, and set the GPS to 'not centred'
         /// </summary>
@@ -886,11 +1236,11 @@ namespace BioDivCollectorXamarin.ViewModels
         private void MapView_TouchMove(object sender, Mapsui.UI.TouchedEventArgs e)
         {
             SetBoundingBox();
-            VMMapView.MyLocationFollow = false;
             Preferences.Set("GPS_Centred", false);
-            if (VMMapView.MyLocationEnabled)
+            var gps = Preferences.Get("GPS", false);
+            if (gps)
             {
-                VMGPSButton.ImageSource = "outline_gps_not_fixed_white_24dp.png";
+                VMGPSButton.Text = "\ue1b4";
             }
         }
 
@@ -904,33 +1254,55 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="speed"></param>
         private void UpdateLocation(double latitude, double longitude, double accuracy, double heading, double speed)
         {
-            if (latitude != 0 && longitude != 0)
+            Device.BeginInvokeOnMainThread(() =>
             {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    try
-                    {
-                        if (accuracy < 50)
-                        {
-                            //Animate when close enough to real location
-                            VMMapView.MyLocationLayer.UpdateMyLocation(new Mapsui.UI.Forms.Position(latitude, longitude), true);
-                        }
-                        else
-                        {
-                            //Don't animate when moving to location
-                            VMMapView.MyLocationLayer.UpdateMyLocation(new Mapsui.UI.Forms.Position(latitude, longitude), false);
-                        }
-                        
-                        VMMapView.MyLocationLayer.UpdateMyDirection(heading, 0);
-                        VMMapView.MyLocationLayer.UpdateMySpeed(speed);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }
-                });
-            }
+                var lat = Preferences.Get("LastPositionLatitude", 0.0);
+                var lon = Preferences.Get("LastPositionLongitude", 0.0);
+                var accuracy = Preferences.Get("LastPositionAccuracy", 0.0);
+                var heading = Preferences.Get("LastPositionHeading", 0.0);
+                var prevlat = Preferences.Get("PrevLastPositionLatitude", 0.0);
+                var prevlon = Preferences.Get("PrevLastPositionLongitude", 0.0);
+                var prevaccuracy = Preferences.Get("PrevLastPositionAccuracy", 0.0);
+                var prevheading = Preferences.Get("PrevLastPositionHeading", 0.0);
+                var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
 
+                if (lat != 0 && lon != 0)
+                {
+                    if (lat != prevlat || lon != prevlon || accuracy != prevaccuracy || layerCount < 2)
+                    {
+                        try
+                        {
+                            AddGPSLayer(lat, lon, accuracy, heading);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                            Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                        }
+                    }
+                    else if (Math.Abs(prevheading - heading) > 1 && lat == prevlat && lon == prevlon && accuracy == prevaccuracy)
+                    {
+                        try
+                        {
+                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                            AddBearingLayer(lat, lon, accuracy, heading);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                            Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                        }
+                    }
+                }
+            });
         }
 
         /// <summary>
@@ -1222,11 +1594,11 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 if (canAddMapGeometry)
                 {
-                    VMGeomEditButton.BackgroundColor = (Color)Application.Current.Resources["BioDivGreen"];
+                    VMGeomEditButton.BackgroundColor = (Xamarin.Forms.Color)Application.Current.Resources["BioDivGreen"];
                 }
                 else
                 {
-                    VMGeomEditButton.BackgroundColor = (Color)Application.Current.Resources["BioDivGrey"];
+                    VMGeomEditButton.BackgroundColor = (Xamarin.Forms.Color)Application.Current.Resources["BioDivGrey"];
                 }
             }
             catch (Exception e)
@@ -1268,7 +1640,7 @@ namespace BioDivCollectorXamarin.ViewModels
             }
             CanAddMapGeometry = false;
             GeometryType = String.Empty;
-            VMGeomEditButton.BackgroundColor = (Color)Application.Current.Resources["BioDivGrey"];
+            VMGeomEditButton.BackgroundColor = (Xamarin.Forms.Color)Application.Current.Resources["BioDivGrey"];
         }
 
         /// <summary>

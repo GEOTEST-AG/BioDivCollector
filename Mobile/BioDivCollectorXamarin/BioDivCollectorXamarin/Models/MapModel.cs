@@ -367,7 +367,7 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="imagePath"></param>
         /// <returns>Embedded resource id</returns>
-        private static int GetBitmapIdForEmbeddedResource(string imagePath)
+        public static int GetBitmapIdForEmbeddedResource(string imagePath)
         {
             var assembly = typeof(MapPageVM).GetTypeInfo().Assembly;
             var image = assembly.GetManifestResourceStream(imagePath);
