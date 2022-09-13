@@ -46,6 +46,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         //  -ProjectLayer
         //  -UserLayer
 
+        
+
         /// <summary>
         /// Create a project object
         /// </summary>

@@ -81,6 +81,7 @@ namespace BioDivCollectorXamarin.Models
                             WmsLayer.Enabled = layer.visible;
                             WmsLayer.LayerZ = layer.order;
                             WmsLayer.Name = layer.title;
+                            WmsLayer.WmsLayer = layer.wmsLayer;
                             mapLayersTemp.SetValue(WmsLayer, layerNo);
                             var path = dirPath + "/" + layer.title;
                             FileInfo fi = new FileInfo(dirPath + "/" + layer.title + ".mbtiles");
@@ -98,7 +99,7 @@ namespace BioDivCollectorXamarin.Models
                     else
                     {
                         //If internet, read directly from WMS
-                        var layerWms = WMSLayer.CreateWMSLayer(layer.url, layer.wmsLayer, "EPSG:3857", layer.title);
+                        var layerWms = WMSLayer.CreateWMSLayer(layer.url, layer.wmsLayer, "EPSG:3857", layer.title, layer.layerId.ToString());
                         layerWms.Opacity = layer.opacity;
                         layerWms.Enabled = layer.visible;
                         if (layerWms != null)
@@ -108,6 +109,10 @@ namespace BioDivCollectorXamarin.Models
                             WmsLayer.Enabled = layer.visible;
                             WmsLayer.LayerZ = layer.order;
                             WmsLayer.Name = layer.title;
+                            WmsLayer.WmsLayer = layer.wmsLayer;
+
+                            //WmsLayer.UuID = layer.uuid;
+
                             mapLayersTemp.SetValue(WmsLayer, layerNo);
                             if (offlineLayerExists)
                             {

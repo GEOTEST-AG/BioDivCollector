@@ -33,7 +33,7 @@
             
                 <FlexLayout Direction="Row" WidthRequest="500" AlignContent="SpaceAround" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="1,2,1,0" Margin="0" BackgroundColor="{StaticResource BioDivGrey}" HeightRequest="55" IsVisible="{Binding CanAddMapGeometry}">
                     <Button x:Name="CancelGeomButton" Text="Abbrechen" TextTransform="Uppercase" VerticalOptions="Center" FlexLayout.Basis="50%" Margin="0,0,1,0" CornerRadius="0" HeightRequest="53" Command="{Binding CancelGeomCommand}"/>
-                    <Button x:Name="SaveGeomButton" Text="Speichern" TextTransform="Uppercase" VerticalOptions="Center" FlexLayout.Basis="50%" Margin="1,0,0,0" CornerRadius="0" HeightRequest="53" Command="{Binding SaveGeomCommand}"/>
+                    <Button x:Name="SaveGeomButton" Text="Speichern" TextTransform="Uppercase" VerticalOptions="Center" FlexLayout.Basis="50%" Margin="1,0,0,0" CornerRadius="0" HeightRequest="53" Command="{Binding SaveGeomCommand}" />
                 </FlexLayout>
                 <StackLayout Orientation="Horizontal" WidthRequest="500" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="0" Margin="0" BackgroundColor="White" HeightRequest="50"  IsVisible="{Binding SaveCountText, Converter={StaticResource stringToBool}}">
                     <Label x:Name="SaveCount" Text="{Binding SaveCountText}" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Margin="0" HeightRequest="50" BackgroundColor="White" Opacity="1" TextColor="Black" HorizontalOptions="FillAndExpand"/>

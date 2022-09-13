@@ -10,7 +10,7 @@ namespace BioDivCollectorXamarin.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class FormPage : ContentPage
     {
-        private FormPageVM ViewModel;
+        FormPageVM ViewModel;
 
         /// <summary>
         /// Initialise the form for a specific record
@@ -19,13 +19,13 @@ namespace BioDivCollectorXamarin.Views
         public FormPage(int? recId, int formId, int? geomId)
         {
             InitializeComponent();
-            BindingContext = ViewModel = new FormPageVM(recId, formId, geomId);
+            ViewModel = new FormPageVM(recId, formId, geomId, Navigation);
+            BindingContext = ViewModel;
 
             MessagingCenter.Subscribe<FormPageVM>(this, "NavigateBack", (sender) =>
             {
                 NavigateBack();
             });
-
         }
 
         /// <summary>

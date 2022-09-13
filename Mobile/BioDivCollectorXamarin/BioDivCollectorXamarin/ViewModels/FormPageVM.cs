@@ -10,11 +10,13 @@ using Xamarin.Essentials;
 using Xamarin.Forms;
 using System.Threading.Tasks;
 using Syncfusion.SfAutoComplete.XForms;
+using BioDivCollectorXamarin.Views;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
     class FormPageVM : BaseViewModel
     {
+        public INavigation Navigation { get; set; }
 
         public List<View> Assets = new List<View>();
         public int RecId;
@@ -38,8 +40,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// The relevant data is then extracted from the database for the specific field, and added as the initial value for that field.
         /// </summary>
         /// <param name="recId">recordID</param>
-        public FormPageVM(int? recId, int formId, int? geomId)
+        public FormPageVM(int? recId, int formId, int? geomId, INavigation navigation)
         {
+
+            Navigation = navigation;
 
             using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
@@ -64,7 +68,8 @@ namespace BioDivCollectorXamarin.ViewModels
                 //Compile the GUID
                 BDCGUIDtext = "<<BDC><" + queriedrec.recordId + ">>";
 
-                var formTemp = conn.Table<Form>().Where(Form => Form.formId == formId).FirstOrDefault();
+                var projekt = Project.FetchCurrentProject();
+                var formTemp = conn.Table<Form>().Where(Form => Form.formId == formId).Where(Form => Form.project_fk == projekt.Id).FirstOrDefault();
                 formType = conn.GetWithChildren<Form>(formTemp.Id);
                 foreach (var formField in formType.formFields.OrderBy(f => f.order))
                 {
@@ -593,6 +598,8 @@ namespace BioDivCollectorXamarin.ViewModels
             CancelCommand = new Command(OnCancel);
             this.PropertyChanged +=
                 (_, __) => SaveCommand.ChangeCanExecute();
+
+            
 
         }
 
