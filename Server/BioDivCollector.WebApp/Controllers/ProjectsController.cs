@@ -1117,7 +1117,7 @@ namespace BioDivCollector.WebApp.Controllers
             }
             else if (format == "csv")
             {
-                psi.Arguments = "-f CSV " + exportfilename + pgstring + " \"" + prefix + "_records_without_geometries\" -where \"\\\"bdcguid_projekt\\\" in ('" + String.Join("', '", exportprojects.ToArray()) + "')\"";
+                psi.Arguments = "-f CSV " + exportfilename + pgstring + " \"" + prefix + "_union_records\" -where \"\\\"bdcguid_projekt\\\" in ('" + String.Join("', '", exportprojects.ToArray()) + "')\"";
 
                 var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
@@ -1125,7 +1125,7 @@ namespace BioDivCollector.WebApp.Controllers
             }
             else if (format == "xlsx")
             {
-                psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " \"" + prefix + "_records_without_geometries\" -where \"\\\"bdcguid_projekt\\\" in ('" + String.Join("', '", exportprojects.ToArray()) + "')\"";
+                psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " \"" + prefix + "_union_records\" -where \"\\\"bdcguid_projekt\\\" in ('" + String.Join("', '", exportprojects.ToArray()) + "')\"";
 
                 var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
@@ -1138,6 +1138,7 @@ namespace BioDivCollector.WebApp.Controllers
             }
             //Stream stream = System.IO.File.OpenRead(exportfilename);
 
+            await this.db.Database.ExecuteSqlRawAsync("DROP VIEW IF EXISTS " + prefix + "_union_records;");
             await this.db.Database.ExecuteSqlRawAsync("DROP VIEW IF EXISTS " + prefix + "_point_view; DROP VIEW IF EXISTS " + prefix + "_line_view; DROP VIEW IF EXISTS " + prefix + "_polygon_view;");
             await this.db.Database.ExecuteSqlRawAsync("DROP VIEW IF EXISTS " + prefix + "_records_without_geometries;");
 

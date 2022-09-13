@@ -162,6 +162,8 @@ namespace BioDivCollector.Connector.Models.DTO
         public string title { get; set; }
         public string url { get; set; }
         public string wmsLayer { get; set; }
+        public string username { get; set; }
+        public string password { get; set; }
 
         public bool visible { get; set; }
         public double opacity { get; set; }

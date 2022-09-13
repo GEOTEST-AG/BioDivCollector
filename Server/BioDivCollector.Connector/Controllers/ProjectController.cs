@@ -272,7 +272,9 @@ namespace BioDivCollector.Connector.Controllers
                     wmsLayer = layer.WMSLayer,
                     order = layerOrder,
                     visible = projectLayer.Visible,
-                    opacity = projectLayer.Transparency
+                    opacity = projectLayer.Transparency,
+                    username = layer.Username,
+                    password = layer.Password
                 };
                 projectDto.layers.Add(layerDto);
                 layerOrder++;

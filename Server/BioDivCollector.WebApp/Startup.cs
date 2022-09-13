@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AspNetCore.Proxy;
 using BioDivCollector.DB.Models.Domain;
 using BioDivCollector.PluginContract;
 using BioDivCollector.WebApp.Helpers;
@@ -53,6 +54,7 @@ namespace BioDivCollector.WebApp
         .AddMvcOptions(options => options.Filters.Add(new AuthorizeFilter()));
 
 
+            services.AddProxies();
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -15,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RestSharp;
+using RunProcessAsTask;
 
 namespace BioDivCollector.WebApp.Controllers
 {
@@ -997,11 +999,14 @@ namespace BioDivCollector.WebApp.Controllers
                                         "p.description AS \"beschreibung\", " +
                                         "p2.description AS \"status\", " +
                                         "thirdparty.name as \"extprogramme\"," +
+                                        "r2.geometryid as \"bdcguid_geometrie\", " +
+                                        "NULL as \"geometriename\", " +
+                                        "'POINT EMPTY'::geometry, " +
                                         "r2.recordid as \"bdcguid_beobachtung\", " +
                                         "r2.groupid as \"group_id\", " +
                                         "getrecordchangelogdate(r2.recordid) as changedate, " +
-                                        "getrecordchangeloguser(r2.recordid) as changeuser, " +
-                                        "r2.geometryid as \"bdcguid_geometrie\", ";
+                                        "getrecordchangeloguser(r2.recordid) as changeuser, ";
+                                        
             sqlCreateViewsGeneral = sqlCreateViewsGeneral.Replace("{prefix}", prefix);
 
             string sqlCreateViews2 = "FROM projects p " +
@@ -1128,6 +1133,7 @@ namespace BioDivCollector.WebApp.Controllers
             await db.Database.ExecuteSqlRawAsync(sqlPointView);
             await db.Database.ExecuteSqlRawAsync(sqlLineView);
             await db.Database.ExecuteSqlRawAsync(sqlPolygonView);
+
             if (withOgd)
             {
                 await db.Database.ExecuteSqlRawAsync(sqlOGDPointView);
@@ -1135,6 +1141,15 @@ namespace BioDivCollector.WebApp.Controllers
                 await db.Database.ExecuteSqlRawAsync(sqlOGDPolygonView);
             }
             await db.Database.ExecuteSqlRawAsync(sqlGeneralView);
+
+            string unionquery = "CREATE OR REPLACE VIEW public.{prefix}union_records " +
+                                        "AS select * from {prefix}records_without_geometries " +
+                                        "union all select * from {prefix}point_view where changedate is null " +
+                                        "union all select * from {prefix}line_view where changedate is null " +
+                                        "union all select * from {prefix}polygon_view where changedate is null ";
+            unionquery = unionquery.Replace("{prefix}", prefix);
+
+            await db.Database.ExecuteSqlRawAsync(unionquery);
         }
 
 
@@ -1201,6 +1216,66 @@ namespace BioDivCollector.WebApp.Controllers
             }
             return ff;
         }
+
+
+        public IActionResult Export()
+        {
+            List<Dictionary<int, string>> returnList = new List<Dictionary<int, string>>();
+
+
+
+            List<FormField> ffs = db.FormFields.Where(m=>m.FieldTypeId == FieldTypeEnum.Choice && m.PublicMotherFormFieldFormFieldId == null).ToList();
+            foreach (FormField ff in ffs)
+            {
+                Dictionary<int,string> keyValuePairs = new Dictionary<int, string>() { { ff.FormFieldId, ff.Title } };
+                returnList.Add(keyValuePairs);
+            }
+
+            return View(returnList);
+        }
+
+        [ValidateAntiForgeryToken]
+        [HttpPost]
+        public async Task<IActionResult> Export(string fieldchoice)
+        {
+            User user = Helpers.UserHelper.GetCurrentUser(User, this.db);
+            
+            string exportf = Path.GetRandomFileName();
+            string[] fname = exportf.Split(".");
+
+            string dataDir = AppDomain.CurrentDomain.GetData("DataDirectory").ToString();
+            if (!Directory.Exists(dataDir + "//Export")) Directory.CreateDirectory(dataDir + "//Export");
+            string exportfilename = dataDir + "//Export//" + fname[0] + ".csv";
+
+
+            ProcessStartInfo psi = new ProcessStartInfo();
+            string db = Configuration["Environment:DB"];
+            string host = Configuration["Environment:DBHost"];
+            string dbuser = Configuration["Environment:DBUSer"];
+            string dbpassword = Configuration["Environment:DBPassword"];
+
+
+            psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
+            psi.WorkingDirectory = @"C:\Program Files\GDAL";
+            psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files\GDAL\gdal-data";
+            psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files\GDAL\gdal-plugins";
+            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];
+
+            psi.CreateNoWindow = false;
+            psi.UseShellExecute = false;
+
+            string pgstring = " PG:\"dbname = '" + db + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
+
+            
+            psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " \"fieldchoices\" -where \"\\\"formfieldid\\\" = " + fieldchoice +"\"";
+
+            var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
+            if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
+  
+            return Json(new ExportProcess() { Filename = fname[0] + ".csv"});
+
+        }
+
     }
 
     public class FormFieldNamesForView
@@ -1299,6 +1374,8 @@ namespace BioDivCollector.WebApp.Controllers
         {
             return Regex.Replace(str, "[^a-zA-Z0-9_.]+", "", RegexOptions.Compiled);
         }
+
+
     }
 
     public class FormPoco
