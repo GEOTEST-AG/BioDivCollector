@@ -63,6 +63,7 @@ namespace BioDivCollector.WebApp.Controllers
                     .Include(m => m.Record).ThenInclude(r => r.TextData)
                     .Include(m => m.Record).ThenInclude(r => r.NumericData)
                     .Include(m => m.Record).ThenInclude(r => r.BooleanData)
+                    .Include(m => m.Record).ThenInclude(r => r.BinaryData)
                     .Include(m => m.Record).ThenInclude(r => r.Form).ThenInclude(m => m.FormFormFields).ThenInclude(m => m.FormField)
                     .Where(m => m.ChangeLog.UserId == user.UserId && m.Record.FormId == form.FormId && m.ChangeLog.Log.Contains("created") && m.Record.StatusId != StatusEnum.deleted && m.Record != record).ToList();
                 if (lastRecordChangeLogs == null) return;
@@ -106,6 +107,7 @@ namespace BioDivCollector.WebApp.Controllers
                             db.Entry(tdCopy).State = EntityState.Added;
                         }
                     }
+                    // TODO: BinaryData
                 }
             }
             catch (Exception e)
@@ -232,6 +234,7 @@ namespace BioDivCollector.WebApp.Controllers
                     Record r = await db.Records.Include(m => m.TextData).ThenInclude(td => td.FormField)
                         .Include(u => u.NumericData).ThenInclude(td => td.FormField)
                         .Include(u => u.BooleanData).ThenInclude(td => td.FormField)
+                        .Include(u => u.BinaryData).ThenInclude(td => td.FormField) 
                         .Include(u => u.Form).ThenInclude(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
                         .Include(u => u.Form).ThenInclude(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo=>mo.PublicMotherFormField)
                         .Where(m => m.RecordId == new Guid(recordID)).FirstOrDefaultAsync();
@@ -470,6 +473,7 @@ namespace BioDivCollector.WebApp.Controllers
                     Include(u => u.TextData).ThenInclude(td => td.FormField).
                     Include(u => u.NumericData).ThenInclude(td => td.FormField).
                     Include(u => u.BooleanData).ThenInclude(td => td.FormField).
+                    Include(u => u.BinaryData).ThenInclude(td => td.FormField).
                     Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo => mo.PublicMotherFormField).
                     Include(u => u.ProjectGroup.Group).
                     Include(u => u.Geometry).
@@ -604,6 +608,7 @@ namespace BioDivCollector.WebApp.Controllers
                     Include(u => u.TextData).ThenInclude(td => td.FormField).
                     Include(u => u.NumericData).ThenInclude(td => td.FormField).
                     Include(u => u.BooleanData).ThenInclude(td => td.FormField).
+                    Include(u => u.BinaryData).ThenInclude(td => td.FormField).
                     Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo=>mo.PublicMotherFormField).
                     Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(h => h.HiddenFieldChoices).
                     Include(u => u.ProjectGroup.Group).
@@ -706,6 +711,31 @@ namespace BioDivCollector.WebApp.Controllers
 
                                 dynamicField.NotOptional = ff.Mandatory;
                                 dynamicForm.Add(dynamicField);
+                            }
+                            else if (origFormField.FieldTypeId == FieldTypeEnum.Binary)
+                            {
+                                if (r.BinaryData.Count() == 0)
+                                {
+                                    PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
+                                    dynamicField.DisplayName = origFormField.Title;
+                                    dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
+                                    dynamicField.NotOptional = ff.Mandatory;
+                                    dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                    dynamicForm.Add(dynamicField);
+                                }
+                                else
+                                {
+                                    foreach (BinaryData bd in r.BinaryData.Where(m => m.FormField == ff))
+                                    {
+                                        PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
+                                        dynamicField.DisplayName = origFormField.Title;
+                                        if (bd != null) dynamicField.Value = bd.Id;
+                                        dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
+                                        dynamicField.NotOptional = ff.Mandatory;
+                                        dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                        dynamicForm.Add(dynamicField);
+                                    }
+                                }
                             }
                             else if (origFormField.FieldTypeId == FieldTypeEnum.Choice)
                             {
@@ -876,6 +906,31 @@ namespace BioDivCollector.WebApp.Controllers
                             dynamicField.NotOptional = ff.Mandatory;
                             dynamicForm.Add(dynamicField);
                         }
+                        else if (origFormField.FieldTypeId == FieldTypeEnum.Binary)
+                        {
+                            if (r.BinaryData.Count() == 0)
+                            {
+                                PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
+                                dynamicField.DisplayName = origFormField.Title;
+                                dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
+                                dynamicField.NotOptional = ff.Mandatory;
+                                dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                dynamicForm.Add(dynamicField);
+                            }
+                            else
+                            {
+                                foreach (BinaryData bd in r.BinaryData.Where(m => m.FormField == ff))
+                                {
+                                    PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
+                                    dynamicField.DisplayName = origFormField.Title;
+                                    if (bd != null) dynamicField.Value = bd.Id;
+                                    dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
+                                    dynamicField.NotOptional = ff.Mandatory;
+                                    dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                    dynamicForm.Add(dynamicField);
+                                }
+                            }
+                        }
                         else if (origFormField.FieldTypeId == FieldTypeEnum.Choice)
                         {
                             PropertyVm dynamicField = new PropertyVm(typeof(string), "Field_" + ff.FormFieldId.ToString());
@@ -1022,6 +1077,7 @@ namespace BioDivCollector.WebApp.Controllers
                         Include(u => u.TextData).ThenInclude(td => td.FormField).
                         Include(u => u.NumericData).ThenInclude(td => td.FormField).
                         Include(u => u.BooleanData).ThenInclude(td => td.FormField).
+                        Include(u => u.BinaryData).ThenInclude(td => td.FormField).
                         Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo => mo.PublicMotherFormField).
                         Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(h => h.HiddenFieldChoices).
                         Include(u => u.ProjectGroup.Group).

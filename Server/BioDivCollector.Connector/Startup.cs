@@ -1,3 +1,4 @@
+using BioDivCollector.Connector.Services;
 using BioDivCollector.DB.Models.Domain;
 using BioDivCollector.PluginContract;
 using BioDivCollector.PluginContract.Helpers;
@@ -46,6 +47,7 @@ namespace BioDivCollector.Connector
             services.AddAuthorization();
 
             services.AddDbContext<BioDivContext>();
+            services.AddTransient<IStorageService, LocalStorageService>();
 
             //string openidConfigUrl = $"https://id.geotest.ch/auth/realms/BioDivCollector/.well-known/openid-configuration";    //and Configuration["JWT:Issuer"] https://id.geotest.ch/auth/realms/BioDivCollector
             string openidConfigUrl = Configuration["JWT:Url"] + "/auth/realms/" + Configuration["JWT:Realm"] + "/.well-known/openid-configuration";

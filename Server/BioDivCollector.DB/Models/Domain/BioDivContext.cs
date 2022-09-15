@@ -16,6 +16,9 @@ namespace BioDivCollector.DB.Models.Domain
         public DbSet<TextData> TextData { get; set; }
         public DbSet<BooleanData> BooleanData { get; set; }
         public DbSet<NumericData> NumericData { get; set; }
+        public DbSet<BinaryData> BinaryData { get; set; }
+
+        public DbSet<ObjectStorage> ObjectStorage { get; set; }
 
         public DbSet<Record> Records { get; set; }
         public DbSet<Status> Statuses { get; set; }

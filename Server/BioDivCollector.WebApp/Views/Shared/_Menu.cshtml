@@ -43,6 +43,7 @@
         <ul class="sidebar-submenu">
             <li><a href="@Url.Action("Index", "Forms")" class="@Html.IsSelected(actions: "Edit", controllers: "Forms")"><i class="fa fa-angle-right"></i>Beobachtungsformulare</a></li>
             <li><a href="@Url.Action("Export", "Forms")" class="@Html.IsSelected(actions: "Export", controllers: "Forms")"><i class="fa fa-angle-right"></i>Auswahlfelder exportieren</a></li>
+            <li><a href="@Url.Action("Export", "Forms")" class="@Html.IsSelected(actions: "Import", controllers: "Forms")"><i class="fa fa-angle-right"></i>Auswahlfelder importieren</a></li>
         </ul>
     </li>
 }

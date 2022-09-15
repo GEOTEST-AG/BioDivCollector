@@ -519,10 +519,12 @@ namespace BioDivCollector.WebApp.Controllers
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.TextData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.BooleanData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.NumericData)
+                                                .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.BinaryData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.Form).ThenInclude(f => f.FormFormFields).ThenInclude(ff => ff.FormField)
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.TextData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.BooleanData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.NumericData)
+                                                .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.BinaryData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(m => m.Group)
                                                 .Where(m => m.ProjectId == loadedProjectIndex).FirstOrDefaultAsync();
 

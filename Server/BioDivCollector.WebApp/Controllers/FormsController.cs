@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -643,6 +644,11 @@ namespace BioDivCollector.WebApp.Controllers
                 FormFieldPoco ffp = new FormFieldPoco() { type = "date", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
                 return ffp;
             }
+            else if (ff.FieldTypeId == FieldTypeEnum.Binary)
+            {
+                FormFieldPoco ffp = new FormFieldPoco() { type = "file", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle,/* ispublic = ff.Public*/ };
+                return ffp;
+            }
             else if (ff.FieldTypeId == FieldTypeEnum.Choice)
             {
                 FormFieldPoco ffp = new FormFieldPoco() { type = "select", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
@@ -1206,6 +1212,10 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 ff.FieldTypeId = FieldTypeEnum.Choice;
             }
+            else if (ffp.type == "file")
+            {
+                ff.FieldTypeId = FieldTypeEnum.Binary;
+            }
             else if (ffp.type == "checkbox-group")
             {
                 ff.FieldTypeId = FieldTypeEnum.Boolean;
@@ -1224,10 +1234,10 @@ namespace BioDivCollector.WebApp.Controllers
 
 
 
-            List<FormField> ffs = db.FormFields.Where(m=>m.FieldTypeId == FieldTypeEnum.Choice && m.PublicMotherFormFieldFormFieldId == null).ToList();
+            List<FormField> ffs = db.FormFields.Include(m=>m.FormFieldForms).ThenInclude(m=>m.Form).Where(m=>m.FieldTypeId == FieldTypeEnum.Choice && m.PublicMotherFormFieldFormFieldId == null).ToList();
             foreach (FormField ff in ffs)
             {
-                Dictionary<int,string> keyValuePairs = new Dictionary<int, string>() { { ff.FormFieldId, ff.Title } };
+                Dictionary<int,string> keyValuePairs = new Dictionary<int, string>() { { ff.FormFieldId, ff.Title + "(" + ff.FormFieldForms.FirstOrDefault()?.Form.Title + ")" } };
                 returnList.Add(keyValuePairs);
             }
 
@@ -1267,12 +1277,154 @@ namespace BioDivCollector.WebApp.Controllers
             string pgstring = " PG:\"dbname = '" + db + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
 
             
-            psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " \"fieldchoices\" -where \"\\\"formfieldid\\\" = " + fieldchoice +"\"";
+            psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " -sql \"select fieldchoiceid, text, \\\"order\\\" from fieldchoices where \\\"formfieldid\\\" = " + fieldchoice +"\"";
 
             var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
             if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
   
             return Json(new ExportProcess() { Filename = fname[0] + ".csv"});
+
+        }
+
+        public IActionResult Import()
+        {
+            return View();
+        }
+
+        private static Random random = new Random();
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            User user = Helpers.UserHelper.GetCurrentUser(User, this.db);
+            List<Project> erfassendeProjects = new List<Project>();
+
+            if (User.IsInRole("DM"))
+            {
+                erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(this.db, user, RoleEnum.DM); ;
+            }
+            else if (User.IsInRole("EF")) erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(this.db, user, RoleEnum.EF);
+
+            string prefix = "import_" + RandomString(4);
+
+            string dataDir = AppDomain.CurrentDomain.GetData("DataDirectory").ToString();
+            string filePath = dataDir + "\\Import\\" + file.FileName;
+            if (file.Length > 0)
+            {
+                // full path to file in temp location
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+            }
+
+            ProcessStartInfo psi = new ProcessStartInfo();
+
+            string db_conf = Configuration["Environment:DB"];
+            string host = Configuration["Environment:DBHost"];
+            string dbuser = Configuration["Environment:DBUser"];
+            string dbpassword = Configuration["Environment:DBPassword"];
+
+            string pgstring = " PG:\"dbname = '" + db_conf + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
+
+            psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
+            psi.WorkingDirectory = @"C:\Program Files\GDAL";
+            psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files\GDAL\gdal-data";
+            psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files\GDAL\gdal-plugins";
+            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];
+
+            psi.CreateNoWindow = false;
+            psi.UseShellExecute = false;
+
+            string format = System.IO.Path.GetExtension(filePath);
+
+            string changes = "";
+
+            
+            psi.Arguments = "-F \"PostgreSQL\" " + pgstring + " -nln \"" + prefix + "_fieldchoice\" \"" + filePath + "\" --config OGR_XLSX_HEADERS FORCE";
+            var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
+            if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.FirstOrDefault().ToString() + " (" + psi.Arguments + ")" });
+
+            string returnMessage = "";
+
+            // overwrite filechoices or create new
+            try
+            {
+                using (var context = new BioDivContext())
+                {
+                    using (var command = context.Database.GetDbConnection().CreateCommand())
+                    {
+                        command.CommandText = "select * from " + prefix + "_fieldchoice";
+                        command.CommandType = CommandType.Text;
+
+                        context.Database.OpenConnection();
+
+
+                        using (var result = command.ExecuteReader())
+                        {
+                            var names = Enumerable.Range(0, result.FieldCount).Select(result.GetName).ToList();
+                            int fieldchoiceid = names.IndexOf("fieldchoiceid");
+                            int text = names.IndexOf("text");
+                            int order = names.IndexOf("order");
+
+                            FormField? lastFF = null;
+
+                            while (result.Read())
+                            {
+                                if (result[fieldchoiceid] != null)
+                                {
+                                    int newId = Int16.Parse(result.GetString(fieldchoiceid));
+                                    FieldChoice fc = db.FieldChoices.Include(m=>m.FormField).Where(m => m.FieldChoiceId == newId).FirstOrDefault();
+                                    if ((fc==null) && (lastFF!=null))
+                                    {
+                                        fc = new FieldChoice();
+                                        fc.FormField = lastFF;
+                                        db.Entry(fc).State = EntityState.Added;
+                                        returnMessage += "<li>Neue Auswahlmöglichkeit erstellt</li>";
+                                    }
+                                    else
+                                    {
+                                        lastFF = fc.FormField;
+                                    }
+
+                                    string content = result.GetString(text);
+                                    if ((fc.Text != content) || (fc.Order != Int16.Parse(result.GetString(order))))
+                                    {
+                                        fc.Text = content;
+                                        fc.Order = Int16.Parse(result.GetString(order));
+
+                                        db.Entry(fc).State = EntityState.Modified;
+                                        returnMessage += "<li>Auswahldeld ("+ fc.FieldChoiceId +") angepasst mit neuem Text " + fc.Text + "</li>";
+                                    }
+
+                                }
+                            }
+
+                            await db.SaveChangesAsync();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                returnMessage += "<li>Fehler :" + ex.ToString() + "</li>";
+            }
+
+
+            changes += returnMessage;
+            await this.db.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS " + prefix + "_nogeometry;");
+            
+
+            changes = "Folgende Änderungen / Neuerungen wurden erfolgreich übernommen: <ul>" + changes + "</ul>";
+
+            return View("ImportOK", changes.Replace("OK", ""));
 
         }
 

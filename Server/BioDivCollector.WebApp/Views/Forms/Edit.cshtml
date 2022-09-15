@@ -345,7 +345,7 @@
 
     jQuery($ => {
 
-        window.sessionStorage.setItem('fieldOrder', '["text","select","date","checkbox-group","number","radio-group"]');
+        window.sessionStorage.setItem('fieldOrder', '["text","select","date","checkbox-group","number","file","radio-group"]');
 
         var xx2 = window.sessionStorage.getItem('fieldOrder');
 
@@ -412,6 +412,29 @@
                         disabled: true
                     }
                 },
+                file: {
+                    description: {
+                        label: 'Beschreibung',
+                        value: ''
+                    },
+                    source: {
+                        label: 'Quelle',
+                        value: ''
+                    },
+                    mandatory: {
+                        label: 'Pflichtfeld',
+                        type: 'checkbox',
+                    },
+                    author: {
+                        label: 'Autor',
+                        value: '',
+                        disabled: true
+                    },
+                    ispublic: {
+                        label: 'Wiederverwendbar',
+                        type: 'checkbox',
+                    }
+                },
                 date: {
                     description: {
                         label: 'Beschreibung',
@@ -469,7 +492,6 @@
 
             disableFields: ['autocomplete',
                 'button',
-                'file',
                 'hidden','number',
                 'paragraph',
                 'starRating', 'radio-group',

@@ -38,6 +38,7 @@ namespace BioDivCollector.DB.Models.Domain
         public List<TextData> TextData { get; set; } = new List<TextData>();
         public List<NumericData> NumericData { get; set; } = new List<NumericData>();
         public List<BooleanData> BooleanData { get; set; } = new List<BooleanData>();
+        public List<BinaryData> BinaryData { get; set; } = new List<BinaryData>();
 
         public StatusEnum StatusId { get; set; } = StatusEnum.unchanged;
         [JsonIgnore]

@@ -1,0 +1,57 @@
+﻿@model String
+
+@{
+    ViewData["Title"] = "Daten importiert";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Daten importiert
+                    <small></small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Projekte</li>
+                    <li class="breadcrumb-item active">Importieren</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Import erfolgreich</h5>
+                </div>
+                
+                    <div class="card-body">
+                        <p>@Html.Raw(Model)</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-secondary" onclick="location.href='@Url.Action("Index","Projects")'">Zurück zur Übersicht</button>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

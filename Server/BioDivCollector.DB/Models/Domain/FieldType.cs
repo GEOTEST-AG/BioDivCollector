@@ -29,6 +29,8 @@
 
         Guid = 61,       //needed? or saved as text?
 
-        Header = 71
+        Header = 71,
+
+        Binary = 81,
     }
 }
