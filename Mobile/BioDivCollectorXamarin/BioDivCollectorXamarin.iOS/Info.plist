@@ -160,5 +160,11 @@
 	<array>
 		<string>de</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires access to the camera so that you can take images for use in your data collection</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>If you wish to additionally save your photos into your photo library, please give permission here</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>If you wish to be able to select photos from your photo library to use in this app, please give permission here</string>
 </dict>
 </plist>

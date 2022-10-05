@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.LoginModel;
 using BioDivCollectorXamarin.ViewModels;
 
@@ -21,7 +22,7 @@ namespace BioDivCollectorXamarin.Views
             InitializeComponent();
             ViewModel = new FormPageVM(recId, formId, geomId, Navigation);
             BindingContext = ViewModel;
-
+            recId = ViewModel.RecId;
             MessagingCenter.Subscribe<FormPageVM>(this, "NavigateBack", (sender) =>
             {
                 NavigateBack();
@@ -33,11 +34,12 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         protected override void OnAppearing()
         {
+            FormElementStack.Children.Clear();
+            ViewModel.OnAppearing();
             foreach (var view in ViewModel.Assets)
             {
                 FormElementStack.Children.Add(view);
             }
-            ViewModel.OnAppearing();
         }
 
         protected override void OnDisappearing()

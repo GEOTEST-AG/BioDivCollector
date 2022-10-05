@@ -4,9 +4,13 @@ using SQLiteNetExtensions.Extensions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Xamarin.Essentials;
 using Xamarin.Forms;
+using static BioDivCollectorXamarin.Helpers.Interfaces;
 using ForeignKeyAttribute = SQLiteNetExtensions.Attributes.ForeignKeyAttribute;
 using TableAttribute = SQLite.TableAttribute;
 
@@ -39,6 +43,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public List<NumericData> numerics { get; set; } = new List<NumericData>();
         [OneToMany(CascadeOperations = CascadeOperation.All)]
         public List<BooleanData> booleans { get; set; } = new List<BooleanData>();
+        [OneToMany(CascadeOperations = CascadeOperation.All)]
+        public List<BinaryData> binaries { get; set; } = new List<BinaryData>();
 
         [ForeignKey(typeof(Project))]
         public int project_fk { get; set; }
@@ -75,7 +81,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 {
                     if (rec.geometry_fk == null)
                     {
-                        proj.records = conn.Table<Record>().Select(n => n).Where(Record => Record.project_fk == proj.Id).ToList();
+                        proj.records = conn.Table<Record>().Select(n => n).Where(Record => Record.project_fk == proj.Id).Where(Record => Record.geometry_fk == null).ToList();
                         conn.UpdateWithChildren(proj);
                     }
                     else
@@ -131,6 +137,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     record = conn.Table<Record>().Select(n => n).Where(Record => Record.Id == recordId).FirstOrDefault();
                     t += conn.Table<TextData>().Select(n => n).Where(TextData => TextData.record_fk == recordId).Where(TextData => TextData.value != "").Count();
                     t += conn.Table<NumericData>().Select(n => n).Where(NumericData => NumericData.record_fk == recordId).Where(NumericData => NumericData.value != 0).Count();
+                    t += conn.Table<BinaryData>().Select(n => n).Where(BinaryData => BinaryData.record_fk == recordId).Count();
                 }
                 return t == 0;
             }
@@ -246,5 +253,161 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
         [ForeignKey(typeof(Record))]
         public int record_fk { get; set; }
+    }
+
+    /// <summary>
+    /// Binary data type parameter database definition
+    /// </summary>
+    [Table("BinaryData")]
+    public class BinaryData
+    {
+        [PrimaryKey]
+        public string binaryId { get; set; }
+        public int? formFieldId { get; set; }
+
+        [ForeignKey(typeof(Record))]
+        public int record_fk { get; set; }
+
+        public BinaryData()
+        {
+            binaryId = Guid.NewGuid().ToString();
+        }
+
+        public async static Task<BinaryData> FetchBinaryData(string binaryId)
+        {
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            {
+                var binDat = await Task.Run(async () =>
+                {
+                    var binDatAsync = conn.Table<BinaryData>().Select(n => n).Where(bin => bin.binaryId == binaryId).FirstOrDefault();
+                    if (binDatAsync == null)
+                    {
+                        return new BinaryData();
+                    }
+                    return binDatAsync;
+                });
+                return binDat;
+            }
+        }
+
+        public async static Task<bool> DownloadBinaryData(int recordId, int? formFieldId)
+        {
+            var binaryIds = GetBinaryDataIds(recordId, formFieldId);
+
+            foreach (var binaryId in binaryIds)
+            {
+                string url = "https://testconnector.biodivcollector.ch/api/Binary/" + binaryId;
+
+                try
+                {
+                    using (HttpClient client = new HttpClient())
+                    {
+                        client.Timeout = TimeSpan.FromSeconds(6000); // 10 minutes
+                        var token = await SecureStorage.GetAsync("AccessToken");
+                        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                        MessagingCenter.Send(new DataDAO(), "SyncMessage", "Waiting for data");
+                        var response = await client.GetAsync(url);  //UPLOAD
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var jsonbytes = await response.Content.ReadAsByteArrayAsync();
+                            SaveData(jsonbytes, binaryId);
+                        }
+                        else if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                        {
+                            Device.BeginInvokeOnMainThread(async () =>
+                            {
+                                try
+                                {
+                                    await App.Current.MainPage.DisplayAlert("Bild Downloadfehler", response.ToString(), "OK");
+                                }
+                                catch
+                                {
+
+                                }
+
+                            });
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+            }
+
+            return true;
+        }
+
+        public static List<string> GetBinaryDataIds(int recordId, int? formFieldId)
+        {
+            try
+            {
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                {
+                    var binarys = conn.Table<BinaryData>().Where(r => r.record_fk == recordId).Where(r2 => r2.formFieldId == formFieldId).ToList();
+                    var binaryIds = new List<string>();
+                    if (binarys == null || binarys == new List<BinaryData>())
+                    {
+                        BinaryData binDat = new BinaryData();
+                        binaryIds = new List<string>() { binDat.binaryId }; //Give the new ID back to the current code
+                        binDat.record_fk = recordId;
+                        binDat.formFieldId = formFieldId;
+                        conn.InsertOrReplace(binDat);
+                    }
+                    else
+                    {
+                        binaryIds = conn.Table<BinaryData>().Where(r => r.record_fk == recordId).Where(r2 => r2.formFieldId == formFieldId).Select(r3 => r3.binaryId).ToList();
+                    }
+                    return binaryIds;
+                }
+
+            }
+            catch
+            {
+                //GetBinaryDataIds(recordId, formFieldId);
+            }
+
+            return null;
+        }
+
+
+        public static async void SaveData(byte[] jsonbytes, string binaryId)
+        {
+            //Save the data
+            try
+            {
+                DependencyService.Get<CameraInterface>().SaveToFile(jsonbytes, binaryId);
+            }
+            catch
+            {
+                await App.Current.MainPage.DisplayAlert("Das Foto konnte nicht als Datei gespeichert werden", String.Empty, "OK");
+            }
+        }
+
+
+        public static async Task<bool> DeleteBinaryFilesForProject(string projectId)
+        {
+            try
+            {
+                //List<string> binaryIds;
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                {
+                    var binarys = conn.Query<BinaryData>("select binaryId from BinaryData where record_fk in (select recordId from Record where geometry_fk in (select geometryId from ReferenceGeometry where project_fk = ?))", projectId);
+                    foreach (var bin in binarys)
+                    {
+                        var directory = DependencyService.Get<FileInterface>().GetImagePath();
+                        string filepath = Path.Combine(directory, bin.binaryId + ".jpg");
+                        File.Delete(filepath);
+                    }
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+        }
     }
 }

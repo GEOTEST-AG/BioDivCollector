@@ -277,7 +277,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="obj"></param>
         private async void OnAddItem(object obj)
         {
-            await Shell.Current.GoToAsync(nameof(FormPage));
+            await Shell.Current.GoToAsync(nameof(FormPage), true);
         }
 
         /// <summary>
@@ -290,7 +290,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 return;
 
             // This will push the ItemDetailPage onto the navigation stack
-            await Shell.Current.GoToAsync($"{nameof(FormPage)}?{nameof(FormPageVM.RecId)}={item.RecId}");
+            await Shell.Current.GoToAsync($"{nameof(FormPage)}?{nameof(FormPageVM.RecId)}={item.RecId}", true);
         }
 
         /// <summary>

@@ -1,8 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="50" android:versionName="1.2.3" package="ch.geotest.biodivcollector" android:installLocation="auto">
 	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="30" />
-	<application android:label="BioDiv" android:theme="@style/MainTheme" android:usesCleartextTraffic="true" android:icon="@mipmap/ic_launcher"></application>
+	<application android:label="BioDiv" android:theme="@style/MainTheme" android:icon="@mipmap/ic_launcher" android:requestLegacyExternalStorage="true">
+		<provider android:name="android.support.v4.content.FileProvider" android:authorities="ch.geotest.biodivcollector.fileprovider" android:exported="false" android:grantUriPermissions="true">
+			<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths"></meta-data>
+		</provider>
+	</application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-feature android:name="android.hardware.camera" android:required="true" />
+	<queries>
+		<intent>
+			<action android:name="android.media.action.IMAGE_CAPTURE" />
+		</intent>
+	</queries>
 </manifest>

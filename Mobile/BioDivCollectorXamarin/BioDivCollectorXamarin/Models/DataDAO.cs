@@ -320,6 +320,7 @@ namespace BioDivCollectorXamarin.Models
                         conn.CreateTable<TextData>();
                         conn.CreateTable<NumericData>();
                         conn.CreateTable<BooleanData>();
+                        conn.CreateTable<BinaryData>();
                         conn.CreateTable<Layer>();
                         conn.CreateTable<Form>();
                         conn.CreateTable<FormField>();
