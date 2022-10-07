@@ -261,7 +261,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
     [Table("BinaryData")]
     public class BinaryData
     {
-        [PrimaryKey]
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
         public string binaryId { get; set; }
         public int? formFieldId { get; set; }
 
@@ -290,52 +291,63 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             }
         }
 
-        public async static Task<bool> DownloadBinaryData(int recordId, int? formFieldId)
+        public async static Task<bool> DownloadBinaryData(string recordId, int? formFieldId)
         {
-            var binaryIds = GetBinaryDataIds(recordId, formFieldId);
-
-            foreach (var binaryId in binaryIds)
+            Record rec;
+            try
             {
-                string url = "https://testconnector.biodivcollector.ch/api/Binary/" + binaryId;
-
-                try
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 {
-                    using (HttpClient client = new HttpClient())
+                    rec = conn.Table<Record>().Where(rec => rec.recordId == recordId).FirstOrDefault();
+                }
+                var binaryIds = GetBinaryDataIds(rec.Id, formFieldId);
+
+                foreach (var binaryId in binaryIds)
+                {
+                    string url = App.ServerURL + "/api/Binary/" + binaryId;
+
+                    try
                     {
-                        client.Timeout = TimeSpan.FromSeconds(6000); // 10 minutes
-                        var token = await SecureStorage.GetAsync("AccessToken");
-                        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                        using (HttpClient client = new HttpClient())
+                        {
+                            client.Timeout = TimeSpan.FromSeconds(6000); // 10 minutes
+                            var token = await SecureStorage.GetAsync("AccessToken");
+                            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                        MessagingCenter.Send(new DataDAO(), "SyncMessage", "Waiting for data");
-                        var response = await client.GetAsync(url);  //UPLOAD
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var jsonbytes = await response.Content.ReadAsByteArrayAsync();
-                            SaveData(jsonbytes, binaryId);
-                        }
-                        else if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
-                        {
-                            Device.BeginInvokeOnMainThread(async () =>
+                            MessagingCenter.Send(new DataDAO(), "SyncMessage", "Waiting for data");
+                            var response = await client.GetAsync(url);  //UPLOAD
+                            if (response.IsSuccessStatusCode)
                             {
-                                try
+                                var jsonbytes = await response.Content.ReadAsByteArrayAsync();
+                                SaveData(jsonbytes, binaryId);
+                            }
+                            else if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                            {
+                                Device.BeginInvokeOnMainThread(async () =>
                                 {
-                                    await App.Current.MainPage.DisplayAlert("Bild Downloadfehler", response.ToString(), "OK");
-                                }
-                                catch
-                                {
+                                    try
+                                    {
+                                        await App.Current.MainPage.DisplayAlert("Bild Downloadfehler", response.ToString(), "OK");
+                                    }
+                                    catch
+                                    {
 
-                                }
+                                    }
 
-                            });
+                                });
+                            }
                         }
                     }
-                }
-                catch
-                {
+                    catch
+                    {
 
+                    }
                 }
             }
+            catch
+            {
 
+            }
             return true;
         }
 

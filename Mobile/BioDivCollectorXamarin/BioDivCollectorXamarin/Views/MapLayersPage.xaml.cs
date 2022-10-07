@@ -100,5 +100,20 @@ namespace BioDivCollectorXamarin.Views
             SwisstopoButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
             SwissimageButton.Style = (Style)Application.Current.Resources["PressedButtonStyle"];
         }
+
+        void CheckBox_CheckedChanged(System.Object sender, Xamarin.Forms.CheckedChangedEventArgs e)
+        {
+            CheckBox checky = sender as CheckBox;
+            Preferences.Set("ShowLocalOnly", checky.IsChecked);
+            if (checky.IsChecked)
+            {
+                ViewModel.AddFileLayers();
+            }
+            else
+            {
+                ViewModel.RemoveFileLayers();
+            }
+            ViewModel.UpdateMapLayers();
+        }
     }
 }

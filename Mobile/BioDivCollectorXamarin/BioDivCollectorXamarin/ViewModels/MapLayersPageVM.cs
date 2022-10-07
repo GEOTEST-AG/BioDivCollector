@@ -55,6 +55,11 @@ namespace BioDivCollectorXamarin.ViewModels
         public string BaseLayerSize { get; set; }
 
         /// <summary>
+        /// Determines whether the list should show the localonly files
+        /// </summary>
+        public bool ShowLocalOnly { get; set; }
+
+        /// <summary>
         /// The current base layer
         /// </summary>
         private string baseLayerName;
@@ -87,6 +92,7 @@ namespace BioDivCollectorXamarin.ViewModels
             OrthofotoButtonCommand = new Command(OrthofotoButtonPressed, CanPressOrthofotoButton);
             MapLayers = MapModel.MakeArrayOfLayers();
             BaseLayerName = "Base";
+            ShowLocalOnly = Preferences.Get("ShowLocalOnly", false);
 
             MessagingCenter.Subscribe<MapLayer>(this, "RefreshLayerList", (sender) =>
             {
@@ -196,7 +202,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 var layer = (parameter as MapLayer);
                 if (layer != null)
                 {
-                    layer.LayerZ = layer.LayerZ + 1;
+                    layer.LayerZ = layer.LayerZ - 1;
                     MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
                 }
             });
@@ -209,7 +215,7 @@ namespace BioDivCollectorXamarin.ViewModels
         private bool ValidateMove(object parameter)
         {
             var layer = (parameter as MapLayer);
-            if (layer != null && layer.LayerZ == mapLayers.Count) { return false; }
+            if (layer != null && layer.LayerZ == 1) { return false; }
             return true;
         }
 
@@ -268,6 +274,33 @@ namespace BioDivCollectorXamarin.ViewModels
         private bool CanPressOrthofotoButton(object parameter)
         {
             return true;
+        }
+
+        /// <summary>
+        /// Add layers to the database to correspond with the local mbtiles files
+        /// </summary>
+        internal void AddFileLayers()
+        {
+            MapModel.AddOfflineLayersToProject();
+        }
+
+        /// <summary>
+        /// Delete layers from the database corresponding to mbtiles files
+        /// </summary>
+        internal void RemoveFileLayers()
+        {
+            MapModel.RemoveOfflineLayersFromProject();
+        }
+
+        public void UpdateMapLayers()
+        {
+            MapLayers = MapModel.MakeArrayOfLayers();
+
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                OnPropertyChanged("MapLayers");
+                MessagingCenter.Send<MapLayersPageVM>(this, "ListSourceChanged");
+            });
         }
     }
 }

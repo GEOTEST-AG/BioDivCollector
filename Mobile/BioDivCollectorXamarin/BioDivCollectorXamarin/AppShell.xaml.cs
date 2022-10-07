@@ -20,7 +20,7 @@ namespace BioDivCollectorXamarin
             Routing.RegisterRoute(nameof(MapPage), typeof(MapPage));
             Routing.RegisterRoute(nameof(ObjectsListPage), typeof(ObjectsListPage));
             Routing.RegisterRoute(nameof(RecordsPage), typeof(RecordsPage));
-            Routing.RegisterRoute(nameof(FormPage), typeof(FormPage));
+            Routing.RegisterRoute("//Records/Form", typeof(FormPage));
             Routing.RegisterRoute("//Projects/ProjectList", typeof(ProjectListPage));
             Routing.RegisterRoute("//Map/MapLayers", typeof(MapLayersPage));
             Routing.RegisterRoute("//Records/FormSelection", typeof(FormSelectionPage));

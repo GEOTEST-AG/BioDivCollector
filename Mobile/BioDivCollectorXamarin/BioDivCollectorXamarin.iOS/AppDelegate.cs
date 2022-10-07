@@ -4,6 +4,7 @@ using System.Linq;
 using Foundation;
 using UIKit;
 using Xamarin.Forms;
+using static BioDivCollectorXamarin.Helpers.Interfaces;
 
 [assembly: Dependency(typeof(BioDivCollectorXamarin.iOS.IosDownloader))]
 namespace BioDivCollectorXamarin.iOS
@@ -30,7 +31,7 @@ namespace BioDivCollectorXamarin.iOS
             string dbName = "biodivcollector_database.sqlite";
             string folderPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "..", "Library");
             string fullPath = Path.Combine(folderPath, dbName);
-            string tilePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string tilePath = DependencyService.Get<FileInterface>().GetMbTilesPath();
             LoadApplication(new App(fullPath,tilePath));
 
             return base.FinishedLaunching(app, options);

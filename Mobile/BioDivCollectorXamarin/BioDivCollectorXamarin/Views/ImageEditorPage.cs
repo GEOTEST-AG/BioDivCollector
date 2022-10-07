@@ -23,23 +23,8 @@ namespace BioDivCollectorXamarin.Views
         public SfImageEditorPage(int formFieldId, string binaryId)
         {
             Title = "Bildverarbeitung";
-            //RecordId = recordId;
             FormFieldId = formFieldId;
             BinaryDataId = binaryId;
-            //.Shell.SetPresentationMode(this, PresentationMode.ModalAnimated);
-            //Shell.SetNavBarIsVisible(this, true);
-            /*var button1 = new Xamarin.Forms.ToolbarItem();
-            button1.Text = "Schliessen";
-            button1.Command = new Command(() =>
-                Device.BeginInvokeOnMainThread(async () =>
-                {
-                    await Shell.Current.Navigation.PopAsync();
-                }
-
-                )
-            );
-            Shell.Current.ToolbarItems.Add(button1);*/
-
             Editor = new SfImageEditor();
             Device.BeginInvokeOnMainThread((Action)(() =>
             {
@@ -63,37 +48,20 @@ namespace BioDivCollectorXamarin.Views
                 Editor.ImageSaving += this.ImageEditor_ImageSaving;
             }));
 
-            /*var rec = Record.FetchRecord(RecordId);
-            ContentPage recpage = new RecordListPage(rec.geometry_fk);
-            if (rec.geometry_fk == String.Empty || rec.geometry_fk == "0")
-            {
-                recpage = new UnlocalisedRecordListPage();
-            }
-            var formpage = new FlexFormPage(RecordId, rec.geometry_fk, rec.formId);
-
             Shell.SetBackButtonBehavior(this, new BackButtonBehavior
             {
                 Command = new Command(() =>
                 {
                     Device.BeginInvokeOnMainThread(async () =>
                     {
-                        if (Editor.IsImageEdited)
+                        await Shell.Current.Navigation.PopAsync(true);
+                        /*if (Shell.Current.Navigation.NavigationStack[0].GetType() == typeof(CameraView))
                         {
-                            var response = await App.Current.MainPage.DisplayAlert("Zurück", "Daten speichern?", "Speichern", "Abbrechen");
-                            if (response == true)
-                            {
-                                Editor.Save();
-                            }
-                        }
-
-                        await Shell.Current.Navigation.PopToRootAsync(false);
-
-                        await Shell.Current.Navigation.PushAsync(recpage, false);
-
-                        await Shell.Current.Navigation.PushAsync(formpage, false);
+                            await Shell.Current.Navigation.PopAsync(true);
+                        }*/
                     });
                 })
-            });*/
+            });
         }
 
 
@@ -101,6 +69,28 @@ namespace BioDivCollectorXamarin.Views
         {
             base.OnAppearing();
             Shell.SetNavBarIsVisible(this, true);
+
+            Editor.ToolbarSettings.ToolbarItems.Insert(0, new FooterToolbarItem()
+            {
+                Icon = new FontImageSource {
+                    Glyph = "\ue412",
+                    FontFamily = "Material",
+                    Size = 44
+                }
+            });
+            Editor.ToolbarSettings.ToolbarItems.Insert(1, new FooterToolbarItem()
+            {
+                Icon = new FontImageSource
+                {
+                    Glyph = "\ue413",
+                    FontFamily = "Material",
+                    Size = 44
+                }
+            });
+            /*Editor.ToolbarSettings.ToolbarItems.Move(3, 2);
+        Editor.ToolbarSettings.ToolbarItems.Move(5, 3);
+        Editor.ToolbarSettings.ToolbarItems.Move(5, 4);*/
+
         }
 
         protected override void OnSizeAllocated(double width, double height)

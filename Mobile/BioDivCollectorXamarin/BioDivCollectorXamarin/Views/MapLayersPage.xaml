@@ -9,18 +9,22 @@
              BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">
     <ContentPage.Content>
         <StackLayout Orientation="Vertical" Spacing="0">
-        <ListView x:Name="LayerList"
+            <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+                <CheckBox IsChecked="{Binding ShowLocalOnly}" CheckedChanged="CheckBox_CheckedChanged" VerticalOptions="Center" HorizontalOptions="Start" Color="{StaticResource BioDivGreen}" Margin="20,20,10,20"/>
+                <Label Text="Lokale Dateien zusätzlich anzeigen" HorizontalOptions="StartAndExpand" VerticalOptions="Center"/>
+            </StackLayout>
+            <ListView x:Name="LayerList"
             ItemsSource="{Binding MapLayers, Mode=TwoWay}"
             SelectionMode="None"
             SeparatorColor="Transparent"
             HasUnevenRows="True"
             Margin="0">
 
-            <ListView.ItemTemplate>
-                <DataTemplate  x:DataType="model:MapLayer">
-                    <ViewCell>
-                        <Frame Margin="10,5" CornerRadius="10" HasShadow="False" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}" BackgroundColor="Transparent" >
-                            <FlexLayout Direction="Column" HorizontalOptions="Fill" >
+                <ListView.ItemTemplate>
+                    <DataTemplate  x:DataType="model:MapLayer">
+                        <ViewCell>
+                            <Frame Margin="10,5" CornerRadius="10" HasShadow="False" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}" BackgroundColor="Transparent" >
+                                <FlexLayout Direction="Column" HorizontalOptions="Fill" >
                                     <StackLayout Orientation="Horizontal" HorizontalOptions="Fill" VerticalOptions="FillAndExpand" FlexLayout.Grow="1" >
                                         <CheckBox x:Name="{Binding Name}"  IsChecked="{Binding Enabled, Mode=TwoWay}" VerticalOptions="Center" HorizontalOptions="Start" Color="{StaticResource BioDivGreen}" MinimumHeightRequest="200" FlexLayout.Grow="1"/>
                                         <Label Text="{Binding Name}" LineBreakMode="WordWrap" Style="{DynamicResource ListItemTextStyle}" FontSize="16" FontAttributes="Bold" VerticalTextAlignment="Center" VerticalOptions="FillAndExpand" MinimumHeightRequest="200" HorizontalOptions="Fill" FlexLayout.Grow="1" />
@@ -34,24 +38,24 @@
                                         <Button ImageSource="delete.png" Style="{StaticResource DangerButtonStyle}" FontSize="Small" Margin="0,10,0,0" WidthRequest="50" MinimumHeightRequest="40" Command="{Binding BindingContext.DeleteLayerCommand, Source={x:Reference MapLayers}}" CommandParameter="{Binding .}" HorizontalOptions="Start" FlexLayout.Grow="0" CornerRadius="10" />
                                         <Button x:Name="MoveLayerButton" Text="⇪" FontSize="Large" Margin="0,10,0,0" Padding="10,0" Command="{Binding BindingContext.MoveLayerUpCommand, Source={x:Reference MapLayers}}" CommandParameter="{Binding .}" HeightRequest="50" MinimumWidthRequest="50" WidthRequest="100" HorizontalOptions="EndAndExpand" CornerRadius="10" />
                                     </StackLayout>
-                            </FlexLayout>
-                        </Frame>
-                    </ViewCell>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        <FlexLayout Direction="Row" Margin="0,0,0,0" Padding="5" BackgroundColor="{StaticResource BioDivGrey}">
-            <Button ImageSource="delete.png" Style="{StaticResource DangerButtonStyle}" FontSize="Small" Margin="1,0,10,0" HeightRequest="30" Command="{Binding DeleteLayerCommand}" CommandParameter="{Binding .}" HorizontalOptions="Fill" VerticalOptions="Fill" FlexLayout.Basis="60" CornerRadius="10" />
-            <StackLayout Orientation="Horizontal">
-                <Label Text="{Binding BaseLayerName}" TextTransform="Uppercase" HorizontalTextAlignment="Center" TextColor="White" VerticalOptions="Fill" HorizontalOptions="Fill" VerticalTextAlignment="Center"/>
-                <Label Text="{Binding BaseLayerSize}" HorizontalTextAlignment="Center" TextColor="White" VerticalOptions="Fill" HorizontalOptions="Fill" VerticalTextAlignment="Center"/>
-            </StackLayout>
-        </FlexLayout>
-        <FlexLayout Direction="Row" WidthRequest="500" AlignContent="SpaceEvenly" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="0" Margin="0" BackgroundColor="{StaticResource BioDivGrey}" HeightRequest="57">
-            <Button x:Name="OSMButton" Text="Open Street Map" TextTransform="Uppercase" FontSize="Small" VerticalOptions="Center" FlexLayout.Basis="33.3%" Margin="0,2,1,0" CornerRadius="0" Clicked="OSMButton_Clicked" HeightRequest="53"/>
-            <Button x:Name="SwisstopoButton" Text="Landeskarte Schweiz" TextTransform="Uppercase" FontSize="Small" VerticalOptions="Center" FlexLayout.Basis="33.3%" Margin="1,2,1,0" CornerRadius="0" Clicked="SwisstopoButton_Clicked" HeightRequest="53"/>
-            <Button x:Name="SwissimageButton" Text="Orthofoto Schweiz" TextTransform="Uppercase" FontSize="Small" VerticalOptions="Center" FlexLayout.Basis="33.3%" Margin="1,2,0,0" CornerRadius="0" Clicked="SwissimageButton_Clicked" HeightRequest="53"/>
-        </FlexLayout>
+                                </FlexLayout>
+                            </Frame>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <FlexLayout Direction="Row" Margin="0,0,0,0" Padding="5" BackgroundColor="{StaticResource BioDivGrey}">
+                <Button ImageSource="delete.png" Style="{StaticResource DangerButtonStyle}" FontSize="Small" Margin="1,0,10,0" HeightRequest="30" Command="{Binding DeleteLayerCommand}" CommandParameter="{Binding .}" HorizontalOptions="Fill" VerticalOptions="Fill" FlexLayout.Basis="60" CornerRadius="10" />
+                <StackLayout Orientation="Horizontal">
+                    <Label Text="{Binding BaseLayerName}" TextTransform="Uppercase" HorizontalTextAlignment="Center" TextColor="White" VerticalOptions="Fill" HorizontalOptions="Fill" VerticalTextAlignment="Center"/>
+                    <Label Text="{Binding BaseLayerSize}" HorizontalTextAlignment="Center" TextColor="White" VerticalOptions="Fill" HorizontalOptions="Fill" VerticalTextAlignment="Center"/>
+                </StackLayout>
+            </FlexLayout>
+            <FlexLayout Direction="Row" WidthRequest="500" AlignContent="SpaceEvenly" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="0" Margin="0" BackgroundColor="{StaticResource BioDivGrey}" HeightRequest="57">
+                <Button x:Name="OSMButton" Text="Open Street Map" TextTransform="Uppercase" FontSize="Small" VerticalOptions="Center" FlexLayout.Basis="33.3%" Margin="0,2,1,0" CornerRadius="0" Clicked="OSMButton_Clicked" HeightRequest="53"/>
+                <Button x:Name="SwisstopoButton" Text="Landeskarte Schweiz" TextTransform="Uppercase" FontSize="Small" VerticalOptions="Center" FlexLayout.Basis="33.3%" Margin="1,2,1,0" CornerRadius="0" Clicked="SwisstopoButton_Clicked" HeightRequest="53"/>
+                <Button x:Name="SwissimageButton" Text="Orthofoto Schweiz" TextTransform="Uppercase" FontSize="Small" VerticalOptions="Center" FlexLayout.Basis="33.3%" Margin="1,2,0,0" CornerRadius="0" Clicked="SwissimageButton_Clicked" HeightRequest="53"/>
+            </FlexLayout>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

@@ -36,23 +36,17 @@ namespace BioDivCollectorXamarin.Models
         public static ObservableCollection<MapLayer> MakeArrayOfLayers()
         {
             int i = 0;
-            //Add mbtiles layers
-            var dirPath = Path.Combine(App.TileLocation, "mbtiles");
-            //Create directory if it doesn't exist
-            if (!File.Exists(dirPath))
-            {
-                Directory.CreateDirectory(dirPath);
-            }
 
+            var dirPath = App.TileLocation;
             //Get the offline layers
             var offlineLayers = GetOfflineLayers(dirPath);
-
             //Get the online layers
             var layers = GetLayersForMap(App.CurrentProjectId);
+            //Add online wms layers
+            var layerStack = layers.OrderByDescending(o => o.order).ToList();
+
             //Create an array for adding the layers into in an ordered fashion
             var mapLayersTemp = new MapLayer[layers.Count];
-            //Add online wms layers
-            var layerStack = layers.OrderBy(o => o.order).ToList();
 
             bool noInternet = MapModel.IsAppDisconnected();
 
@@ -61,12 +55,34 @@ namespace BioDivCollectorXamarin.Models
                 //Now add the layers in their correct order
                 try
                 {
-                    var layerNo = Math.Max(layers.Count - layer.order, 0);
-                    
-
+                    var layerNo = Math.Max(layer.order - 1, 0);
                     bool offlineLayerExists = offlineLayers.Keys.Contains(layer.title);
 
-                    if (noInternet && offlineLayerExists)
+                    if (layer.fileBased)
+                    {
+                        //Add mbtiles layers
+                        offlineLayers.TryGetValue(layer.wmsLayer, out ILayer offlineLayer);
+                        var fileLayer = new MapLayer(layer.Id, layer.visible, layer.order, offlineLayer);
+                        fileLayer.Opacity = layer.opacity;
+                        fileLayer.Name = layer.title;
+                        mapLayersTemp.SetValue(fileLayer, layerNo);
+                        i++;
+
+                        Preferences.Set(layer.wmsLayer, fileLayer.ToString());
+                        var lay = Preferences.Get(layer.wmsLayer, null);
+                        var path = dirPath + "/" + layer.wmsLayer;
+                        FileInfo fi = new FileInfo(dirPath + "/" + layer.wmsLayer + ".mbtiles");
+                        if (fi != null)
+                        {
+                            fileLayer.LocalStorage = fi.Length;
+                        }
+                        else
+                        {
+                            fileLayer.LocalStorage = 0;
+                        }
+                    }
+
+                    else if (noInternet && offlineLayerExists)
                     {
                         //If no internet, check for saved tiles
                         ILayer offlineLayer;
@@ -76,12 +92,11 @@ namespace BioDivCollectorXamarin.Models
                         {
                             offlineLayer.Opacity = layer.opacity;
                             offlineLayer.Enabled = layer.visible;
-                            var WmsLayer = new MapLayer(true, 0, offlineLayer);
+                            var WmsLayer = new MapLayer(layer.Id, true, 0, offlineLayer);
                             WmsLayer.Opacity = layer.opacity;
                             WmsLayer.Enabled = layer.visible;
                             WmsLayer.LayerZ = layer.order;
                             WmsLayer.Name = layer.title;
-                            WmsLayer.WmsLayer = layer.wmsLayer;
                             mapLayersTemp.SetValue(WmsLayer, layerNo);
                             var path = dirPath + "/" + layer.title;
                             FileInfo fi = new FileInfo(dirPath + "/" + layer.title + ".mbtiles");
@@ -104,14 +119,11 @@ namespace BioDivCollectorXamarin.Models
                         layerWms.Enabled = layer.visible;
                         if (layerWms != null)
                         {
-                            var WmsLayer = new MapLayer(true, 0, layerWms);
+                            var WmsLayer = new MapLayer(layer.Id, true, 0, layerWms);
                             WmsLayer.Opacity = layer.opacity;
                             WmsLayer.Enabled = layer.visible;
                             WmsLayer.LayerZ = layer.order;
                             WmsLayer.Name = layer.title;
-                            WmsLayer.WmsLayer = layer.wmsLayer;
-
-                            //WmsLayer.UuID = layer.uuid;
 
                             mapLayersTemp.SetValue(WmsLayer, layerNo);
                             if (offlineLayerExists)
@@ -137,6 +149,7 @@ namespace BioDivCollectorXamarin.Models
                     Console.WriteLine(e);
                 }
             }
+
             var mapLayersTempList = mapLayersTemp.ToList().GetRange(0, i);
 
             return new ObservableCollection<MapLayer>(mapLayersTempList as List<MapLayer>);
@@ -159,8 +172,10 @@ namespace BioDivCollectorXamarin.Models
                     try
                     {
                         var offlineLayer = WMSLayer.CreateOfflineLayer(file);
-                        if (!offlineLayers.Keys.Contains(offlineLayer.Name))
+                        if (!offlineLayers.Keys.Contains(offlineLayer.Name) && offlineLayer.Name != "swisstopo pixelkarte" && offlineLayer.Name != "swissimage" && offlineLayer.Name != "osm")
                         {
+                            var info = new FileInfo(file);
+                            offlineLayer.Tag = info.Name.Remove(info.Name.Length - 8);
                             offlineLayers.Add(offlineLayer.Name, offlineLayer);
                         }
                     }
@@ -263,7 +278,7 @@ namespace BioDivCollectorXamarin.Models
             {
                 wmtsLayer = WMSLayer.CreateSwissimageWMTSTileLayer();
             }
-            var baseLayer = new MapLayer(true, 0, wmtsLayer);
+            var baseLayer = new MapLayer(-999, true, 0, wmtsLayer);
 
             if (noInternet)
             {
@@ -275,7 +290,7 @@ namespace BioDivCollectorXamarin.Models
                     if (file.EndsWith(filename))
                     {
                         var offlineLayer = WMSLayer.CreateOfflineLayer(file) as TileLayer;
-                        baseLayer = new MapLayer(true, 0, offlineLayer);
+                        baseLayer = new MapLayer(-999, true, 0, offlineLayer);
                         return baseLayer;
                     }
                 }
@@ -966,6 +981,49 @@ namespace BioDivCollectorXamarin.Models
             {
                 return true;
             }
+        }
+
+        /// <summary>
+        ///  Add layers to the database corresponding to mbtiles files
+        /// </summary>
+        public static void AddOfflineLayersToProject()
+        {
+            var dirPath = App.TileLocation;
+            //Get the offline layers
+            var offlineLayers = GetOfflineLayers(dirPath);
+            //Get the online layers
+            var layers = GetLayersForMap(App.CurrentProjectId);
+            //Add online wms layers
+            var layerStack = layers.OrderBy(o => o.order).ToList();
+
+            int i = 1;
+            //Identify the offline only layers
+            foreach (var layertitle in offlineLayers.Keys)
+            {
+                var online = false;
+                foreach (var onlinelayer in layers)
+                {
+                    if (onlinelayer.title == layertitle)
+                    {
+                        online = true;
+                        break;
+                    }
+                }
+                if (online == false)
+                {
+                    offlineLayers.TryGetValue(layertitle, out ILayer layer);
+                    var lay = new DatabaseModel.Layer();
+                    var path = dirPath + "/" + layertitle;
+                    var proj = Project.FetchProject(App.CurrentProjectId);
+                    BioDivCollectorXamarin.Models.DatabaseModel.Layer.AddFileLayer(layer.Name, layertitle, dirPath + "/" + layertitle + ".mbtiles", proj.Id, layers.Count + i++);
+                }
+            }
+        }
+
+        public static void RemoveOfflineLayersFromProject()
+        {
+            var proj = Project.FetchProject(App.CurrentProjectId);
+            DatabaseModel.Layer.RemoveFileLayers(proj.Id);
         }
     }
 }

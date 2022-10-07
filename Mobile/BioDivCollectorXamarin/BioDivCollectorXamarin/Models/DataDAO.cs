@@ -10,11 +10,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Auth;
 using Xamarin.Essentials;
 using Xamarin.Forms;
+using static BioDivCollectorXamarin.Helpers.Interfaces;
 
 namespace BioDivCollectorXamarin.Models
 {
@@ -174,6 +176,12 @@ namespace BioDivCollectorXamarin.Models
 
                             if (returnedObject.success == true)
                             {
+                                var photoUploadResponse = await PrepareBinaryRecordsForUpload(lastSync); //Upload binary objects
+                                if (photoUploadResponse != String.Empty)
+                                {
+                                    await App.Current.MainPage.DisplayAlert("Foto Upload", photoUploadResponse, "OK");
+                                }
+
                                 DataDAO.ProcessJSON(returnedObject.projectUpdate); //Update database with downloaded data
 
                                 using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
@@ -297,6 +305,7 @@ namespace BioDivCollectorXamarin.Models
         /// <param name="projectRoot"></param>
         public static void ProcessJSON(Project projectRoot)
         {
+            var binaryDownloadList = new List<Tuple<string, int?>>();
             //Insert JSON into database
             using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
@@ -448,6 +457,19 @@ namespace BioDivCollectorXamarin.Models
                                                         Console.WriteLine(e);
                                                     }
                                                 }
+                                                //Add binary records
+                                                foreach (var binary in rec.binaries)
+                                                {
+                                                    try
+                                                    {
+                                                        conn.InsertOrReplace(binary);
+                                                        binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, binary.formFieldId));
+                                                    }
+                                                    catch (Exception e)
+                                                    {
+                                                        Console.WriteLine(e);
+                                                    }
+                                                }
                                             }
                                             catch (Exception e)
                                             {
@@ -565,6 +587,31 @@ namespace BioDivCollectorXamarin.Models
                                                 Console.WriteLine(e);
                                             }
                                         }
+                                        //Add binary records
+                                        foreach (var bin in rec.binaries)
+                                        {
+                                            try
+                                            {
+                                                var existingbin = conn.Table<BinaryData>().Select(g => g).Where(BinData => BinData.binaryId == bin.binaryId).FirstOrDefault();
+                                                if (existingbin != null)
+                                                {
+                                                    var id = existingbin.Id;
+                                                    existingbin = bin;
+                                                    existingbin.Id = id;
+                                                    conn.Update(existingbin);
+                                                }
+                                                else
+                                                {
+                                                    conn.Insert(bin);
+                                                }
+                                                conn.InsertOrReplace(bin);
+                                                binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Console.WriteLine(e);
+                                            }
+                                        }
                                     }
                                     catch (Exception e)
                                     {
@@ -576,6 +623,7 @@ namespace BioDivCollectorXamarin.Models
                                 queriedrec.texts = rec.texts;
                                 queriedrec.numerics = rec.numerics;
                                 queriedrec.booleans = rec.booleans;
+                                queriedrec.binaries = rec.binaries;
                                 conn.UpdateWithChildren(queriedrec);
                                 Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
                             }
@@ -714,6 +762,12 @@ namespace BioDivCollectorXamarin.Models
                     }
                 }
             }
+
+            foreach (var tuple in binaryDownloadList)
+            {
+                Task.Run(async () => await BinaryData.DownloadBinaryData(tuple.Item1, tuple.Item2));
+            }
+
             MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
         }
 
@@ -925,6 +979,70 @@ namespace BioDivCollectorXamarin.Models
                 return String.Empty;
             }
         }
+
+        public static async Task<string> PrepareBinaryRecordsForUpload(DateTime lastSync)
+        {
+            var responsetext = string.Empty;
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            {
+                var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+                if (proj != null)
+                {
+                    var project = Project.FetchProjectWithChildren(proj.projectId);
+
+                    var geomRecs = project.geometries.SelectMany(x => x.records).Where(x => x.status != 1).Where(x => x.timestamp.ToUniversalTime() > lastSync.ToUniversalTime()).ToList();
+
+                    var projrecs = project.records.Where(x => x.status != 1).Where(x => x.geometry_fk == null).ToList();
+                    var allrecs = geomRecs.Concat(projrecs);
+
+                    var bins = allrecs.SelectMany(x => x.binaries).ToList();
+                    var binIds = bins.Select(x => x.binaryId).ToList();
+                    foreach (var binId in binIds)
+                    {
+                        try
+                        {
+                            var directory = DependencyService.Get<FileInterface>().GetImagePath();
+                            string filepath = Path.Combine(directory, binId + ".jpg");
+                            var binData = File.ReadAllBytes(filepath);
+
+                            string url = App.ServerURL + "/api/Binary/" + binId;
+
+                            using (HttpClient client = new HttpClient())
+                            {
+                                client.Timeout = TimeSpan.FromSeconds(6000); // 10 minutes
+                                var token = await SecureStorage.GetAsync("AccessToken");
+                                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                                MessagingCenter.Send(new DataDAO(), "SyncMessage", "Uploading Photos");
+
+
+                                using (var multipartFormContent = new MultipartFormDataContent())
+                                {
+                                    //Load the file and set the file's Content-Type header
+                                    var fileStreamContent = new StreamContent(File.OpenRead(filepath));
+                                    fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpg");
+
+                                    //Add the file
+                                    multipartFormContent.Add(fileStreamContent, name: "file", fileName: binId + ".jpg");
+
+                                    //Send it
+                                    var response = await client.PostAsync(url, multipartFormContent);
+                                    response.EnsureSuccessStatusCode();
+                                    responsetext = await response.Content.ReadAsStringAsync();
+                                }
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+
+                    }
+                }
+            }
+            return responsetext;
+        }
+
 
         /// <summary>
         /// Show sync message

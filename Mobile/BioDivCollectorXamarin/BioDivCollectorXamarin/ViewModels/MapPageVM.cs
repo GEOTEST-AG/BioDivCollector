@@ -314,9 +314,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 GeomToEdit = arg;
             });
 
-
             DeviceDisplay.MainDisplayInfoChanged += HandleRotationChange;
-
 
         }
 

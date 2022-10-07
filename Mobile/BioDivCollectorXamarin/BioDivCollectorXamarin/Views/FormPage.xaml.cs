@@ -12,6 +12,25 @@ namespace BioDivCollectorXamarin.Views
     public partial class FormPage : ContentPage
     {
         FormPageVM ViewModel;
+        public int? RecId;
+        public int FormId;
+        public int? GeomId;
+
+        /// <summary>
+        /// Try to initialise the page with a default constructor
+        /// </summary>
+        public FormPage()
+        {
+            InitializeComponent();
+            ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
+            BindingContext = ViewModel;
+            RecId = ViewModel.RecId;
+            MessagingCenter.Subscribe<FormPageVM>(this, "NavigateBack", (sender) =>
+            {
+                NavigateBack();
+            });
+            App.CurrentRoute = "//Records/Form";
+        }
 
         /// <summary>
         /// Initialise the form for a specific record
@@ -20,13 +39,17 @@ namespace BioDivCollectorXamarin.Views
         public FormPage(int? recId, int formId, int? geomId)
         {
             InitializeComponent();
+            RecId = recId;
+            FormId = formId;
+            GeomId = geomId;
             ViewModel = new FormPageVM(recId, formId, geomId, Navigation);
             BindingContext = ViewModel;
-            recId = ViewModel.RecId;
+            RecId = recId = ViewModel.RecId;
             MessagingCenter.Subscribe<FormPageVM>(this, "NavigateBack", (sender) =>
             {
                 NavigateBack();
             });
+            App.CurrentRoute = "//Records/Form";
         }
 
         /// <summary>

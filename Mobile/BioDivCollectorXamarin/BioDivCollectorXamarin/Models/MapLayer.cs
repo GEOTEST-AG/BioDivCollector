@@ -13,6 +13,8 @@ namespace BioDivCollectorXamarin.Models
 {
     public class MapLayer : ObservableClass
     {
+
+        public int LayerId { get; set; }
         /// <summary>
         /// Set whether the map layer is shown in the map
         /// </summary>
@@ -158,8 +160,9 @@ namespace BioDivCollectorXamarin.Models
         private Mapsui.Layers.ILayer mapsuiLayer;
         public Mapsui.Layers.ILayer MapsuiLayer { get; set; }
 
-        public MapLayer(bool enabled, int z, Mapsui.Layers.ILayer mapsuiLayer)
+        public MapLayer(int localLayerId, bool enabled, int z, Mapsui.Layers.ILayer mapsuiLayer)
         {
+            LayerId = localLayerId;
             Enabled = enabled;
             LayerZ = z;
             Name = mapsuiLayer.Name;
@@ -175,5 +178,6 @@ namespace BioDivCollectorXamarin.Models
         {
 
         }
+
     }
 }

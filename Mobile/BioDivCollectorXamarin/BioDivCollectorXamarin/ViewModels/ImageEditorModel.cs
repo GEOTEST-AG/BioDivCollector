@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using Syncfusion.SfImageEditor.XForms;
 using Xamarin.Forms;
 
@@ -26,4 +26,4 @@ namespace BioDivCollectorXamarin.ViewModels
             }
         }
     }
-}
+}*/

@@ -42,7 +42,7 @@ namespace BioDivCollectorXamarin.Droid
             string dbName = "biodivcollector_database.sqlite";
             string folderPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
             string fullPath = System.IO.Path.Combine(folderPath, dbName);
-            string tilePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+            string tilePath = DependencyService.Get<FileInterface>().GetMbTilesPath();
 
             LoadApplication(new App(fullPath,tilePath));
 
