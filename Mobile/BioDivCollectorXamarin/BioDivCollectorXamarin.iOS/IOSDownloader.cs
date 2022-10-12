@@ -33,7 +33,7 @@ namespace BioDivCollectorXamarin.iOS
                 Task.Run(async () => {
                     WebClient webClient = new WebClient();
                     webClient.UseDefaultCredentials = false;
-                    var token = await SecureStorage.GetAsync("AccessToken");
+                    var token = Preferences.Get("AccessToken","");
                     webClient.Headers[HttpRequestHeader.Authorization] = "Bearer " + token;
                     webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);
                     string pathToNewFile = Path.Combine(pathToNewFolder, documentName);

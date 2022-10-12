@@ -87,8 +87,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                     var request = new HttpRequestMessage()
                     {
                         RequestUri = new Uri(urlString),
-                        Method = HttpMethod.Post,
-
+                        Method = HttpMethod.Post
                     };
 
                     FormUrlEncodedContent postData = new FormUrlEncodedContent(

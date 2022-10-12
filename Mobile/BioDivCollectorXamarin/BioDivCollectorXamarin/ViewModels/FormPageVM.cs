@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BioDivCollectorXamarin.Controls;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Views;
+using Mapsui.UI.Forms;
 using SQLite;
 using SQLiteNetExtensions.Extensions;
 using Syncfusion.SfAutoComplete.XForms;
@@ -582,16 +583,16 @@ namespace BioDivCollectorXamarin.ViewModels
                                 var button = new CameraButton();
                                 button.HorizontalOptions = LayoutOptions.End;
                                 button.VerticalOptions = LayoutOptions.Center;
-                                button.ImageSource = new FontImageSource() { FontFamily = "Material", Glyph = "\ue412", Color = Color.White };
+                                button.ImageSource = new FontImageSource() { FontFamily = "Material", Glyph = "\ue872", Color = Color.White };
                                 button.WidthRequest = 50;
-                                button.BackgroundColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
-                                button.HeightRequest = 80;
+                                button.Style = (Style)Xamarin.Forms.Application.Current.Resources["DangerButtonStyle"];
+                                button.HeightRequest = 50;
                                 button.Margin = new Thickness(5, 0, 0, 0);
                                 button.CornerRadius = 10;
                                 button.FormFieldId = formField.fieldId;
                                 button.RecordId = RecId;
                                 button.BinaryId = image.BinaryId;
-                                button.Clicked += Image_Button_Clicked;
+                                button.Clicked += Delete_Button_Clicked;
                                 stackView.Children.Add(button);
                                 flexview.Children.Add(stackView);
                             }
@@ -600,7 +601,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
                         var newbutton = new CameraButton();
                         newbutton.HorizontalOptions = LayoutOptions.End;
-                        newbutton.ImageSource = new FontImageSource() { FontFamily = "Material", Glyph = "\ue439", Color = Color.White };
+                        newbutton.ImageSource = new FontImageSource() { FontFamily = "Material", Glyph = "\ue43e", Color = Color.White };
                         newbutton.BackgroundColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
                         newbutton.HorizontalOptions = LayoutOptions.FillAndExpand;
                         newbutton.Margin = new Thickness(0, 0, 0, 20);
@@ -690,7 +691,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
 
             var DeleteButton = new Button();
-            DeleteButton.ImageSource = "delete.png";
+            DeleteButton.ImageSource = new FontImageSource() { FontFamily = "Material", Glyph = "\ue872", Color = Color.White };
             DeleteButton.Command = DeleteCommand;
             DeleteButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["DangerButtonStyle"];
             DeleteButton.Margin = new Thickness(0, 10, 5, 10);
@@ -1116,9 +1117,7 @@ namespace BioDivCollectorXamarin.ViewModels
         private async void Gesture_Tapped(object sender, EventArgs e)
         {
             var image = (BioDivImage)sender;
-            var imageEditor = new SfImageEditorPage(image.FormFieldId, image.BinaryId);
-            //var navigation = new NavigationPage(imageEditor);
-            //Shell.SetPresentationMode(navigation, PresentationMode.ModalAnimated);
+            var imageEditor = new SfImageEditorPage(image.FormFieldId, image.BinaryId, RecId);
             var button = new Xamarin.Forms.ToolbarItem();
             button.Text = "Schliessen";
             button.Command = new Command(() =>
@@ -1127,23 +1126,26 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     await Shell.Current.GoToAsync("..", true);
                 });
-            }
-        );
-            //navigation.ToolbarItems.Add(button);
+            });
             Device.BeginInvokeOnMainThread(async () =>
             {
                 await Shell.Current.Navigation.PushAsync(imageEditor, true);
             });
         }
 
-        private void Image_Button_Clicked(object sender, EventArgs e)
+        private void Delete_Button_Clicked(object sender, EventArgs e)
         {
             NewRecord = false;
             var button = sender as CameraButton;
-            var rec = Record.FetchRecord(button.RecordId);
             Device.BeginInvokeOnMainThread(async () =>
             {
-                await Shell.Current.Navigation.PushAsync((new Views.CameraView(rec, button.FormFieldId, button.BinaryId)), true);
+                var deleteResponse = await App.Current.MainPage.DisplayAlert("Bild Löschen", "Wollen Sie dieses Bild wirklich löschen?", "Löschen", "Abbrechen",FlowDirection.RightToLeft);
+                if (deleteResponse == true)
+                {
+                    await BinaryData.DeleteBinary(button.BinaryId);
+                    Record.UpdateRecord(button.RecordId);
+                    MessagingCenter.Send<FormPageVM>(this, "PhotoDeleted");
+                }
             });
         }
 
@@ -1151,9 +1153,12 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             NewRecord = false;
             var button = sender as CameraButton;
-            var rec = Record.FetchRecord(button.RecordId);
+            var rec = Record.FetchRecord(RecId);
             if (rec == null) { rec = Record.CreateRecord(FormId, GeomId); }
-            Shell.Current.Navigation.PushAsync(new Views.CameraView(rec, button.FormFieldId, null));
+            Device.BeginInvokeOnMainThread(async () =>
+            {
+                await Shell.Current.Navigation.PushAsync(new SfImageEditorPage(button.FormFieldId, null, RecId), true);
+            });
         }
     }
 

@@ -1,13 +1,12 @@
-﻿using SQLite;
-using SQLiteNetExtensions.Attributes;
-using SQLiteNetExtensions.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using SQLite;
+using SQLiteNetExtensions.Attributes;
+using SQLiteNetExtensions.Extensions;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using static BioDivCollectorXamarin.Helpers.Interfaces;
@@ -188,6 +187,14 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
             {
                 var rec = Record.FetchRecord(recId);
+                var binaries = conn.Table<BinaryData>().Where(r => r.record_fk == rec.Id).ToList();
+                rec.binaries = binaries;
+                var texts = conn.Table<TextData>().Where(r => r.record_fk == rec.Id).ToList();
+                rec.texts = texts;
+                var numerics = conn.Table<NumericData>().Where(r => r.record_fk == rec.Id).ToList();
+                rec.numerics = numerics;
+                var booleans = conn.Table<BooleanData>().Where(r => r.record_fk == rec.Id).ToList();
+                rec.booleans = booleans;
                 rec.timestamp = DateTime.Now;
                 rec.fullUserName = App.CurrentUser.firstName + " " + App.CurrentUser.name;
                 rec.userName = App.CurrentUser.userId;
@@ -195,7 +202,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 {
                     rec.status = 2;
                 }
-                conn.Update(rec);
+                conn.UpdateWithChildren(rec);
             }
         }
     }
@@ -311,7 +318,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                         using (HttpClient client = new HttpClient())
                         {
                             client.Timeout = TimeSpan.FromSeconds(6000); // 10 minutes
-                            var token = await SecureStorage.GetAsync("AccessToken");
+                            var token = Preferences.Get("AccessToken","");
                             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                             MessagingCenter.Send(new DataDAO(), "SyncMessage", "Waiting for data");
@@ -333,7 +340,6 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                     {
 
                                     }
-
                                 });
                             }
                         }
@@ -408,9 +414,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     var binarys = conn.Query<BinaryData>("select binaryId from BinaryData where record_fk in (select recordId from Record where geometry_fk in (select geometryId from ReferenceGeometry where project_fk = ?))", projectId);
                     foreach (var bin in binarys)
                     {
-                        var directory = DependencyService.Get<FileInterface>().GetImagePath();
-                        string filepath = Path.Combine(directory, bin.binaryId + ".jpg");
-                        File.Delete(filepath);
+                        DeleteBinaryFile(bin.binaryId);
+                        conn.Delete(bin);
                     }
                 }
                 return true;
@@ -420,6 +425,36 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 Console.WriteLine(e);
                 return false;
             }
+        }
+
+        public static async Task<bool> DeleteBinary(string binaryId)
+        {
+            try
+            {
+                //List<string> binaryIds;
+                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                {
+                    var binaries = conn.Table<BinaryData>().Where(x => x.binaryId == binaryId).ToList();
+                    foreach (var bin in binaries)
+                    {
+                        DeleteBinaryFile(bin.binaryId);
+                        conn.Delete(bin);
+                    }
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+        }
+
+        public static void DeleteBinaryFile(string binaryId)
+        {
+            var directory = DependencyService.Get<FileInterface>().GetImagePath();
+            string filepath = Path.Combine(directory, binaryId + ".jpg");
+            File.Delete(filepath);
         }
     }
 }

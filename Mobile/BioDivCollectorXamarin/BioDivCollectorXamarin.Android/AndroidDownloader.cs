@@ -22,7 +22,7 @@ namespace BioDivCollectorXamarin.Droid
             {
                 WebClient webClient = new WebClient();
                 webClient.UseDefaultCredentials = false;
-                var token = await SecureStorage.GetAsync("AccessToken");
+                var token = Preferences.Get("AccessToken","");
                 webClient.Headers[HttpRequestHeader.Authorization] = "Bearer " + token;
                 string pathToNewFile = Path.Combine(pathToNewFolder, Path.GetFileName(url));
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);

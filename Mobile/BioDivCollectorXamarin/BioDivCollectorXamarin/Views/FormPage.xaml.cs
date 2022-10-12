@@ -45,9 +45,13 @@ namespace BioDivCollectorXamarin.Views
             ViewModel = new FormPageVM(recId, formId, geomId, Navigation);
             BindingContext = ViewModel;
             RecId = recId = ViewModel.RecId;
-            MessagingCenter.Subscribe<FormPageVM>(this, "NavigateBack", (sender) =>
+            MessagingCenter.Subscribe<FormPageVM>(ViewModel, "NavigateBack", (sender) =>
             {
                 NavigateBack();
+            });
+            MessagingCenter.Subscribe<FormPageVM>(ViewModel, "PhotoDeleted", (sender) =>
+            {
+                OnAppearing();
             });
             App.CurrentRoute = "//Records/Form";
         }

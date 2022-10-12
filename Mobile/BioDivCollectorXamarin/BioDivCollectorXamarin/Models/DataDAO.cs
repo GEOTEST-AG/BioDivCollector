@@ -234,9 +234,12 @@ namespace BioDivCollectorXamarin.Models
                                         error = error + skippedRec.Key.ToString() + ", " + skippedRec.Value;
                                     }
 
-
                                     ShowSyncCompleteMessage(error); //Show any errors in the sync confirmation message
                                 }
+                            }
+                            else
+                            {
+                                MessagingCenter.Send(new Project(), "DataDownloadError", @"Error synchronising data");
                             }
                         }
                         MessagingCenter.Send(new Project(), "DataDownloadError", "Data successfully synchronised");
@@ -1010,7 +1013,7 @@ namespace BioDivCollectorXamarin.Models
                             using (HttpClient client = new HttpClient())
                             {
                                 client.Timeout = TimeSpan.FromSeconds(6000); // 10 minutes
-                                var token = await SecureStorage.GetAsync("AccessToken");
+                                var token = Preferences.Get("AccessToken", "");
                                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                                 MessagingCenter.Send(new DataDAO(), "SyncMessage", "Uploading Photos");

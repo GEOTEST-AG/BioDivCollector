@@ -32,7 +32,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                var ie = new SfImageEditorPage(FormFieldId, BinaryDataId);
+                var ie = new SfImageEditorPage(FormFieldId, BinaryDataId, Rec.Id);
                 Shell.Current.Navigation.PushAsync(ie);
             });
         }
