@@ -197,11 +197,14 @@ namespace BioDivCollector.Connector.Controllers
         /// <param name="binaryid"></param>
         /// <returns></returns>
         [HttpDelete("{binaryid}")]
-        public async Task<ActionResult> DeleteContentAsync(Guid binaryid)
+        public async Task<ActionResult> DeleteContentAsync(Guid binaryid, string userName = null)
         {
             try
             {
-                string userName = ((ClaimsIdentity)User.Identity).Name;
+                if (userName == null)
+                {
+                    userName = ((ClaimsIdentity)User.Identity).FindFirst("preferred_username").Value;
+                }
                 _logger.LogInformation("BINARY DELETE:\tbinaryid = '{id}', user = '{userName}' start...", binaryid, userName);
 
                 var binary = await _context.BinaryData
@@ -215,6 +218,7 @@ namespace BioDivCollector.Connector.Controllers
                 {
                     binary.Value = null;                            //remove link from binary data to object storage
                     _context.ObjectStorage.Remove(objectStorage);   //delete table entry
+                    _context.Entry(binary).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation("BINARY DELETE:\tbinaryid = '{id}' finished", binaryid);

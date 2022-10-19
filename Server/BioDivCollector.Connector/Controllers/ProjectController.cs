@@ -24,12 +24,14 @@ namespace BioDivCollector.Connector.Controllers
         private readonly BioDivContext _context;
         private readonly ILogger _logger;
         private GeneralPluginExtension _generalPluginExtension;
+        private readonly BinaryController _binaryController;
 
-        public ProjectController(BioDivContext context, ILogger<ProjectController> logger, GeneralPluginExtension generalPluginExtension)
+        public ProjectController(BioDivContext context, ILogger<ProjectController> logger, GeneralPluginExtension generalPluginExtension, BinaryController binaryController)
         {
             _context = context;
             _logger = logger;
             _generalPluginExtension = generalPluginExtension;
+            _binaryController = binaryController;
         }
 
         // GET: api/Project/5
@@ -530,9 +532,6 @@ namespace BioDivCollector.Connector.Controllers
 
             try
             {
-
-
-
                 //Check the user and the project
                 var checkResult = await this.CheckUserProjectValid(projectDtoId);
                 userName = checkResult.Item2;   //save userName
@@ -1140,13 +1139,42 @@ namespace BioDivCollector.Connector.Controllers
 
                     }
 
-                    if (iamgod) //DANGER ZONE
+                    if (iamgod) //DANGER ZONE                   //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ACTIVATE DB CHANGES <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     {
                         _context.TextData.RemoveRange(record.TextData);
                         _context.NumericData.RemoveRange(record.NumericData);
                         _context.BooleanData.RemoveRange(record.BooleanData);
-                        _context.BinaryData.RemoveRange(record.BinaryData);
-                        await _context.SaveChangesAsync(); //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ACTIVATE DB CHANGES <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+                        _context.Entry(record).State = EntityState.Modified;
+                        await _context.SaveChangesAsync();
+
+                        record.TextData.Clear();
+                        record.NumericData.Clear();
+                        record.BooleanData.Clear();
+
+                        //Special treatement for binary to keep the objectstorages
+                        var oldBinaryList = record.BinaryData.Select(b => b.Id).ToList();
+                        var newBinaryList = recordDto.binaries.Select(b => b.binaryId).ToList();
+
+                        var oldBinaryToRemove = oldBinaryList.Except(newBinaryList);
+                        foreach (Guid binaryId in oldBinaryToRemove)
+                        {
+                            var binary = record.BinaryData.Single(b => b.Id == binaryId);
+                            var objectStorageId = binary.ValueId;
+
+                            if (await _context.ObjectStorage.CountAsync(o => o.ObjectStorageId == objectStorageId) > 1)
+                            {
+                                //no deletion of object storage because another binary data references it
+                            }
+                            else
+                            {
+                                var rc = await _binaryController.DeleteContentAsync(binaryId, ((ClaimsIdentity)User.Identity).FindFirst("preferred_username").Value);
+                            }
+                            _context.BinaryData.Remove(binary);
+                            _context.Entry(binary).State = EntityState.Deleted;
+
+                            record.BinaryData.Remove(binary);
+                        }
                     }
                     else
                     {
@@ -1183,10 +1211,20 @@ namespace BioDivCollector.Connector.Controllers
                         record.BooleanData.Add(newBoolean);                     //Add new data to record
                     }
 
-                    foreach (BinaryDataDTO binaryDTO in recordDto.binaries)   //BinaryData
+                    foreach (BinaryDataDTO binaryDto in recordDto.binaries)         //BinaryData
                     {
-                        BinaryData newBinary = binaryDTO.Dto2Model();
-                        record.BinaryData.Add(newBinary);                     //Add new data to record
+                        BinaryData newBinary = binaryDto.Dto2Model();
+                        BinaryData oldBinary = record.BinaryData.SingleOrDefault(b => b.Id == binaryDto.binaryId);
+
+                        if (oldBinary != null)
+                        {
+                            newBinary.ValueId = oldBinary?.ValueId;                 //Link old object storage
+                            record.BinaryData.Remove(oldBinary);                    //remove old data
+                            if (iamgod) _context.Entry(oldBinary).State = EntityState.Deleted;
+                        }
+
+                        record.BinaryData.Add(newBinary);                           //Add new data to record
+                        if (iamgod) _context.Entry(newBinary).State = EntityState.Added;
                     }
 
                     if (recordDto.timestamp > recordDto.creationTime)

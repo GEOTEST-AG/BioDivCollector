@@ -48,6 +48,12 @@ namespace BioDivCollector.Connector
 
             services.AddDbContext<BioDivContext>();
             services.AddTransient<IStorageService, LocalStorageService>();
+            services.AddMvc().AddControllersAsServices();
+
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.MaxRequestBodySize = int.MaxValue;
+            });
 
             //string openidConfigUrl = $"https://id.geotest.ch/auth/realms/BioDivCollector/.well-known/openid-configuration";    //and Configuration["JWT:Issuer"] https://id.geotest.ch/auth/realms/BioDivCollector
             string openidConfigUrl = Configuration["JWT:Url"] + "/auth/realms/" + Configuration["JWT:Realm"] + "/.well-known/openid-configuration";
