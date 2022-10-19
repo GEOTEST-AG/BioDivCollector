@@ -124,6 +124,8 @@ namespace BioDivCollector.Connector.Controllers
                     .ThenInclude(t => t.FormField)
                 .Include(r => r.BooleanData)
                     .ThenInclude(t => t.FormField)
+                .Include(r => r.BinaryData)
+                    .ThenInclude(t => t.FormField)
                 .Include(g => g.RecordChangeLogs)
                     .ThenInclude(rcl => rcl.ChangeLog)
                     .ThenInclude(c => c.User)
@@ -155,6 +157,8 @@ namespace BioDivCollector.Connector.Controllers
                 .Include(r => r.NumericData)
                     .ThenInclude(t => t.FormField)
                 .Include(r => r.BooleanData)
+                    .ThenInclude(t => t.FormField)
+                .Include(r => r.BinaryData)
                     .ThenInclude(t => t.FormField)
                 .Include(g => g.RecordChangeLogs)
                     .ThenInclude(rcl => rcl.ChangeLog)
@@ -451,6 +455,15 @@ namespace BioDivCollector.Connector.Controllers
                         formFieldId = booleanData.FormField?.FormFieldId
                     };
                     recDto.booleans.Add(booleanDto);
+                }
+                foreach (BinaryData binaryData in rec.BinaryData)
+                {
+                    BinaryDataDTO binaryDTO = new BinaryDataDTO()
+                    {
+                        binaryId = binaryData.Id,
+                        formFieldId = binaryData.FormField?.FormFieldId
+                    };
+                    recDto.binaries.Add(binaryDTO);
                 }
 
                 recordDtos.Add(recDto);
@@ -1040,6 +1053,7 @@ namespace BioDivCollector.Connector.Controllers
                     .Include(r => r.TextData)
                     .Include(r => r.NumericData)
                     .Include(r => r.BooleanData)
+                    .Include(r => r.BinaryData)
                     .Where(r => r.RecordId == updateGuid).SingleOrDefaultAsync();
 
                 if (record == null)
@@ -1131,6 +1145,7 @@ namespace BioDivCollector.Connector.Controllers
                         _context.TextData.RemoveRange(record.TextData);
                         _context.NumericData.RemoveRange(record.NumericData);
                         _context.BooleanData.RemoveRange(record.BooleanData);
+                        _context.BinaryData.RemoveRange(record.BinaryData);
                         await _context.SaveChangesAsync(); //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ACTIVATE DB CHANGES <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     }
                     else
@@ -1138,6 +1153,7 @@ namespace BioDivCollector.Connector.Controllers
                         record.TextData.Clear();
                         record.NumericData.Clear();
                         record.BooleanData.Clear();
+                        record.BinaryData.Clear();
                     }
 
                     foreach (TextDataDTO textDto in recordDto.texts)            //TextData
@@ -1167,6 +1183,12 @@ namespace BioDivCollector.Connector.Controllers
                         record.BooleanData.Add(newBoolean);                     //Add new data to record
                     }
 
+                    foreach (BinaryDataDTO binaryDTO in recordDto.binaries)   //BinaryData
+                    {
+                        BinaryData newBinary = binaryDTO.Dto2Model();
+                        record.BinaryData.Add(newBinary);                     //Add new data to record
+                    }
+
                     if (recordDto.timestamp > recordDto.creationTime)
                     {
                         ChangeLogRecord changeLogRec = new ChangeLogRecord()    //create change logs: Last Change
@@ -1181,7 +1203,7 @@ namespace BioDivCollector.Connector.Controllers
                         record.RecordChangeLogs.Add(changeLogRec);
                     }
 
-                    updateInfo += $"txt:{record.TextData.Count}, num:{record.NumericData.Count}, bool:{record.BooleanData.Count}";
+                    updateInfo += $"txt:{record.TextData.Count}, num:{record.NumericData.Count}, bool:{record.BooleanData.Count}, binary:{record.BinaryData.Count}";
                     if (hasNewParent)
                         updateInfo += $", newParentGeometry: {record.GeometryId}";
 
@@ -1288,6 +1310,11 @@ namespace BioDivCollector.Connector.Controllers
                         BooleanData newBoolean = booleanDto.Dto2Model();
                         newRec.BooleanData.Add(newBoolean);
                     }
+                    foreach (BinaryDataDTO binaryDTO in recordDto.binaries)   //BooleanData
+                    {
+                        BinaryData newBinary = binaryDTO.Dto2Model();
+                        newRec.BinaryData.Add(newBinary);
+                    }
 
                     ChangeLogRecord changeLogRec = new ChangeLogRecord()    //create change logs: Create
                     {
@@ -1315,7 +1342,7 @@ namespace BioDivCollector.Connector.Controllers
 
                     _context.Records.Add(newRec);
 
-                    createInfo += $"txt:{newRec.TextData.Count}, num:{newRec.NumericData.Count}, bool:{newRec.BooleanData.Count}";
+                    createInfo += $"txt:{newRec.TextData.Count}, num:{newRec.NumericData.Count}, bool:{newRec.BooleanData.Count}, binary:{newRec.BinaryData.Count}";
 
                     recSyncDto.created.Add(createGuid, createInfo);
                 }

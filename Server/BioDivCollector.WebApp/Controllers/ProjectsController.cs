@@ -514,7 +514,7 @@ namespace BioDivCollector.WebApp.Controllers
                                         {
                                             loadedProjectIndex = newGuid;
                                             // load the existing project
-                                            p = await db.Projects
+                                            /*p = await db.Projects
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.Form).ThenInclude(f => f.FormFormFields).ThenInclude(ff => ff.FormField)
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.TextData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.BooleanData)
@@ -526,7 +526,38 @@ namespace BioDivCollector.WebApp.Controllers
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.NumericData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.BinaryData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(m => m.Group)
-                                                .Where(m => m.ProjectId == loadedProjectIndex).FirstOrDefaultAsync();
+                                                .Where(m => m.ProjectId == loadedProjectIndex).FirstOrDefaultAsync();*/
+                                            p = await db.Projects
+                                               .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records)
+                                               .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries).ThenInclude(pg => pg.Records)
+                                               .Where(m => m.ProjectId == loadedProjectIndex)
+                                               .Where(m => m.StatusId != StatusEnum.deleted).FirstOrDefaultAsync();
+
+                                            foreach (ProjectGroup pg in p.ProjectGroups)
+                                            {
+                                                foreach (Record rr in pg.Records)
+                                                {
+                                                    await db.Entry(rr).Reference(m => m.Form).Query().Include(m => m.FormFormFields).ThenInclude(m => m.FormField).ThenInclude(m => m.FieldChoices).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.RecordChangeLogs).Query().Include(m => m.ChangeLog).ThenInclude(m => m.User).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.TextData).Query().Include(m => m.FormField).Include(m => m.FieldChoice).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.NumericData).Query().Include(m => m.FormField).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.BinaryData).Query().Include(m => m.FormField).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.BooleanData).Query().Include(m => m.FormField).LoadAsync();
+                                                }
+                                                foreach (ReferenceGeometry rgg in pg.Geometries.Where(m => m.StatusId != StatusEnum.deleted))
+                                                {
+                                                    foreach (Record rr in rgg.Records.Where(m => m.StatusId != StatusEnum.deleted))
+                                                    {
+                                                        await db.Entry(rr).Reference(m => m.Form).Query().Include(m => m.FormFormFields).ThenInclude(m => m.FormField).ThenInclude(m => m.FieldChoices).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.RecordChangeLogs).Query().Include(m => m.ChangeLog).ThenInclude(m => m.User).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.TextData).Query().Include(m => m.FormField).Include(m => m.FieldChoice).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.NumericData).Query().Include(m => m.FormField).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.BinaryData).Query().Include(m => m.FormField).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.BooleanData).Query().Include(m => m.FormField).LoadAsync();
+                                                    }
+
+                                                }
+                                            }
 
                                             // No rights to change the projects
                                             if (!erfassendeProjects.Any(m => m.ProjectId == p.ProjectId))

@@ -92,6 +92,7 @@ namespace BioDivCollector.Connector.Models.DTO
         public List<TextDataDTO> texts { get; set; } = new List<TextDataDTO>();
         public List<NumericDataDTO> numerics { get; set; } = new List<NumericDataDTO>();
         public List<BooleanDataDTO> booleans { get; set; } = new List<BooleanDataDTO>();
+        public List<BinaryDataDTO> binaries { get; set; } = new List<BinaryDataDTO>();
     }
 
     public class TextDataDTO
@@ -151,6 +152,22 @@ namespace BioDivCollector.Connector.Models.DTO
                 Id = this.booleanId,
                 Title = this.title,
                 Value = this.value,
+                FormFieldId = this.formFieldId,
+            };
+        }
+    }
+
+    public class BinaryDataDTO
+    {
+        public Guid binaryId { get; set; }
+
+        public int? formFieldId { get; set; }
+
+        public BinaryData Dto2Model()
+        {
+            return new BinaryData()
+            {
+                Id = this.binaryId,
                 FormFieldId = this.formFieldId,
             };
         }
