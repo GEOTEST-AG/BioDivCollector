@@ -75,9 +75,6 @@ namespace BioDivCollectorXamarin.Views
                 AddFormToNewGeometry(i, formList, geom, geomId);
                 MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
             });
-
-
-            
         }
 
         /// <summary>
@@ -118,7 +115,6 @@ namespace BioDivCollectorXamarin.Views
         {
             base.OnDisappearing();
             Title = "Beobachtungen";
-
             NavigationPage.SetBackButtonTitle(this, "Beobachtungen");
         }
 

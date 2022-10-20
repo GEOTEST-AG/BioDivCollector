@@ -216,7 +216,8 @@ namespace BioDivCollectorXamarin.Models
                 {
                     var noOfTextRecords = txtconn.Table<TextData>().Where(txt => txt.record_fk == recId).Where(txt => txt.value != string.Empty).Where(txt => txt.value != null).Count();
                     var noOfBoolRecords = txtconn.Table<BooleanData>().Where(boo => boo.record_fk == recId).Where(boo => boo.value != null).Count();
-                    hasRecords = (noOfTextRecords + noOfBoolRecords) > 0;
+                    var noOfBinaryRecords = txtconn.Table<BinaryData>().Where(bin => bin.record_fk == recId).Count();
+                    hasRecords = (noOfTextRecords + noOfBoolRecords + noOfBinaryRecords) > 0;
                 }
                 var title = "";
                 var form = Form.FetchForm(formId);
