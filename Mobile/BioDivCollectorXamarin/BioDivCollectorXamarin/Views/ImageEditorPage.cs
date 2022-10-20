@@ -100,9 +100,6 @@ namespace BioDivCollectorXamarin.Views
             Xamarin.Forms.NavigationPage.SetHasNavigationBar(this, true);
             var safeInsets = On<iOS>().SafeAreaInsets();
             Padding = safeInsets;
-            Editor.Rotate();
-            //ToolbarItem doneButton = new Xamarin.Forms.ToolbarItem();
-            //doneButton.Text = "Schliessen";
 
             Shell.SetBackButtonBehavior(this, new BackButtonBehavior
             {
@@ -116,7 +113,6 @@ namespace BioDivCollectorXamarin.Views
                 })
             });
 
-            //ToolbarItems.Add(doneButton);
             if (BinaryDataId == null)
             {
                 Editor.Source = ImageSource.FromStream(() => new MemoryStream(new byte[1048576]));
@@ -124,17 +120,23 @@ namespace BioDivCollectorXamarin.Views
                 Editor.ImageSaved += this.Editor_ImageSaved;
                 Editor.ImageSaving += this.ImageEditor_ImageSaving;
                 Editor.ToolbarSettings.ToolbarItemSelected += ToolbarSettings_ToolbarItemSelected;
-                AddToolbarItems();
             }
             else
             {
                 GetImage();
             }
+            AddToolbarItems();
             Shell.SetNavBarIsVisible(this, true);
         }
 
         private void AddToolbarItems()
         {
+            if (Editor.ToolbarSettings.ToolbarItems[Editor.ToolbarSettings.ToolbarItems.Count - 1].Name == "Album")
+            {
+                //Remove last two toolbar items
+                Editor.ToolbarSettings.ToolbarItems.Remove(Editor.ToolbarSettings.ToolbarItems[Editor.ToolbarSettings.ToolbarItems.Count - 1]);
+                Editor.ToolbarSettings.ToolbarItems.Remove(Editor.ToolbarSettings.ToolbarItems[Editor.ToolbarSettings.ToolbarItems.Count - 1]);
+            }
             if (Editor.ToolbarSettings.ToolbarItems.Count == 9)
             {
                 Editor.ToolbarSettings.ToolbarItems.Insert(0, new FooterToolbarItem()

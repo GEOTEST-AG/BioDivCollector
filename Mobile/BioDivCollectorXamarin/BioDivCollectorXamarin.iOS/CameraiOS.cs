@@ -1,10 +1,9 @@
-﻿using BioDivCollectorXamarin;
-using Foundation;
-using static BioDivCollectorXamarin.Helpers.Interfaces;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Foundation;
 using UIKit;
 using Xamarin.Forms;
+using static BioDivCollectorXamarin.Helpers.Interfaces;
 
 [assembly: Dependency(typeof(BioDivCollectorXamarin.iOS.CameraIOS))]
 namespace BioDivCollectorXamarin.iOS

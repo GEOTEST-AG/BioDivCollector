@@ -3,7 +3,6 @@ using System.IO;
 using Java.IO;
 using Xamarin.Forms;
 using static BioDivCollectorXamarin.Helpers.Interfaces;
-using static BioDivCollectorXamarin.Helpers.Interfaces;
 
 [assembly: Dependency(typeof(BioDivCollectorXamarin.Droid.CameraAndroid))]
 namespace BioDivCollectorXamarin.Droid
