@@ -769,17 +769,10 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             
             Map.Layers.Insert(0, MapModel.GetBaseMap().MapsuiLayer);
-            
-            foreach (var layer in MapLayers)
+
+            foreach (var layer in MapLayers.Where(layer => layer.Enabled == true).OrderByDescending(layer => layer.LayerZ).ToList())
             {
-                if (layer != null && layer.Enabled && layer.LayerZ < Map.Layers.Count && layer.LayerZ >= 0)
-                {
-                    Map.Layers.Insert(1,layer.MapsuiLayer);
-                }
-                else if (layer != null && layer.Enabled && layer.LayerZ >= Map.Layers.Count)
-                {
-                    Map.Layers.Add(layer.MapsuiLayer);
-                }
+                Map.Layers.Add(layer.MapsuiLayer);
             }
         }
 
