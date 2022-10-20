@@ -68,7 +68,7 @@ namespace BioDivCollectorXamarin.Views
             ContentStack.Children.Add(takePhoto);
             ContentStack.Children.Add(makeSketch);
 
-            Shell.SetBackButtonBehavior(this, new BackButtonBehavior
+            /*Shell.SetBackButtonBehavior(this, new BackButtonBehavior
             {
                 Command = new Command(() =>
                 {
@@ -77,7 +77,7 @@ namespace BioDivCollectorXamarin.Views
                         Shell.Current.Navigation.PopAsync();
                     });
                 })
-            });
+            });*/
 
             MessagingCenter.Subscribe<byte[]>(this, "ImageSelected", (args) =>
             {

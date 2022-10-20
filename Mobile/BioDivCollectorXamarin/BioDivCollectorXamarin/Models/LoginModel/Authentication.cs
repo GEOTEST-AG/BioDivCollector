@@ -269,5 +269,4 @@ namespace BioDivCollectorXamarin.Models.LoginModel
             query.Add("nonce", Guid.NewGuid().ToString("N"));
         }
     }
-
 }

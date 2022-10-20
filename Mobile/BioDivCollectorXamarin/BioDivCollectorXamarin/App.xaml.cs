@@ -200,7 +200,9 @@ namespace BioDivCollectorXamarin
                     MainPage = new AppShell();
                     if (CurrentRoute != null && CurrentRoute != String.Empty)
                     {
-                        try { AppShell.Current.GoToAsync(CurrentRoute); }
+                        try {
+                            AppShell.Current.GoToAsync(CurrentRoute);
+                        }
                         catch (Exception e)
                         {
                             Console.WriteLine("Didn't manage to go to route, " + e);

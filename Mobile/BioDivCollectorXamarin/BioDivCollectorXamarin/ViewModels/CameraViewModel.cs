@@ -174,7 +174,6 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 {
-                    //var Rec2 = conn.GetWithChildren<Record>(Rec.Id);
                     Rec.binaries = conn.Table<BinaryData>().Where(x => x.record_fk == Rec.Id).ToList();
                     Rec.texts = conn.Table<TextData>().Where(x => x.record_fk == Rec.Id).ToList();
                     Rec.booleans = conn.Table<BooleanData>().Where(x => x.record_fk == Rec.Id).ToList();

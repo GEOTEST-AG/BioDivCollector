@@ -56,16 +56,17 @@ namespace BioDivCollectorXamarin.ViewModels
             GUIDCommand = new Command(CopyGUID);
             SaveCommand = new Command(OnSave, ValidateSave);
             CancelCommand = new Command(OnCancel);
-
-            CreateForm(recId, formId, geomId);
         }
 
         public void CreateForm(int? recId, int formId, int? geomId)
         {
+            FormId = formId;
+            GeomId = geomId;
+            FormId = formId;
             Assets = new List<View>();
 
             //Get the record and its corresponding variable values
-            if (recId != null)
+            if (recId != null && recId > 0)
             {
                 using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 {
@@ -81,6 +82,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 NewRecord = true;
             }
 
+            App.CurrentRoute = $"//Records/Form?formid={formId}&recid={RecId}&geomid={geomId}";
             var fontSize = 16;
             var txts = new List<TextData>();
             var nums = new List<NumericData>();
@@ -734,7 +736,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void OnAppearing()
         {
-            CreateForm(RecId, FormId, GeomId);
+            if (FormId != 0)
+            {
+                CreateForm(RecId, FormId, GeomId);
+            }
         }
 
         /// <summary>
@@ -1137,11 +1142,14 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             NewRecord = false;
             var button = sender as CameraButton;
+            StackLayout layout = (StackLayout)button.Parent;
+            
             Device.BeginInvokeOnMainThread(async () =>
             {
                 var deleteResponse = await App.Current.MainPage.DisplayAlert("Bild Löschen", "Wollen Sie dieses Bild wirklich löschen?", "Löschen", "Abbrechen",FlowDirection.RightToLeft);
                 if (deleteResponse == true)
                 {
+                    await layout.FadeTo(0, 250, null);
                     await BinaryData.DeleteBinary(button.BinaryId);
                     Record.UpdateRecord(button.RecordId);
                     MessagingCenter.Send<FormPageVM>(this, "PhotoDeleted");
@@ -1158,6 +1166,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Device.BeginInvokeOnMainThread(async () =>
             {
                 await Shell.Current.Navigation.PushAsync(new SfImageEditorPage(button.FormFieldId, null, RecId), true);
+                //await Shell.Current.Navigation.PushAsync(new SfImageEditorPage(button.FormFieldId, null, RecId), true);
             });
         }
     }

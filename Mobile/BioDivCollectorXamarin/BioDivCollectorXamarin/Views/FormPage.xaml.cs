@@ -9,12 +9,42 @@ using Xamarin.Forms.Xaml;
 namespace BioDivCollectorXamarin.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
+    [QueryProperty(nameof(RecIdString), "recid")]
+    [QueryProperty(nameof(GeomIdString), "geomid")]
+    [QueryProperty(nameof(FormIdString), "formid")]
     public partial class FormPage : ContentPage
     {
         FormPageVM ViewModel;
-        public int? RecId;
-        public int FormId;
-        public int? GeomId;
+        public string RecIdString
+        {
+            set
+            {
+                int.TryParse(value, out int parsedValue);
+                RecId = parsedValue;
+                if (ViewModel != null) { ViewModel.RecId = parsedValue; }
+            }
+        }
+        public string FormIdString
+        {
+            set
+            {
+                int.TryParse(value, out int parsedValue);
+                FormId = parsedValue;
+                if (ViewModel != null) { ViewModel.FormId = parsedValue; }
+            }
+        }
+        public string GeomIdString
+        {
+            set
+            {
+                int.TryParse(value, out int parsedValue);
+                GeomId = parsedValue;
+                if (ViewModel != null) { ViewModel.GeomId = parsedValue; }
+            }
+        }
+        public int? RecId { get; set; }
+        public int FormId { get; set; }
+        public int? GeomId { get; set; }
 
         /// <summary>
         /// Try to initialise the page with a default constructor
@@ -29,7 +59,6 @@ namespace BioDivCollectorXamarin.Views
             {
                 NavigateBack();
             });
-            App.CurrentRoute = "//Records/Form";
         }
 
         /// <summary>
@@ -53,7 +82,6 @@ namespace BioDivCollectorXamarin.Views
             {
                 OnAppearing();
             });
-            App.CurrentRoute = "//Records/Form";
         }
 
         /// <summary>

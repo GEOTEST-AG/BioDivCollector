@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using BioDivCollectorXamarin.ViewModels;
 using BioDivCollectorXamarin.Views;
+using Syncfusion.SfImageEditor.XForms;
 using Xamarin.Forms;
 using Xamarin.Forms.PlatformConfiguration;
 using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
@@ -21,6 +22,7 @@ namespace BioDivCollectorXamarin
             Routing.RegisterRoute(nameof(ObjectsListPage), typeof(ObjectsListPage));
             Routing.RegisterRoute(nameof(RecordsPage), typeof(RecordsPage));
             Routing.RegisterRoute("//Records/Form", typeof(FormPage));
+            Routing.RegisterRoute("//Records/Form/ImageEditor", typeof(SfImageEditorPage));
             Routing.RegisterRoute("//Projects/ProjectList", typeof(ProjectListPage));
             Routing.RegisterRoute("//Map/MapLayers", typeof(MapLayersPage));
             Routing.RegisterRoute("//Records/FormSelection", typeof(FormSelectionPage));

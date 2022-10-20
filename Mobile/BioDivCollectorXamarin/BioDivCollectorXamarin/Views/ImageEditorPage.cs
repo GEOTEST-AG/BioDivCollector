@@ -1,28 +1,62 @@
 ﻿using System;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BioDivCollectorXamarin;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using NativeMedia;
 using SQLite;
-using SQLiteNetExtensions.Extensions;
 using Syncfusion.SfImageEditor.XForms;
 using Xamarin.Essentials;
 using Xamarin.Forms;
+using Xamarin.Forms.PlatformConfiguration;
+using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
 using static BioDivCollectorXamarin.Helpers.Interfaces;
 
 namespace BioDivCollectorXamarin.Views
 {
+    [QueryProperty(nameof(RecIdString), "recid")]
+    [QueryProperty(nameof(BinaryIdString), "binaryid")]
+    [QueryProperty(nameof(FormIdString), "formid")]
     public class SfImageEditorPage : ContentPage
     {
+        public string RecIdString
+        {
+            set
+            {
+                int.TryParse(value, out int parsedValue);
+                RecordId = parsedValue;
+            }
+        }
+        
+        public string FormIdString
+        {
+            set
+            {
+                int.TryParse(value, out int parsedValue);
+                FormFieldId = parsedValue;
+            }
+        }
+
+        public string BinaryIdString
+        {
+            set
+            {
+                BinaryDataId = value;
+            }
+        }
+
         private string Filename;
         private int RecordId { get; set; }
         private string BinaryDataId { get; set; }
         private int FormFieldId { get; set; }
         private SfImageEditor Editor { get; set; }
+
+        public SfImageEditorPage()
+        {
+            Title = "Bildverarbeitung";
+            Editor = new SfImageEditor();
+        }
 
         public SfImageEditorPage(int formFieldId, string binaryId, int recordId)
         {
@@ -31,43 +65,6 @@ namespace BioDivCollectorXamarin.Views
             FormFieldId = formFieldId;
             BinaryDataId = binaryId;
             RecordId = recordId;
-            if (binaryId == null)
-            {
-                Editor.Source = ImageSource.FromStream(() => new MemoryStream(new byte[1048576]));
-                Content = Editor;
-                Editor.ImageSaved += this.Editor_ImageSaved;
-                Editor.ImageSaving += this.ImageEditor_ImageSaving;
-                Editor.ToolbarSettings.ToolbarItemSelected += ToolbarSettings_ToolbarItemSelected;
-                AddToolbarItems();
-            }
-            else
-            {
-                GetImage();
-            }
-      
-            Shell.SetBackButtonBehavior(this, new BackButtonBehavior
-            {
-                Command = new Command(() =>
-                {
-                    Device.BeginInvokeOnMainThread(async () =>
-                    {
-                        await Shell.Current.Navigation.PopAsync(true);
-                    });
-                })
-            });
-        }
-
-        private void CreateSketchIfNull()
-        {
-            Device.BeginInvokeOnMainThread((Action)(() =>
-            {
-                Editor.Source = ImageSource.FromStream(() => new MemoryStream(new byte[1048576]));
-                Content = Editor;
-                Editor.ImageSaved += this.Editor_ImageSaved;
-                Editor.ImageSaving += this.ImageEditor_ImageSaving;
-                Editor.ToolbarSettings.ToolbarItemSelected += ToolbarSettings_ToolbarItemSelected;
-                AddToolbarItems();
-            }));
         }
 
         private void GetImage()
@@ -76,9 +73,9 @@ namespace BioDivCollectorXamarin.Views
             {
                 try
                 {
-                    //Editor = new SfImageEditor();
                     var directory = DependencyService.Get<FileInterface>().GetImagePath();
                     string filepath = Path.Combine(directory, BinaryDataId + ".jpg");
+                    App.CurrentRoute = $"//Records/Form/ImageEditor?formid={FormFieldId}&recid={RecordId}&binaryid={BinaryDataId}";
                     if (File.Exists(filepath))
                     {
                         Editor.Source = ImageSource.FromFile(filepath);
@@ -100,6 +97,39 @@ namespace BioDivCollectorXamarin.Views
         protected override void OnAppearing()
         {
             base.OnAppearing();
+            Xamarin.Forms.NavigationPage.SetHasNavigationBar(this, true);
+            var safeInsets = On<iOS>().SafeAreaInsets();
+            Padding = safeInsets;
+            Editor.Rotate();
+            //ToolbarItem doneButton = new Xamarin.Forms.ToolbarItem();
+            //doneButton.Text = "Schliessen";
+
+            Shell.SetBackButtonBehavior(this, new BackButtonBehavior
+            {
+                Command = new Command(() =>
+                {
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        var rec = Record.FetchRecord(RecordId);
+                        await Shell.Current.GoToAsync($"..?formid={rec.formId}&recid={RecordId}&geomid={rec.geometry_fk}");
+                    });
+                })
+            });
+
+            //ToolbarItems.Add(doneButton);
+            if (BinaryDataId == null)
+            {
+                Editor.Source = ImageSource.FromStream(() => new MemoryStream(new byte[1048576]));
+                Content = Editor;
+                Editor.ImageSaved += this.Editor_ImageSaved;
+                Editor.ImageSaving += this.ImageEditor_ImageSaving;
+                Editor.ToolbarSettings.ToolbarItemSelected += ToolbarSettings_ToolbarItemSelected;
+                AddToolbarItems();
+            }
+            else
+            {
+                GetImage();
+            }
             Shell.SetNavBarIsVisible(this, true);
         }
 
@@ -205,7 +235,7 @@ namespace BioDivCollectorXamarin.Views
                     fileStream.Write(bytesInStream, 0, bytesInStream.Length);
                 }
                 Record.UpdateRecord(RecordId);
-
+                App.CurrentRoute = $"//Records/Form/ImageEditor?formid={FormFieldId}&recid={RecordId}&binaryid={BinaryDataId}";
             }
             catch
             {
@@ -227,17 +257,20 @@ namespace BioDivCollectorXamarin.Views
                 if (status != PermissionStatus.Granted || status2 != PermissionStatus.Granted)
                     return;
 
-                using (var file = await MediaGallery.CapturePhotoAsync())
-                {
-                    var stream = await file.OpenReadAsync();
-                    var arr = stream.ToBytes();
-                    SaveToAlbum(arr);
-                    var success = await SaveToFile(arr);
-                    if (success) {
-                        GetImage();
+                await Device.InvokeOnMainThreadAsync(async () =>
+                { 
+                    using (var file = await MediaGallery.CapturePhotoAsync())
+                    {
+                        var stream = await file.OpenReadAsync();
+                        var arr = stream.ToBytes();
+                        SaveToAlbum(arr);
+                        var success = await SaveToFile(arr);
+                        if (success) {
+                            GetImage();
+                        }
+                        else { }
                     }
-                    else { }
-                }
+                });
             }
             catch (FeatureNotSupportedException fnsEx)
             {
@@ -351,6 +384,7 @@ namespace BioDivCollectorXamarin.Views
                 }
                 BinaryData.SaveData(arr, BinaryDataId);
                 Record.UpdateRecord(RecordId);
+                App.CurrentRoute = $"//Records/Form/ImageEditor?formid={FormFieldId}&recid={RecordId}&binaryid={BinaryDataId}";
                 return true;
             }
             catch
