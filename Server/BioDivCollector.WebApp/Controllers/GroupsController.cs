@@ -71,6 +71,8 @@ namespace BioDivCollector.WebApp.Controllers
 
                     if (projects.Where(m => m.ProjectGroups.Select(m => m.Group).Contains(g)).Any()) gvm.Editable = true;
 
+                    if (g.GroupUsers.Where(m=>m.UserId == user.UserId).Any()) gvm.Editable = true;
+
                     gvm.ShowOnly = true;
                     groups.Add(gvm);
 
