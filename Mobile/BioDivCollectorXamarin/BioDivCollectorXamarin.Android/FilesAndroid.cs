@@ -4,6 +4,7 @@ using Java.IO;
 using Xamarin.Forms;
 using Android.Content;
 using static BioDivCollectorXamarin.Helpers.Interfaces;
+using static System.Net.WebRequestMethods;
 
 [assembly: Dependency(typeof(BioDivCollectorXamarin.Droid.FilesAndroid))]
 namespace BioDivCollectorXamarin.Droid
@@ -46,6 +47,7 @@ namespace BioDivCollectorXamarin.Droid
             }
             return directory;
         }
+
     }
 }
 

@@ -77,36 +77,5 @@ namespace BioDivCollectorXamarin.Droid
                 return 0;
             }
         }
-
-        public byte[] RotateImage(System.IO.Stream imageStream, string filePath)
-        {
-            int rotationDegrees = GetImageRotation(filePath);
-            ExifInterface ei = new ExifInterface(filePath);
-            Orientation orientation = (Orientation)ei.GetAttributeInt(ExifInterface.TagOrientation, (int)Orientation.Undefined);
-            //ei.SetAttribute(ExifInterface.TagOrientation, ((int)Orientation.Normal).ToString());
-            //ei.SaveAttributes();
-            byte[] byteArray = new byte[imageStream.Length];
-            try
-            {
-                imageStream.Read(byteArray, 0, (int)imageStream.Length);
-
-                Bitmap originalImage = BitmapFactory.DecodeByteArray(byteArray, 0, byteArray.Length);
-                Matrix matrix = new Matrix();
-                matrix.PostRotate((float)rotationDegrees);
-
-                Bitmap rotatedBitmap = Bitmap.CreateBitmap(originalImage, 0, 0, originalImage.Width,
-                    originalImage.Height, matrix, true);
-
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    rotatedBitmap.Compress(Bitmap.CompressFormat.Jpeg, 100, ms);
-                    return ms.ToArray();
-                }
-            }
-            catch (Exception ex)
-            {
-                return byteArray;
-            }
-        }
     }
 }

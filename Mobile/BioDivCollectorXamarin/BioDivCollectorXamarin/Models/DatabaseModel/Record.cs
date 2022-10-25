@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using SQLite;
 using SQLiteNetExtensions.Attributes;
@@ -298,6 +299,15 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             }
         }
 
+        public void SaveBinaryRecord()
+        {
+            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            {
+                conn.Insert(this);
+            }
+            Record.UpdateRecord(this.record_fk);
+        }
+
         public async static Task<bool> DownloadBinaryData(string recordId, int? formFieldId)
         {
             Record rec;
@@ -400,6 +410,26 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             catch
             {
                 await App.Current.MainPage.DisplayAlert("Das Foto konnte nicht als Datei gespeichert werden", String.Empty, "OK");
+            }
+        }
+
+        public static void SaveData(Stream stream, string binaryId)
+        {
+            var directory = DependencyService.Get<FileInterface>().GetImagePath();
+            string filepath = Path.Combine(directory, binaryId + ".jpg");
+
+            if (stream.Length > 0) {
+                // Create a FileStream object to write a stream to a file
+                using (FileStream fileStream = System.IO.File.Create(filepath, (int)stream.Length))
+                {
+
+                    // Fill the bytes[] array with the stream data
+                    byte[] bytesInStream = new byte[stream.Length];
+                    stream.Read(bytesInStream, 0, (int)bytesInStream.Length);
+
+                    // Use FileStream object to write to the specified file
+                    fileStream.Write(bytesInStream, 0, bytesInStream.Length);
+                }
             }
         }
 
