@@ -73,7 +73,7 @@
     <IOSDebugOverWiFi>false</IOSDebugOverWiFi>
     <MtouchProfiling>false</MtouchProfiling>
     <MtouchLink>SdkOnly</MtouchLink>
-    <CodesignProvision>BioDiv</CodesignProvision>
+    <CodesignProvision>BioDiv Store</CodesignProvision>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
     <AppExtensionDebugBundleId />
