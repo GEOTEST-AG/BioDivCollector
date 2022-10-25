@@ -9,6 +9,7 @@ namespace BioDivCollectorXamarin.Helpers
         {
             void SaveToAlbum(Byte[] bytes);
             void SaveToFile(Byte[] bytes, string filename);
+            int GetImageRotation(string filePath);
         }
 
         public interface FileInterface

@@ -12,12 +12,7 @@ namespace BioDivCollectorXamarin.Droid
     {
         public string GetMbTilesPath()
         {
-            var directory = Path.Combine(GetRootFolder(), Android.OS.Environment.DirectoryDocuments);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-            directory = Path.Combine(directory, "mbtiles");
+            var directory = Path.Combine(GetRootFolder(), "mbtiles");
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
@@ -37,6 +32,7 @@ namespace BioDivCollectorXamarin.Droid
             {
                 rootFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             }
+
             return rootFolder;
         }
 

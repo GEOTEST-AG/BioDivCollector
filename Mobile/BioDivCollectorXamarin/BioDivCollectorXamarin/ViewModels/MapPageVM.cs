@@ -900,6 +900,11 @@ namespace BioDivCollectorXamarin.ViewModels
                 var prevaccuracy = Preferences.Get("PrevLastPositionAccuracy", 0.0);
                 var prevheading = Preferences.Get("PrevLastPositionHeading", 0.0);
                 var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
+                var centred = Preferences.Get("GPS_Centred", false);
+                if (centred)
+                {
+                    CentreOnPoint(lon, lat);
+                }
 
                 if (lat != 0 && lon != 0)
                 {
@@ -938,6 +943,41 @@ namespace BioDivCollectorXamarin.ViewModels
                     }
                 }
             });
+
+        }
+
+        /// <summary>
+        /// Moves the map to x,y, whilst keeping the extent the same
+        /// </summary>
+        private void CentreOnPoint(double x, double y)
+        {
+            try
+            {
+                var coords = SphericalMercator.FromLonLat(x, y);
+                var x1 = Double.Parse(Preferences.Get("BBLLx", "1000"));
+                var x2 = Double.Parse(Preferences.Get("BBURx", "1000"));
+                var dx = x2 - x1;
+                var y1 = Double.Parse(Preferences.Get("BBLLy", "1000"));
+                var y2 = Double.Parse(Preferences.Get("BBURy", "1000"));
+                var dy = y2 - y1;
+
+                var newx1 = coords.X - (dx / 2);
+                var newx2 = coords.X + (dx / 2);
+                var newy1 = coords.Y - (dy / 2);
+                var newy2 = coords.Y + (dy / 2);
+
+                var bbox = new BoundingBox(newx1, newy1, newx2, newy2);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    VMMapView.Navigator.NavigateTo(bbox, ScaleMethod.Fit);
+                });
+
+                SetBoundingBox();
+            }
+            catch
+            {
+
+            }
 
         }
 
@@ -1065,7 +1105,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     }
             } };
             var points = new List<Feature>() { c.Feature };
-            ILayer gpsLayer = MapModel.CreatePolygonLayer(points, Mapsui.Styles.Color.Transparent, Mapsui.Styles.Color.FromArgb(80, 66, 135, 245));
+            ILayer gpsLayer = MapModel.CreatePolygonLayer(points, Mapsui.Styles.Color.Transparent, Mapsui.Styles.Color.FromArgb(50, 66, 135, 245));
             gpsLayer.Name = "GPS";
             gpsLayer.IsMapInfoLayer = false;
             return gpsLayer;
@@ -1207,7 +1247,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             bearingfeature.Styles = new List<IStyle>(){ new VectorStyle
             {
-                Fill = new Mapsui.Styles.Brush(Mapsui.Styles.Color.FromArgb(150,66,135,245)),
+                Fill = new Mapsui.Styles.Brush(Mapsui.Styles.Color.FromArgb(100,66,135,245)),
                 Outline = null,
                 Line = null
             } };

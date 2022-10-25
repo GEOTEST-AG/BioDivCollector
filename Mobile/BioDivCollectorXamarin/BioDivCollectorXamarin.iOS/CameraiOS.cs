@@ -59,5 +59,9 @@ namespace BioDivCollectorXamarin.iOS
             return null;
         }
 
+        public int GetImageRotation(string filePath)
+        {
+            return 0;
+        }
     }
 }

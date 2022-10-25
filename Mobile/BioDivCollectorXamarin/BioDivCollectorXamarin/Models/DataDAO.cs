@@ -179,7 +179,7 @@ namespace BioDivCollectorXamarin.Models
                                 var photoUploadResponse = await PrepareBinaryRecordsForUpload(lastSync); //Upload binary objects
                                 if (photoUploadResponse != String.Empty)
                                 {
-                                    await App.Current.MainPage.DisplayAlert("Foto Upload", photoUploadResponse, "OK");
+                                    MessagingCenter.Send(new DataDAO(), "SyncMessage", photoUploadResponse);
                                 }
 
                                 DataDAO.ProcessJSON(returnedObject.projectUpdate); //Update database with downloaded data
