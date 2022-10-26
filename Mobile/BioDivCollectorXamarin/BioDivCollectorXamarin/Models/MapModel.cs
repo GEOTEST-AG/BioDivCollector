@@ -263,7 +263,7 @@ namespace BioDivCollectorXamarin.Models
         public static MapLayer GetBaseMap()
         {
 
-            var dirPath = Path.Combine(App.TileLocation, "mbtiles");
+            var dirPath = App.TileLocation;
             var BL = Preferences.Get("BaseLayer", "swisstopo_pixelkarte");
 
             bool noInternet = MapModel.IsAppDisconnected();
