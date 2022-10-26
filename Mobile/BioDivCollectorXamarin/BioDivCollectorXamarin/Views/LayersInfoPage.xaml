@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="BioDivCollectorXamarin.Views.LayersInfoPage">
+    <ContentPage.Content>
+        <StackLayout Margin="20">
+            <Label Text="Hinzufügen von lokalen Ebenen zur App" FontAttributes="Bold" FontSize="Title" Margin="0,10"/>
+            <Label Text="Lokale Ebenen können der App hinzugefügt werden, indem eine «.mbtiles»-Datei in das App-Verzeichnis kopiert wird. Mbtiles-Dateien sind kleine Datenbanken mit Kachelbildern, die im GIS erstellt werden können."/>
+            <Label Text="Erstellen einer mbtiles-Datei in QGIS:" FontAttributes="Bold" Margin="0,10"/>
+            <Label>
+                <Label.Text>
+Öffnen Sie in QGIS die Datei oder den Webservice, von dem Sie einen lokalen Layer erstellen möchten.
+
+Wählen Sie im oberen Menü Verarbeitung >> Toolbox. Die Toolbox wird in Ihrer Ansicht geöffnet.
+
+Wählen Sie in der Toolbox Rasterwerkzeuge >> XYZ-Kacheln generieren (MBTiles).
+
+Es öffnet sich ein Popup-Fenster, in dem Sie Ihre Ebene konfigurieren und exportieren können.
+                </Label.Text>
+            </Label>
+            <Label Text="Hinzufügen der mbtiles-Datei zur App:" FontAttributes="Bold" Margin="0,10"/>
+            <Label>
+                <Label.Text>
+Um die Datei zur App hinzuzufügen, müssen Sie sie in das App-Verzeichnis kopieren. 
+
+- Unter iOS finden Sie dies in der Dateien-App unter Auf meinem iPad >> BioDiv >> mbtiles
+
+- Unter Android finden Sie dies in einer Dateibrowser-App unter Android >> data >> ch.geotest.biodivcollector >> files >> mbtiles (nicht jeder Dateibrowser erlaubt den Zugriff auf dieses Verzeichnis).
+                </Label.Text>
+            </Label>
+            <Label Text="Auswählen der lokalen Layer in der App:" FontAttributes="Bold" Margin="0,10"/>
+            <Label Text="Nachdem Sie Ihre Datei in das App-Verzeichnis kopiert haben, können Sie die App öffnen, den Reiter «Karten» auswählen, das Ebenen-Fenster über den Button rechts öffnen und dann die Option oben auf der Seite «Lokale Dateien zusätzlich anzeigen» auswählen. In der Liste der Ebenen werden alle lokalen Ebenen angezeigt."/>
+        </StackLayout>
+        
+    </ContentPage.Content>
+</ContentPage>
+
