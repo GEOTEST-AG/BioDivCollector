@@ -1,13 +1,10 @@
 ﻿using Android.Content;
+using Android.Content.Res;
+using Android.OS;
+using BioDivCollectorXamarin.Controls;
+using BioDivCollectorXamarin.Droid;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
-using BioDivCollectorXamarin.Models;
-using BioDivCollectorXamarin.Droid;
-using Android.Graphics.Drawables;
-using Android.Graphics;
-using Android.OS;
-using Android.Content.Res;
-using BioDivCollectorXamarin.Controls;
 
 [assembly: ExportRenderer(typeof(CustomEntry), typeof(CustomEntryRenderer))]
 namespace BioDivCollectorXamarin.Droid

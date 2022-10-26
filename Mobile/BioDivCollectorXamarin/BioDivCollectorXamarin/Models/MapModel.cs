@@ -23,6 +23,7 @@ using System.Net.Http;
 using System.Net;
 using SQLite;
 using BioDivCollectorXamarin.Models.DatabaseModel;
+using static BioDivCollectorXamarin.Helpers.Interfaces;
 
 namespace BioDivCollectorXamarin.Models
 {
@@ -844,7 +845,7 @@ namespace BioDivCollectorXamarin.Models
                 {
                     var layerNo = Math.Max(layers.Count - layer.order, 0);
                     var tileSource = WMSLayer.CreateTileSource(layer.url, layer.wmsLayer, "EPSG:3857");
-                    string dbpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "mbtiles/" + layer.title + ".mbtiles");
+                    string dbpath = Path.Combine(DependencyService.Get<FileInterface>().GetMbTilesPath(), layer.title + ".mbtiles");
                     //extent = tileSource.Schema.Extent;
 
                     var layerTask =  Task.Run(async () =>
@@ -881,7 +882,7 @@ namespace BioDivCollectorXamarin.Models
             //Swisstopo layer
             var task = Task.Run(async () =>
             {
-                string baselayerDbsavepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "mbtiles/swisstopo_pixelkarte.mbtiles");
+                string baselayerDbsavepath = Path.Combine(DependencyService.Get<FileInterface>().GetMbTilesPath(), "swisstopo_pixelkarte.mbtiles");
                 TileLayer baselayer = WMSLayer.CreatePixelkarteWMTSTileLayer();
 
                 //Create the database
@@ -890,7 +891,7 @@ namespace BioDivCollectorXamarin.Models
 
                 if (basemap == "osm") //OSM case
                 {
-                    baselayerDbsavepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "mbtiles/osm.mbtiles");
+                    baselayerDbsavepath = Path.Combine(DependencyService.Get<FileInterface>().GetMbTilesPath(), "osm.mbtiles");
                     baselayer = OpenStreetMap.CreateTileLayer();
 
                     //Create the database
@@ -899,7 +900,7 @@ namespace BioDivCollectorXamarin.Models
                 }
                 else if (basemap == "swissimage") //Swissimage case
                 {
-                    baselayerDbsavepath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "mbtiles/swissimage.mbtiles");
+                    baselayerDbsavepath = Path.Combine(DependencyService.Get<FileInterface>().GetMbTilesPath(), "swissimage.mbtiles");
                     baselayer = WMSLayer.CreateSwissimageWMTSTileLayer();
 
                     //Create the database
