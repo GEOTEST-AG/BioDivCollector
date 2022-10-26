@@ -802,10 +802,15 @@ namespace BioDivCollectorXamarin.Models
                 var l = f.ExecuteNonQuery();
             }
             var fileBasedColumnExists = tableInfo.Any(x => x.Name.Equals("fileBased"));
-            if (!uuidColumnExists)
+            if (!fileBasedColumnExists)
             {
                 var f = conn.CreateCommand("ALTER TABLE [Layer] ADD COLUMN fileBased INTEGER");
                 var l = f.ExecuteNonQuery();
+            }
+            var binaryTableInfo = conn.GetTableInfo("BinaryData");
+            if (binaryTableInfo.Count == 0)
+            {
+                conn.CreateTable<BinaryData>();
             }
         }
 
