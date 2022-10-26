@@ -342,6 +342,7 @@ namespace BioDivCollectorXamarin.Models
                     try
                     {
                         PerformStandardValueMigration(conn);
+                        PerformLayerMigration(conn);
                     }
                     catch (Exception e)
                     {
@@ -785,7 +786,25 @@ namespace BioDivCollectorXamarin.Models
             var columnExists = tableInfo.Any(x => x.Name.Equals("standardValue"));
             if (!columnExists)
             {
-                var f = conn.CreateCommand("ALTER TABLE [FormField] ADD COLUMN standardValue NTEXT");
+                var f = conn.CreateCommand("ALTER TABLE [FormField] ADD COLUMN standardValue VARCHAR");
+                var l = f.ExecuteNonQuery();
+            }
+        }
+
+        private static void PerformLayerMigration(SQLiteConnection conn)
+        {
+            //Check for column and migrate
+            var tableInfo = conn.GetTableInfo("Layer");
+            var uuidColumnExists = tableInfo.Any(x => x.Name.Equals("uuid"));
+            if (!uuidColumnExists)
+            {
+                var f = conn.CreateCommand("ALTER TABLE [Layer] ADD COLUMN uuid VARCHAR");
+                var l = f.ExecuteNonQuery();
+            }
+            var fileBasedColumnExists = tableInfo.Any(x => x.Name.Equals("fileBased"));
+            if (!uuidColumnExists)
+            {
+                var f = conn.CreateCommand("ALTER TABLE [Layer] ADD COLUMN fileBased INTEGER");
                 var l = f.ExecuteNonQuery();
             }
         }
