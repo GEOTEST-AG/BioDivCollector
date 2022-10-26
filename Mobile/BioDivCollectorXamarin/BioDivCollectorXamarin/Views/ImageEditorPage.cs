@@ -1,21 +1,9 @@
-﻿using System;
-using System.Drawing.Drawing2D;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using BioDivCollectorXamarin.Models.DatabaseModel;
+﻿using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.ViewModels;
-using NativeMedia;
-using SQLite;
 using Syncfusion.SfImageEditor.XForms;
-using Xamarin.Auth.OAuth2;
-using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.PlatformConfiguration;
 using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
-using static System.Net.WebRequestMethods;
-using static BioDivCollectorXamarin.Helpers.Interfaces;
 
 namespace BioDivCollectorXamarin.Views
 {

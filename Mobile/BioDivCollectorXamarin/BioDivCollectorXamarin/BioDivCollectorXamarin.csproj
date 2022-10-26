@@ -80,6 +80,9 @@
     <Compile Update="Views\ProjectsPage.xaml.cs">
       <DependentUpon>ProjectsPage.xaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\LayersInfoPage.xaml.cs">
+      <DependentUpon>LayersInfoPage.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BioDivCollectorXamarin.Models;
+using BioDivCollectorXamarin.Views;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 
@@ -50,6 +51,11 @@ namespace BioDivCollectorXamarin.ViewModels
         public Command OrthofotoButtonCommand { get; set; }
 
         /// <summary>
+        /// Shows info on how to create a local layer
+        /// </summary>
+        public Command LayersInfoCommand { get; set; }
+
+        /// <summary>
         /// The locally saved mbtiles file size for the current layer
         /// </summary>
         public string BaseLayerSize { get; set; }
@@ -90,6 +96,10 @@ namespace BioDivCollectorXamarin.ViewModels
             OSMButtonCommand = new Command(OSMButtonPressed, CanPressOSMButton);
             PixelkarteButtonCommand = new Command(PixelkarteButtonPressed, CanPressPixelkarteButton);
             OrthofotoButtonCommand = new Command(OrthofotoButtonPressed, CanPressOrthofotoButton);
+            LayersInfoCommand = new Command(() =>
+            {
+                Shell.Current.Navigation.PushAsync(new LayersInfoPage());
+            });
             MapLayers = MapModel.MakeArrayOfLayers();
             BaseLayerName = "Base";
             ShowLocalOnly = Preferences.Get("ShowLocalOnly", false);

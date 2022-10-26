@@ -11,7 +11,8 @@
         <StackLayout Orientation="Vertical" Spacing="0">
             <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
                 <CheckBox IsChecked="{Binding ShowLocalOnly}" CheckedChanged="CheckBox_CheckedChanged" VerticalOptions="Center" HorizontalOptions="Start" Color="{StaticResource BioDivGreen}" Margin="20,20,10,20"/>
-                <Label Text="Lokale Dateien zusätzlich anzeigen" HorizontalOptions="StartAndExpand" VerticalOptions="Center"/>
+                <Label Text="Lokale Dateien zusätzlich anzeigen" HorizontalOptions="Start" VerticalOptions="Center"/>
+                <Button BackgroundColor="Transparent" TextColor="{StaticResource BioDivGreen}" Text="&#xe88e;" FontFamily="Material" FontSize="20" Command ="{Binding LayersInfoCommand}" HorizontalOptions="Start"/>
             </StackLayout>
             <ListView x:Name="LayerList"
             ItemsSource="{Binding MapLayers, Mode=TwoWay}"

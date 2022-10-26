@@ -343,6 +343,7 @@ namespace BioDivCollectorXamarin.Models
                     {
                         PerformStandardValueMigration(conn);
                         PerformLayerMigration(conn);
+                        PerformBinaryDataMigration(conn);
                     }
                     catch (Exception e)
                     {
@@ -791,6 +792,10 @@ namespace BioDivCollectorXamarin.Models
             }
         }
 
+        /// <summary>
+        /// Add changes to the layer table
+        /// </summary>
+        /// <param name="conn"></param>
         private static void PerformLayerMigration(SQLiteConnection conn)
         {
             //Check for column and migrate
@@ -807,6 +812,19 @@ namespace BioDivCollectorXamarin.Models
                 var f = conn.CreateCommand("ALTER TABLE [Layer] ADD COLUMN fileBased INTEGER");
                 var l = f.ExecuteNonQuery();
             }
+            var binaryTableInfo = conn.GetTableInfo("BinaryData");
+            if (binaryTableInfo.Count == 0)
+            {
+                conn.CreateTable<BinaryData>();
+            }
+        }
+
+        /// <summary>
+        /// Add a binary data table if it doesn't exist
+        /// </summary>
+        /// <param name="conn"></param>
+        private static void PerformBinaryDataMigration(SQLiteConnection conn)
+        {
             var binaryTableInfo = conn.GetTableInfo("BinaryData");
             if (binaryTableInfo.Count == 0)
             {
