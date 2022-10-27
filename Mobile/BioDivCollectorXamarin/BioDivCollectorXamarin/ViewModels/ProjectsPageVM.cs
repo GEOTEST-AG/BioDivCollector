@@ -129,7 +129,6 @@ namespace BioDivCollectorXamarin.ViewModels
             Task.Run(() =>
             {
                 string projId = Preferences.Get("currentProject", @"");
-                SyncCommand.RaiseCanExecuteChanged();
                 App.CurrentProjectId = projId;
                 try
                 {
@@ -139,6 +138,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     Console.WriteLine("Couldn't set project " + exp);
                 }
+                SyncCommand.RaiseCanExecuteChanged();
             });
         }
 

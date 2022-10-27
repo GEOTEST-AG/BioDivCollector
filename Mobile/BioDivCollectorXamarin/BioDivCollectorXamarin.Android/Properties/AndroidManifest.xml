@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="53" android:versionName="1.3" package="ch.geotest.biodivcollector" android:installLocation="auto">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="55" android:versionName="1.3" package="ch.geotest.biodivcollector" android:installLocation="auto">
 	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="32" />
 	<application android:label="BioDiv" android:theme="@style/MainTheme" android:icon="@mipmap/ic_launcher" android:requestLegacyExternalStorage="true">
 		<provider android:name="android.support.v4.content.FileProvider" android:authorities="ch.geotest.biodivcollector.fileprovider" android:exported="false" android:grantUriPermissions="true">
