@@ -150,23 +150,24 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="parameter"></param>
         private async void OnDelete(object parameter)
         {
-            await Task.Run(() =>
+            await Task.Run(async() =>
             {
                 if (parameter == this)
                 {
                     var baseLayer = Preferences.Get("BaseLayer", String.Empty);
                     if (baseLayer != String.Empty)
                     {
-                        MapModel.DeleteMapLayer(baseLayer);
+                        await MapModel.DeleteMapLayer(baseLayer);
                     }
                 }
                 else
                 {
                     var layer = (parameter as MapLayer);
-                    MapModel.DeleteMapLayer(layer.Name);
+                    await MapModel.DeleteMapLayer(layer.Name);
                 }
                 MapLayers = MapModel.MakeArrayOfLayers();
                 ChangeBaseLayerLabel(); //Trigger the mbtiles file size to be recalculated
+                
             });
         }
 

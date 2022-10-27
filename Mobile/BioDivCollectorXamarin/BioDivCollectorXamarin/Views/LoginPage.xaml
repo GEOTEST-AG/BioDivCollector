@@ -7,7 +7,7 @@
         <Grid>
             <Image Source="Background.png" VerticalOptions="Fill" HorizontalOptions="Fill" Aspect="AspectFill"/>
         <StackLayout Margin="40" VerticalOptions="Center">
-            <Image Source="LogoV1small.png" WidthRequest="350" Margin="20"/>
+            <Image Source="LogoV1small.png" WidthRequest="350" HeightRequest="80" HorizontalOptions="Center" VerticalOptions="Center" Margin="20"/>
             <Label Text="Sie werden angemeldet. Bitte warten..."
                 VerticalOptions="CenterAndExpand" 
                 HorizontalOptions="CenterAndExpand" HorizontalTextAlignment="Center" TextColor="Black"/>

@@ -213,7 +213,7 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>A string reflecting the stored file size</returns>
         public static string GetLocalStorageSizeForLayer(string layerName)
         {
-            var dirPath = Path.Combine(App.TileLocation, "mbtiles");
+            var dirPath = App.TileLocation;
             var path = dirPath + "/" + layerName;
             FileInfo fi = new FileInfo(dirPath + "/" + layerName + ".mbtiles");
             long storage = 0;
@@ -236,9 +236,9 @@ namespace BioDivCollectorXamarin.Models
         /// Deletes the locally stored mbtiles file associated with the layer
         /// </summary>
         /// <param name="layername"></param>
-        public static void DeleteMapLayer(string layername)
+        public async static Task<bool> DeleteMapLayer(string layername)
         {
-            var dirPath = Path.Combine(App.TileLocation, "mbtiles");
+            var dirPath = App.TileLocation;
 
             //Create a dictionary of all the offline files available
             var offlineLayers = new Dictionary<string, ILayer>();
@@ -254,6 +254,7 @@ namespace BioDivCollectorXamarin.Models
                     }
                 }
             }
+            return true;
         }
 
         /// <summary>
@@ -262,8 +263,6 @@ namespace BioDivCollectorXamarin.Models
         /// <returns></returns>
         public static MapLayer GetBaseMap()
         {
-
-            var dirPath = App.TileLocation;
             var BL = Preferences.Get("BaseLayer", "swisstopo_pixelkarte");
 
             bool noInternet = MapModel.IsAppDisconnected();
@@ -286,7 +285,7 @@ namespace BioDivCollectorXamarin.Models
                 var filename = "swisstopo_pixelkarte.mbtiles";
                 if (BL == "osm") { filename = "osm.mbtiles"; }
                 else if (BL == "swissimage") { filename = "swissimage.mbtiles"; }
-                foreach (var file in System.IO.Directory.GetFiles(dirPath))
+                foreach (var file in System.IO.Directory.GetFiles(App.TileLocation))
                 {
                     if (file.EndsWith(filename))
                     {

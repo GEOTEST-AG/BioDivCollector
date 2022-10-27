@@ -22,6 +22,7 @@
     <None Remove="Xam.Plugin.Media" />
     <None Remove="Xamarin.MediaGallery" />
     <None Remove="Xamarin.MediaGallery.Permision" />
+    <None Remove="Images\LogoV1small.png" />
   </ItemGroup>
 
   <ItemGroup>

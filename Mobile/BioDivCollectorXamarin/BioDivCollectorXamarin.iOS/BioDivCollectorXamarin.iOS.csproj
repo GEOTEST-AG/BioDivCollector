@@ -340,15 +340,6 @@
     <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\Contents.json">
       <Visible>false</Visible>
     </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small-1.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1small-2.png">
-      <Visible>false</Visible>
-    </ImageAsset>
     <ImageAsset Include="Assets.xcassets\undo.imageset\Contents.json">
       <Visible>false</Visible>
     </ImageAsset>
@@ -373,6 +364,10 @@
     <ImageAsset Include="Assets.xcassets\clear.imageset\outline_clear_white_24pt_3x.png">
       <Visible>false</Visible>
     </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1 2.png" />
+    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1 1.png" />
+    <ImageAsset Include="Assets.xcassets\LogoV1small.imageset\LogoV1.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

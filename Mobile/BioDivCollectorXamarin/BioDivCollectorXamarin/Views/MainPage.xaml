@@ -12,7 +12,7 @@
         <Grid>
             <Image Source="Background.png" VerticalOptions="Fill" HorizontalOptions="Fill" Aspect="AspectFill"/>
             <StackLayout Margin="40" VerticalOptions="Start" Spacing="30">
-                <Image Source="LogoV1small.png" WidthRequest="350" Margin="20"/>
+                <Image Source="LogoV1small.png" WidthRequest="350" VerticalOptions="Center" HorizontalOptions="Center" Margin="20"/>
                 <Grid>
                     <Frame BackgroundColor="Black" Opacity="0.1" CornerRadius="5" Padding="0" HasShadow="False"/>
                     <Entry Text="{Binding Username, Mode=OneWayToSource}" WidthRequest="500" Placeholder="Benutzername" >
