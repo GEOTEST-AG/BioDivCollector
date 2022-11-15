@@ -9,6 +9,55 @@
     ViewData["Title"] = Model.Geometry.GeometryName;
 }
 
+<svg display="none" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1140" height="20" viewBox="0 0 1140 20">	
+    <defs>	
+      <g id="ico-close">	
+        <polygon points="19.7,11.7 18.3,10.3 15,13.6 11.7,10.3 10.3,11.7 13.6,15 10.3,18.3 11.7,19.7 15,16.4 18.3,19.7 19.7,18.3	
+        16.4,15 "/>	
+      </g>	
+    </defs>	
+</svg>	
+<style>	
+.image-remover {	
+    position: relative;	
+    overflow: hidden;	
+}	
+.image-remover svg {	
+  position: absolute;	
+  top: -30px;	
+  left: 0;	
+  width: 20px;	
+  height: 20px;	
+  background: rgba(17, 17, 17, 0.4);	
+  fill: white;	
+  transition: top ease 200ms;	
+}	
+.image-remover:hover svg {	
+  top: 0;	
+  display: block;	
+}	
+.image-remover:hover svg:hover {	
+  cursor: pointer;	
+  background: red;	
+}	
+.image-remover:hover svg:active {	
+  background: #cc0000;	
+}	
+.dropzone	
+{	
+    min-height: 20px;	
+    border: 1px solid rgba(0,0,0,.3);	
+    background: #fff;	
+    padding: 10px 10px;	
+    margin-top: 20px;	
+    border-radius: 25px;	
+}	
+.dropzone .dz-message .dz-button	
+{	
+    text-align:center;	
+}	
+</style>
+
 <script>
      // add new Record
     function addRecord() {
@@ -285,6 +334,32 @@
                         </div>
 
                         <script>
+
+                            function deleteImage(e, imageId) {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        modalokclick = false;
+                                                            $('#deleteImageModal').modal('show');
+                                                            $('#deleteImageModal').on('hide.bs.modal', function (event) {
+                                                                if (modalokclick) {
+                                                                    $.ajax({
+                                                                        type: "GET",
+                                                                        url: "@Url.Action("Delete", "Binary")/"+imageId,
+                                                                        success: function (data) {
+                                                                            if (data == "OK") {
+                                                                                $hidden = $('#BeobachtungUrl');
+                                                                                $hidden.trigger("click");
+                                                                            }
+                                                                        }
+                                                                        });
+                                                                }
+
+                                                                $(this).off('hide.bs.modal');
+                                                            });
+
+                                                            return false;
+                                                    }
+
                                 $(document).ready(function () {
                                                             $('#Form_@rvm.Record.RecordId select').each(function () {
                                                                 $(this).selectize();

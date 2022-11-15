@@ -15,7 +15,10 @@
     @if (Model.Readonly)
     {
         <div class="">
-            <img src="/Binary/@Model.Value/false?dummy=@random.Next()" style="width:100%;" />
+            @foreach (Guid g in (List<Guid>)(Model.Value)) 
+            {
+            <img src="/Binary/@g/false?dummy=@random.Next()" style="width:100%;" />
+            }
         </div>
     }
     else
@@ -25,22 +28,27 @@
                 @Model.DisplayName
             </label>
         </div>
-       
-        <a href="/Binary/@Model.Value/false?dummy=@random.Next()" data-lightbox="photos">
-            <img class="rounded img-fluid" src="/Binary/@Model.Value/false?dummy=@random.Next()" data-target="#carouselExample" data-slide-to="0" id="binaryimg_@Model.Value">    
-        </a>
-        
+        foreach (Guid g in (List<Guid>)(Model.Value))
+        {
+            <a href="/Binary/@g/false?dummy=@random.Next()" data-lightbox="photos">
+                <div class="image-remover">
+                    <img class="rounded img-fluid" src="/Binary/@g/false?dummy=@random.Next()" data-target="#carouselExample" data-slide-to="0" id="binaryimg_@g" style="max-width:100%; max-height: 200px;">    
+                    <svg viewBox="0 0 30 30" class="ico-close" onclick="return deleteImage(event, '@g')"><use xlink:href="#ico-close"></use></svg>
+                </div>
+            </a>
+        }
         <!--<img src="/Binary/@Model.Value/false?dummy=@random.Next()" style="width:100%;" id="binaryimg_@Model.Value"/>-->
-        <div class="dropzone" id="binary_@Model.Value"></div>
+        <div class="dropzone" id="binary_@Model.DataAttributes["recordid"]"></div>
 
         <script>
             Dropzone.autoDiscover = false;
             $(document).ready(function () {
-                $('#binary_@Model.Value').dropzone({ url: "/Binary/Upload/@Model.Value?formFieldId=@Model.DataAttributes["formfieldid"]",
+                $('#binary_@Model.DataAttributes["recordid"]').dropzone({ url: "/Binary/Upload/@Model.DataAttributes["recordid"]?formFieldId=@Model.DataAttributes["formfieldid"]",
                 
                 init: function() {
                     this.on("success", file => {
-                        $("#binaryimg_@Model.Value").attr("src", "/Binary/@Model.Value/false?dummy=@random.Next()");
+                        $hidden = $('#BeobachtungUrl');
+                        $hidden.trigger("click");
                     });
                 },
                 dictDefaultMessage : "Legen Sie Dateien hier ab um Sie hochzuladen",
@@ -94,3 +102,5 @@ else
             });
         </script>
 }
+
+

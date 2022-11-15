@@ -52,6 +52,22 @@
                                 </div>
                             </div>
 
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Username" class="control-label"></label>
+                                    <input asp-for="Username" class="form-control" id="username" />
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Password" class="control-label"></label>
+                                    <input asp-for="Password" class="form-control" id="password"/>
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+                            </div>
+
                             
                             <div class="col-md-12">
                                 <div class="form-group">
@@ -137,7 +153,7 @@
 <script>
     function loadWMS() {
         $.ajax({
-            url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val()) +'&search=',
+            url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val()) +'&username=' + $('#username').val() + '&password=' + $('#password').val() + '&search=',
             type: 'GET',
             error: function () {
                 callback();

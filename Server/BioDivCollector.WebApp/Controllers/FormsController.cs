@@ -1018,16 +1018,16 @@ namespace BioDivCollector.WebApp.Controllers
             string sqlCreateViews2 = "FROM projects p " +
                                         "INNER JOIN projectstatuses p2 on p2.id = p.projectstatusid " +
                                         "LEFT JOIN geometries g ON g.projectid = p.projectid " +
-                                        "LEFT JOIN records r2 ON r2.geometryid = g.geometryid " +
+                                        "LEFT JOIN (select * from records where statusid <> 3) r2 ON r2.geometryid = g.geometryid " +
                                         "LEFT JOIN (select p.projectid, string_agg(name::text, ';') as name from projectsthirdpartytools p inner join thirdpartytools t ON (t.thirdpartytoolid = p.thirdpartytoolid) group by p.projectid) as thirdparty ON thirdparty.projectid = p.projectid " +
-                                        "WHERE p.statusid <> 3 AND g.statusid <> 3 AND g.{geometry} IS NOT NULL AND (r2.statusid <> 3 or r2.statusid is null) {ogd_true}" +
+                                        "WHERE p.statusid <> 3 AND g.statusid <> 3 AND g.{geometry} IS NOT NULL {ogd_true}" +
                                         "ORDER BY g.geometryname; ";
 
             string sqlCreateViewsGeneral2 = "FROM projects p " +
                                         "INNER JOIN projectstatuses p2 on p2.id = p.projectstatusid " +
-                                        "LEFT JOIN records r2 ON r2.projectid = p.projectid " +
+                                        "LEFT JOIN (select * from records where statusid <> 3) r2 ON r2.projectid = p.projectid " +
                                         "LEFT JOIN (select p.projectid, string_agg(name::text, ';') as name from projectsthirdpartytools p inner join thirdpartytools t ON (t.thirdpartytoolid = p.thirdpartytoolid) group by p.projectid) as thirdparty ON thirdparty.projectid = p.projectid " +
-                                        "WHERE p.statusid <> 3 AND (r2.statusid <> 3 or r2.statusid is null) and r2.groupid is not null {ogd_true};";
+                                        "WHERE p.statusid <> 3 and r2.groupid is not null {ogd_true};";
 
             string sqlGeometrieView = sqlCreateViews1;
             string sqlGeneralView = sqlCreateViewsGeneral;
@@ -1147,15 +1147,16 @@ namespace BioDivCollector.WebApp.Controllers
                 await db.Database.ExecuteSqlRawAsync(sqlOGDPolygonView);
             }
             await db.Database.ExecuteSqlRawAsync(sqlGeneralView);
-
-            string unionquery = "CREATE OR REPLACE VIEW public.{prefix}union_records " +
-                                        "AS select * from {prefix}records_without_geometries " +
-                                        "union all select * from {prefix}point_view where changedate is null " +
-                                        "union all select * from {prefix}line_view where changedate is null " +
-                                        "union all select * from {prefix}polygon_view where changedate is null ";
-            unionquery = unionquery.Replace("{prefix}", prefix);
-
-            await db.Database.ExecuteSqlRawAsync(unionquery);
+            if (prefix != "")
+            {
+                string unionquery = "CREATE OR REPLACE VIEW public.{prefix}union_records " +
+                                            "AS select * from {prefix}records_without_geometries " +
+                                            "union all select * from {prefix}point_view where changedate is null " +
+                                            "union all select * from {prefix}line_view where changedate is null " +
+                                            "union all select * from {prefix}polygon_view where changedate is null ";
+                unionquery = unionquery.Replace("{prefix}", prefix);
+                await db.Database.ExecuteSqlRawAsync(unionquery);
+            }
         }
 
 
@@ -1380,29 +1381,42 @@ namespace BioDivCollector.WebApp.Controllers
                             {
                                 if (result[fieldchoiceid] != null)
                                 {
-                                    int newId = Int16.Parse(result.GetString(fieldchoiceid));
-                                    FieldChoice fc = db.FieldChoices.Include(m=>m.FormField).Where(m => m.FieldChoiceId == newId).FirstOrDefault();
-                                    if ((fc==null) && (lastFF!=null))
+                                    FieldChoice fc = null;
+                                    try
                                     {
-                                        fc = new FieldChoice();
-                                        fc.FormField = lastFF;
-                                        db.Entry(fc).State = EntityState.Added;
-                                        returnMessage += "<li>Neue Auswahlmöglichkeit erstellt</li>";
-                                    }
-                                    else
-                                    {
+                                        int newId = Int16.Parse(result.GetString(fieldchoiceid));
+                                        fc = db.FieldChoices.Include(m => m.FormField).Where(m => m.FieldChoiceId == newId).FirstOrDefault();
+                                        string content = result.GetString(text);
                                         lastFF = fc.FormField;
-                                    }
 
-                                    string content = result.GetString(text);
-                                    if ((fc.Text != content) || (fc.Order != Int16.Parse(result.GetString(order))))
+                                        if ((fc.Text != content) || (fc.Order != Int16.Parse(result.GetString(order))))
+                                        {
+                                            fc.Text = content;
+                                            fc.Order = Int16.Parse(result.GetString(order));
+
+                                            db.Entry(fc).State = EntityState.Modified;
+                                            returnMessage += "<li>Auswahldeld (" + fc.FieldChoiceId + ") angepasst mit neuem Text " + fc.Text + "</li>";
+                                        }
+
+                                    }
+                                    catch (Exception ex)
                                     {
-                                        fc.Text = content;
-                                        fc.Order = Int16.Parse(result.GetString(order));
+                                        if ((fc == null) && (lastFF != null))
+                                        {
+                                            fc = new FieldChoice();
+                                            fc.FormField = lastFF;
+                                            fc.Text = result.GetString(text);
+                                            fc.Order = Int16.Parse(result.GetString(order));
+                                            db.Entry(fc).State = EntityState.Added;
+                                            returnMessage += "<li>Neue Auswahlmöglichkeit erstellt</li>";
+                                        }
 
-                                        db.Entry(fc).State = EntityState.Modified;
-                                        returnMessage += "<li>Auswahldeld ("+ fc.FieldChoiceId +") angepasst mit neuem Text " + fc.Text + "</li>";
                                     }
+                                    
+
+                                        
+                                    
+
 
                                 }
                             }

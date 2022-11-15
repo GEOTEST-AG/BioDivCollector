@@ -60,6 +60,36 @@ namespace BioDivCollector.WebApp.Controllers
             }
         }
 
+        private async Task<IRestResponse> deleteImageResponse(Guid binaryid)
+        {
+            try
+            {
+                if (HttpContext != null) context = HttpContext;
+                var refreshToken = context.GetTokenAsync("refresh_token");
+                // Get Access-Token
+                var client = new RestClient(Configuration["JWT:Admin-Token-Url"]);
+                client.Timeout = -1;
+                var request = new RestRequest(Method.POST);
+                request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+                request.AddParameter("client_id", Configuration["JWT:Client"]);
+                request.AddParameter("grant_type", "refresh_token");
+                request.AddParameter("refresh_token", refreshToken.Result);
+                request.AddParameter("client_secret", Configuration["JWT:Key"]);
+                IRestResponse response = client.Execute(request);
+                dynamic json = Newtonsoft.Json.Linq.JObject.Parse(response.Content);
+                string newAccessToken = json.access_token.Value;
+                var imageDownload = new RestClient(String.Format("https://testconnector.biodivcollector.ch/api/Binary/{0}", binaryid));
+                var imageRequest = new RestRequest(Method.DELETE);
+                imageRequest.AddHeader("Authorization", "Bearer " + newAccessToken);
+                return imageDownload.Execute(imageRequest);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+
         [HttpGet("/Binary/{binaryid}/{thumbnail?}")]
         public async Task<ActionResult> GetBinaryAsync(Guid binaryid, Boolean thumbnail = false)
         {
@@ -88,6 +118,29 @@ namespace BioDivCollector.WebApp.Controllers
             catch (Exception ex)
             {
                 return false;
+            }
+        }
+
+        [HttpGet("/Binary/Delete/{binaryid}")]
+        public async Task<ActionResult> DeleteBinaryAsync(Guid binaryid)
+        {
+            try
+            {
+                BinaryData bd = await _context.BinaryData.FindAsync(binaryid);
+
+                IRestResponse imageResponse = await deleteImageResponse(binaryid);
+                _context.BinaryData.Remove(bd);
+                _context.Entry(bd).State = EntityState.Deleted;
+
+                await _context.SaveChangesAsync();
+
+
+                return Content("OK");
+
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
 

@@ -66,13 +66,19 @@ namespace BioDivCollector.WebApp.Controllers
         private List<WMSLayer> _LayerCache;
         private string _wmsurlcache;
 
-        public IActionResult GetWMSLayers(string wmsurl, string search)
+        public IActionResult GetWMSLayers(string wmsurl, string search, string username, string password)
         {
             if ((search==null) || (search == "uniqueSearchQueryOrElseCacheWillBeUsed")) search = "";
             try
            {
                 if (_wmsurlcache != wmsurl)
                 {
+
+                    if (((username != null) && (password != null)) && (!wmsurl.Contains(username)))
+                    {
+                        wmsurl.Replace("://", "://" + username + ":" + password + "@");
+                    }
+
 
                     System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
@@ -123,7 +129,7 @@ namespace BioDivCollector.WebApp.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("LayerId,Public,Title,Url,WMSLayer")] Layer layer)
+        public async Task<IActionResult> Create([Bind("LayerId,Public,Title,Url,WMSLayer, Username, Password")] Layer layer)
         {
             if (ModelState.IsValid)
             {
@@ -186,7 +192,7 @@ namespace BioDivCollector.WebApp.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("LayerId,Public,Title,Url,WMSLayer")] Layer layer)
+        public async Task<IActionResult> Edit(int id, [Bind("LayerId,Public,Title,Url,WMSLayer, Username, Password")] Layer layer)
         {
             if (id != layer.LayerId)
             {
