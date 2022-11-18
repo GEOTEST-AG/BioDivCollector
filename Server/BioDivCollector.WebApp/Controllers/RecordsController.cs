@@ -725,16 +725,19 @@ namespace BioDivCollector.WebApp.Controllers
                                 }
                                 else
                                 {
+                                    PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
+                                    dynamicField.DisplayName = origFormField.Title;
+                                    dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
+                                    dynamicField.NotOptional = ff.Mandatory;
+                                    dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                    dynamicForm.Add(dynamicField);
+                                    List<Guid> guids = new List<Guid>();
                                     foreach (BinaryData bd in r.BinaryData.Where(m => m.FormField == ff))
                                     {
-                                        PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
-                                        dynamicField.DisplayName = origFormField.Title;
-                                        if (bd != null) dynamicField.Value = bd.Id;
-                                        dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
-                                        dynamicField.NotOptional = ff.Mandatory;
-                                        dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
-                                        dynamicForm.Add(dynamicField);
+                                        guids.Add(bd.Id);
                                     }
+
+                                    dynamicField.Value = guids;
                                 }
                             }
                             else if (origFormField.FieldTypeId == FieldTypeEnum.Choice)

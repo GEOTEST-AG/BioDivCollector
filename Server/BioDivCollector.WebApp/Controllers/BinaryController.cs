@@ -26,7 +26,7 @@ namespace BioDivCollector.WebApp.Controllers
             Configuration = configuration;
         }
 
-        private async Task<IRestResponse> getImageResponse(Guid binaryid, Boolean thumbnail = false)
+        public async Task<IRestResponse> getImageResponse(Guid binaryid, Boolean thumbnail = false)
         {
             try
             {

@@ -1060,9 +1060,13 @@ namespace BioDivCollector.WebApp.Controllers
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
+
+
+
+
         [ValidateAntiForgeryToken]
         [HttpPost]
-        public async Task<IActionResult> Export(string format, string efonly, string projects)
+        public async Task<IActionResult> Export(string format, string efonly, string projects, bool withImages = false)
         {
             User user = Helpers.UserHelper.GetCurrentUser(User, this.db);
             List<Project> erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(this.db, user, RoleEnum.EF);
@@ -1169,6 +1173,72 @@ namespace BioDivCollector.WebApp.Controllers
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
 
             }
+
+            if (withImages)
+            {
+                try
+                {
+                    Directory.CreateDirectory(dataDir + "//Export//" + fname[0]);
+                    System.IO.File.Copy(dataDir + "//Export//" + fname[0] + "." + format, dataDir + "//Export//" + fname[0] + "//" + fname[0] + "." + format);
+
+
+                    foreach (string p in projects.Split(","))
+                    {
+                        BinaryController bC = new BinaryController(Configuration);
+                        bC.context = this.HttpContext;
+
+                        Project project = await this.db.Projects
+                            .Include(m => m.ProjectGroups).ThenInclude(m => m.Records).ThenInclude(m => m.BinaryData).ThenInclude(m=>m.Value)
+                            .Include(m => m.ProjectGroups).ThenInclude(m => m.Geometries).ThenInclude(m => m.Records).ThenInclude(m => m.BinaryData).ThenInclude(m => m.Value)
+                            .Where(m => m.ProjectId == new Guid(p)).FirstOrDefaultAsync();
+                        if ((efonly != "on") || ((efonly == "on") && erfassendeProjects.Contains(project)))
+                        {
+                            Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId);
+                            foreach (var rs in project.ProjectGroups.Select(m => m.Records.Where(m => m.StatusId != StatusEnum.deleted && m.BinaryData.Count() > 0).ToList()))
+                            {
+                                foreach (var r in rs.Where(m=>m.Geometry==null))
+                                {
+                                    Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + r.RecordId);
+                                    foreach (BinaryData b in r.BinaryData)
+                                    {
+                                        await bC.SaveBinaryAsync(b.Id, dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + r.RecordId + "//" + b.Value.OriginalFileName);
+                                    }
+                                }
+                            }
+
+                            foreach (var geometries in project.ProjectGroups.Select(m => m.Geometries.Where(m => m.StatusId != StatusEnum.deleted).ToList()))
+                            {
+                                foreach (var g in geometries) {
+                                    foreach (var r in g.Records.Where(m => m.StatusId != StatusEnum.deleted && m.BinaryData.Count() > 0))
+                                    {
+                                        if (!Directory.Exists(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId)) Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId);
+
+
+                                            Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId + "//" + r.RecordId);
+                                        foreach (BinaryData b in r.BinaryData)
+                                        {
+                                            await bC.SaveBinaryAsync(b.Id, dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId + "//" + r.RecordId + "//" + b.Value.OriginalFileName);
+                                        }
+
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+
+                    System.IO.Compression.ZipFile.CreateFromDirectory(dataDir + "//Export//" + fname[0], dataDir + "//Export//" + fname[0] + ".zip");
+                    format = "zip";
+                    //clearFolder(dataDir + "//Export//" + fname[0]);
+                }
+                catch (Exception ex)
+                {
+
+                }
+
+            }
+
+
             //Stream stream = System.IO.File.OpenRead(exportfilename);
 
             await this.db.Database.ExecuteSqlRawAsync("DROP VIEW IF EXISTS " + prefix + "_union_records;");
@@ -1182,6 +1252,22 @@ namespace BioDivCollector.WebApp.Controllers
 
             return Json(new ExportProcess() { Filename = fname[0] + "." + format });
 
+        }
+
+        private void clearFolder(string FolderName)
+        {
+            DirectoryInfo dir = new DirectoryInfo(FolderName);
+
+            foreach (FileInfo fi in dir.GetFiles())
+            {
+                fi.Delete();
+            }
+
+            foreach (DirectoryInfo di in dir.GetDirectories())
+            {
+                clearFolder(di.FullName);
+                di.Delete();
+            }
         }
 
         public IActionResult Download(string filename)
