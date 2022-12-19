@@ -20,15 +20,18 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public FormSelectionPageVM()
         {
-            try
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
-                Task.Run(async () => { Forms = await Form.FetchFormsForProject(); });
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-
+                Forms = new List<Form>();
+                try
+                {
+                    Forms = await Form.FetchFormsForProject(); 
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            });
         }
     }
 }

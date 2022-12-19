@@ -108,11 +108,22 @@ namespace BioDivCollectorXamarin.ViewModels
             User user = User.RetrieveUser();
             List<ProjectSimple> projectList = user.projects;
 
-            Projects = new ObservableCollection<ProjectSimple>(projectList);
+            var getProjectListTask = new Task<ObservableCollection<ProjectSimple>>(() =>
+            {
+                return new ObservableCollection<ProjectSimple>(projectList);
+            });
 
+            getProjectListTask.Start();
+            var newProjectList = getProjectListTask.Result;
+
+            Projects = newProjectList;                
+        
             SyncProjectCommand = new SyncListProjectCommand(this);
             DeleteProjectCommand = new DeleteListProjectCommand(this);
             CopyBDCGUIDCommand = new BDCGUIDListCommand(this);
+            
+            //Projects = new ObservableCollection<ProjectSimple>(projectList);
+
 
             Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
             Activity = "";
@@ -275,14 +286,22 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public bool CanExecute(object parameter)
         {
-            Task.Run(async () =>
+            //Task.Run(async () =>
+            //{
+            //    if (parameter == null) { return false; }
+            //    ProjectSimple proj = parameter as ProjectSimple;
+            //    bool existsAlready = await Project.LocalProjectExists(proj.projectId);
+            //    return !App.Busy && (existsAlready || App.IsConnected);
+            //});
+
+            if (parameter == null) { return false; }
+            ProjectSimple proj = parameter as ProjectSimple;
+            var task = Task.Run(async () =>
             {
-                if (parameter == null) { return false; }
-                ProjectSimple proj = parameter as ProjectSimple;
                 bool existsAlready = await Project.LocalProjectExists(proj.projectId);
-                return !App.Busy && (existsAlready || App.IsConnected);
+                return existsAlready;
             });
-            return false;
+            return !App.Busy && (App.IsConnected || task.Result);
         }
 
         public async void Execute(object parameter)

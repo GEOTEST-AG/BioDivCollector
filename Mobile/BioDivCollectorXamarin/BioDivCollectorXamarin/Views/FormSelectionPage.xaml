@@ -3,9 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BioDivCollectorXamarin.Views.FormSelectionPage"
              xmlns:local="clr-namespace:BioDivCollectorXamarin" 
-             xmlns:model="clr-namespace:BioDivCollectorXamarin.Models.DatabaseModel"
+             xmlns:model="clr-namespace:BioDivCollectorXamarin.Models.DatabaseModel" 
+             xmlns:viewmodels="clr-namespace:BioDivCollectorXamarin.ViewModels"
              BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">
 
+    <ContentPage.BindingContext>
+        <viewmodels:FormSelectionPageVM/>
+    </ContentPage.BindingContext>
     <ContentPage.Content>
         <StackLayout>
             <ListView x:Name="FormListView"

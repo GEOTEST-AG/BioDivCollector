@@ -9,7 +9,7 @@ using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
-    public class MapLayersPageVM:BaseViewModel
+    public class MapLayersPageVM : BaseViewModel
     {
         /// <summary>
         /// An array containing all of the map layers
@@ -18,8 +18,8 @@ namespace BioDivCollectorXamarin.ViewModels
         public ObservableCollection<BioDivCollectorXamarin.Models.MapLayer> MapLayers
         {
             get { return mapLayers; }
-            set 
-            { 
+            set
+            {
                 mapLayers = value;
                 OnPropertyChanged("MapLayers");
             }
@@ -69,17 +69,26 @@ namespace BioDivCollectorXamarin.ViewModels
         /// The current base layer
         /// </summary>
         private string baseLayerName;
-        public string BaseLayerName { get
+        public string BaseLayerName
+        {
+            get
             {
                 return baseLayerName;
             }
             set
             {
-                baseLayerName = value;
-                if (MapLayers == null) { Task.Run(async () => { MapLayers = await MapModel.MakeArrayOfLayers(); }); }
-                BaseLayerSize = MapModel.GetLocalStorageSizeForLayer(Preferences.Get("BaseLayer", "swisstopo_pixelkarte"));
-                OnPropertyChanged("BaseLayerName");
-                OnPropertyChanged("BaseLayerSize");
+                Task.Run(async () =>
+                {
+                    baseLayerName = value;
+                    if (MapLayers == null)
+                    {
+                        var newMapLayers = await MapModel.MakeArrayOfLayers();
+                        MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
+                    }
+                    BaseLayerSize = MapModel.GetLocalStorageSizeForLayer(Preferences.Get("BaseLayer", "swisstopo_pixelkarte"));
+                    OnPropertyChanged("BaseLayerName");
+                    OnPropertyChanged("BaseLayerSize");
+                });
             }
         }
 
@@ -100,12 +109,14 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 Shell.Current.Navigation.PushAsync(new LayersInfoPage());
             });
-            Task.Run(async () =>
-            {
-                MapLayers = await MapModel.MakeArrayOfLayers();
-            });
             BaseLayerName = "Base";
             ShowLocalOnly = Preferences.Get("ShowLocalOnly", false);
+
+            Task.Run(async () =>
+            {
+                var newMapLayers = await MapModel.MakeArrayOfLayers();
+                MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
+            });
 
             MessagingCenter.Subscribe<MapLayer>(this, "RefreshLayerList", (sender) =>
             {
@@ -124,7 +135,8 @@ namespace BioDivCollectorXamarin.ViewModels
                 Device.BeginInvokeOnMainThread(async () =>
                 {
                     var model = new MapModel();
-                    MapLayers = await MapModel.MakeArrayOfLayers();
+                    var newMapLayers = await MapModel.MakeArrayOfLayers();
+                    MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
                     OnPropertyChanged("MapLayers");
                 });
             });
@@ -168,7 +180,8 @@ namespace BioDivCollectorXamarin.ViewModels
                     var layer = (parameter as MapLayer);
                     await MapModel.DeleteMapLayer(layer.Name);
                 }
-                MapLayers = await MapModel.MakeArrayOfLayers();
+                var newMapLayers = await MapModel.MakeArrayOfLayers();
+                MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
                 ChangeBaseLayerLabel(); //Trigger the mbtiles file size to be recalculated
                 
             });
@@ -306,12 +319,12 @@ namespace BioDivCollectorXamarin.ViewModels
             MapModel.RemoveOfflineLayersFromProject();
         }
 
-        public async Task UpdateMapLayers()
+        public void UpdateMapLayers()
         {
-            MapLayers = await MapModel.MakeArrayOfLayers();
-
-            Device.BeginInvokeOnMainThread(() =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
+                var newMapLayers = await MapModel.MakeArrayOfLayers();
+                MapLayers = new ObservableCollection<MapLayer>(newMapLayers); ;
                 OnPropertyChanged("MapLayers");
                 MessagingCenter.Send<MapLayersPageVM>(this, "ListSourceChanged");
             });

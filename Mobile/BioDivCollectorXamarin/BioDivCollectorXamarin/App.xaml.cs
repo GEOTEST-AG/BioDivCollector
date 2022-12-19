@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using BioDivCollectorXamarin.Models;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.IEssentials;
 using BioDivCollectorXamarin.Models.LoginModel;
 using FeldAppX.Models.DatabaseModel;
@@ -49,6 +50,11 @@ namespace BioDivCollectorXamarin
         /// The currently selected project
         /// </summary>
         public static string CurrentProjectId;
+
+        /// <summary>
+        /// The currently selected project
+        /// </summary>
+        public static Project CurrentProject;
 
         /// <summary>
         /// Whether the app should show the login page
@@ -203,7 +209,16 @@ namespace BioDivCollectorXamarin
             Busy = false;
             CheckConnection();
 
-            
+            Device.BeginInvokeOnMainThread(async () =>
+            {
+                CurrentProject = await Project.FetchCurrentProject();
+                //var tempCurrentUser = await User.RetrieveUser();
+                //if (tempCurrentUser.userId != String.Empty && tempCurrentUser.userId != null)
+                //{
+                //    CurrentUser = tempCurrentUser;
+                //}
+            });
+
             VersionTracking.Track();
 
             MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginSuccessful", (sender) =>

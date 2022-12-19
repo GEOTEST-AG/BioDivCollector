@@ -272,20 +272,26 @@ namespace BioDivCollectorXamarin.ViewModels
                 PanLimits = new BoundingBox(SphericalMercator.FromLonLat(-180, -90),SphericalMercator.FromLonLat(180, 90))
             };
 
-            
-
-            try
+            Task.Run(async () =>
             {
-                Task.Run(async () => { MapLayers = await MapModel.MakeArrayOfLayers(); });
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            finally
-            {
+                var allMapLayers = await MapModel.MakeArrayOfLayers();
+                MapLayers = new ObservableCollection<MapLayer>(new List<MapLayer>());
+                MapLayers = new ObservableCollection<MapLayer>(allMapLayers);
                 Map.Widgets.Add(new Mapsui.Widgets.ScaleBar.ScaleBarWidget(Map) { TextAlignment = Mapsui.Widgets.Alignment.Center, HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left, VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom });
-            }
+            });
+
+            //try
+            //{
+            //    Task.Run(async () => { MapLayers = await MapModel.MakeArrayOfLayers(); });
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine(e);
+            //}
+            //finally
+            //{
+            //    Map.Widgets.Add(new Mapsui.Widgets.ScaleBar.ScaleBarWidget(Map) { TextAlignment = Mapsui.Widgets.Alignment.Center, HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left, VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom });
+            //}
 
 
             MessagingCenter.Subscribe<Application,string>(App.Current, "TileSaved", (sender,arg1) =>
@@ -781,9 +787,11 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void RefreshAllLayers()
         {
-            RefreshMapLayers();
-
-            RefreshShapes();
+            Task.Run(async () =>
+            {
+                await RefreshMapLayers();
+                await RefreshShapes();
+            });
 
         }
 
@@ -792,11 +800,13 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void RenewAllLayers()
         {
-            RefreshMapLayers();
+            Task.Run(async () =>
+            {
+                await RefreshMapLayers();
+                await NewShapes();
+            });
 
-            NewShapes();
-
-            SetBoundingBox();
+            //SetBoundingBox();
         }
 
 
@@ -809,16 +819,17 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 if (layer != null && layer.GetType() != typeof(Mapsui.UI.Objects.MyLocationLayer))
                 {
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
+                    //Device.BeginInvokeOnMainThread(() =>
+                    //{
                         Map.Layers.Remove(layer);
-                    });
+                    //});
                 }
             }
 
             try
             {
-                MapLayers = await MapModel.MakeArrayOfLayers();
+                var newMapLayers = await MapModel.MakeArrayOfLayers();
+                MapLayers = new ObservableCollection<MapLayer>(newMapLayers); 
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     AddLayersToMap();

@@ -87,10 +87,15 @@ namespace BioDivCollectorXamarin.Models
 
                     if (filter == "Formulartyp")
                     {
-                        norecList = (from record in await conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == null).Where(Record => Record.project_fk == project.Id).Where(Record => Record.status < 3).Where(Record => Record.formId == id).ToListAsync()
+                   norecList = (from record in await conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == null).Where(Record => Record.project_fk == project.Id).Where(Record => Record.status < 3).Where(Record => Record.formId == id).ToListAsync()
                                      join form in await conn.Table<Form>().Where(f => f.project_fk == project.Id).ToListAsync()
                                                   on record.formId equals form.formId
-                                     select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id).ToString(), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, RecId = record.Id, FormId = record.formId }).ToList();
+                                     select new FormRec 
+                                     { 
+                                         String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id).ToString(), 
+                                         String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, 
+                                         RecId = record.Id, FormId = record.formId 
+                                     }).ToList();
 
                         foreach (var rec in norecList)
                         {
@@ -205,58 +210,63 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="rec"></param>
         /// <returns>The record title</returns>
-        private static async Task<string> CreateTitleStringForRecordFromForm(int formId, int recId)
+        private static string CreateTitleStringForRecordFromForm(int formId, int recId)
         {
-            try
+            var createTitleStringTask = new Task<string>(() =>
             {
-                bool hasRecords;
-                var textRecords = await TextData.FetchTextData(recId);
-                var noOfTextRecords = textRecords.Where(txt => txt.value != string.Empty).Where(txt => txt.value != null).Count();
-                var boolRecords = await BooleanData.FetchBooleanData(recId);
-                var noOfBoolRecords = boolRecords.Where(b => b.value != null).Count();
-                var numericRecords = await NumericData.FetchNumericDataByRecordId(recId);
-                var noOfNumericRecords = numericRecords.Count();
-                var binaryRecords = await BinaryData.FetchBinaryData(recId);
-                var noOfBinaryRecords = binaryRecords.Count();
-                hasRecords = (noOfTextRecords + noOfBoolRecords + noOfNumericRecords + noOfBinaryRecords) > 0;
-                var title = "";
-                var form = await Form.FetchForm(formId);
-                var formFields = await Form.FetchFormFields(formId);
-
-                if (formFields != null)
+                try
                 {
-                    foreach (var formField in formFields)
+                    bool hasRecords;
+                    var textRecords = TextData.FetchTextData(recId).Result;
+                    var noOfTextRecords = textRecords.Where(txt => txt.value != string.Empty).Where(txt => txt.value != null).Count();
+                    var boolRecords = BooleanData.FetchBooleanData(recId).Result;
+                    var noOfBoolRecords = boolRecords.Where(b => b.value != null).Count();
+                    var numericRecords = NumericData.FetchNumericDataByRecordId(recId).Result;
+                    var noOfNumericRecords = numericRecords.Count();
+                    var binaryRecords = BinaryData.FetchBinaryData(recId).Result;
+                    var noOfBinaryRecords = binaryRecords.Count();
+                    hasRecords = (noOfTextRecords + noOfBoolRecords + noOfNumericRecords + noOfBinaryRecords) > 0;
+                    var title = "";
+                    var form = Form.FetchForm(formId).Result;
+                    var formFields = Form.FetchFormFields(formId).Result;
+
+                    if (formFields != null)
                     {
-                        if (formField.typeId == 11 || formField.typeId == 51 || formField.typeId == 61)
+                        foreach (var formField in formFields)
                         {
-                            try
+                            if (formField.typeId == 11 || formField.typeId == 51 || formField.typeId == 61)
                             {
-                                var txtList = await TextData.FetchTextDataByFormFieldId(formField.fieldId);
-                                TextData txt = txtList.Where(Txt => Txt.record_fk == recId).FirstOrDefault();
-                                title = title + txt.value + ", ";
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
+                                try
+                                {
+                                    var txtList = TextData.FetchTextDataByFormFieldId(formField.fieldId).Result;
+                                    TextData txt = txtList.Where(Txt => Txt.record_fk == recId).FirstOrDefault();
+                                    title = title + txt.value + ", ";
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e);
+                                }
                             }
                         }
+                        if (title.Length >= 2)
+                        {
+                            title = title.Substring(0, title.Length - 2);
+                        }
                     }
-                    if (title.Length >= 2)
-                    {
-                        title = title.Substring(0, title.Length - 2);
-                    }
+                    if (title == String.Empty || title == " ") { title = form.title; }
+                    if (!hasRecords)
+                    { title = "⚠️ " + title; }
+                    return title;
                 }
-                if (title == String.Empty || title == " ") { title = form.title; }
-                if (!hasRecords)
-                { title = "⚠️ " + title; }
-                return title;
-            }
-            catch
-            {
-                return String.Empty;
-            }
+                catch
+                {
+                    return String.Empty;
+                }
+            });
 
+            createTitleStringTask.Start();
+            var titleString = createTitleStringTask.Result;
+            return titleString;
         }
-
     }
 }

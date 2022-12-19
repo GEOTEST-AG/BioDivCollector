@@ -2,12 +2,16 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:BioDivCollectorXamarin"
+             xmlns:viewmodels="clr-namespace:BioDivCollectorXamarin.ViewModels" 
              xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
              xmlns:xct="clr-namespace:Xamarin.CommunityToolkit.UI.Views;assembly=Xamarin.CommunityToolkit"
              x:Class="BioDivCollectorXamarin.Views.ProjectListPage"
-             xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views" xmlns:viewmodels="clr-namespace:BioDivCollectorXamarin.ViewModels" x:DataType="viewmodels:ProjectListVM"
+             xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views" 
              x:Name ="ProjectListObject"
              ios:Page.UseSafeArea="true">
+    <ContentPage.BindingContext>
+        <viewmodels:ProjectListVM/>
+    </ContentPage.BindingContext>
     <ContentPage.Content>
         <StackLayout Spacing="0">
             <Label Text="Projekte erstellen und verwalten unter https://biodivcollector.ch" FontSize="Caption" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" Padding="5" TextColor="White" BackgroundColor="{StaticResource BioDivGrey}">

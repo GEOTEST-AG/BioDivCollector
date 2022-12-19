@@ -34,7 +34,7 @@ namespace BioDivCollectorXamarin.Models
         /// Create an array of map layers: either mbtiles layers if offline and the mbtiles file exists, or direct links to the map servers 
         /// </summary>
         /// <returns>An observable collection of map layers</returns>
-        public static async Task<ObservableCollection<MapLayer>> MakeArrayOfLayers()
+        public static async Task<List<MapLayer>> MakeArrayOfLayers()
         {
             int i = 0;
 
@@ -153,7 +153,7 @@ namespace BioDivCollectorXamarin.Models
 
             var mapLayersTempList = mapLayersTemp.ToList().GetRange(0, i);
 
-            return new ObservableCollection<MapLayer>(mapLayersTempList as List<MapLayer>);
+            return mapLayersTempList;
 
         }
 
