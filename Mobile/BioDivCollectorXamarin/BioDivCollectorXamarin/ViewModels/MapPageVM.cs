@@ -276,7 +276,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             try
             {
-                MapLayers = MapModel.MakeArrayOfLayers();
+                Task.Run(async () => { MapLayers = await MapModel.MakeArrayOfLayers(); });
             }
             catch (Exception e)
             {
@@ -549,13 +549,13 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Allow editing of a predefined geometry
         /// </summary>
-        private void ConfigureGeometryForEditing()
+        private async Task ConfigureGeometryForEditing()
         {
             if (GeomToEdit > 0)
             {
                 try
                 {
-                    var tempGeom = ReferenceGeometry.GetGeometry(GeomToEdit);
+                    var tempGeom = await ReferenceGeometry.GetGeometry(GeomToEdit);
                     NetTopologySuite.Geometries.Coordinate[] tempPoints = DataDAO.GeoJSON2Geometry(tempGeom.geometry).Coordinates;
                     List<Mapsui.Geometries.Point> coordList = tempPoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToList();
                     GeometryType = ReferenceGeometry.FindGeometryTypeFromCoordinateList(coordList);
@@ -615,7 +615,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Remove and replace the geometries
         /// </summary>
-        public void RefreshShapes()
+        public async Task RefreshShapes()
         {
             foreach (var layer in Map.Layers)
             {
@@ -627,7 +627,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     });
                 }
             }
-            var shapeLayers = MapModel.CreateShapes();
+            var shapeLayers = await MapModel.CreateShapes();
             if (shapeLayers != null && shapeLayers.Count > 0)
             {
 
@@ -655,7 +655,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     Map.Layers.Insert(Map.Layers.Count, pointlayerNoRecords);
                 });
 
-                ConfigureGeometryForEditing();
+                await ConfigureGeometryForEditing();
             }
 
             var filterGeom = Preferences.Get("FilterGeometry", String.Empty);
@@ -667,9 +667,9 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     try
                     {
-                        Device.BeginInvokeOnMainThread(() =>
+                        Device.BeginInvokeOnMainThread(async() =>
                         {
-                            var centre = MapModel.GetCentreOfGeometry(geomId);
+                            var centre = await MapModel.GetCentreOfGeometry(geomId);
                             VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
                         });
                     }
@@ -689,7 +689,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Replage the geometries, but do not change the map position
         /// </summary>
-        public void NewShapes()
+        public async Task NewShapes()
         {
             foreach (var layer in Map.Layers)
             {
@@ -698,7 +698,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     Map.Layers.Remove(layer);
                 }
             }
-            var shapeLayers = MapModel.CreateShapes();
+            var shapeLayers = await MapModel.CreateShapes();
             if (shapeLayers != null && shapeLayers.Count > 0)
             {
                 ILayer polylayer;
@@ -727,7 +727,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     VMMapView.Navigator.NavigateTo(allShapesLayer.Envelope, Mapsui.Utilities.ScaleMethod.Fit);
                 }
             }
-            ConfigureGeometryForEditing();
+            await ConfigureGeometryForEditing();
         }
 
 
@@ -742,9 +742,9 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void VMMapView_ViewportInitialized(object sender, EventArgs e)
+        private async void VMMapView_ViewportInitialized(object sender, EventArgs e)
         {
-            var shapeLayers = MapModel.CreateShapes();
+            var shapeLayers = await MapModel.CreateShapes();
             ILayer allShapesLayer;
             shapeLayers.TryGetValue("all", out allShapesLayer);
             if (allShapesLayer != null)
@@ -803,7 +803,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Remove and replace the map layers and add the scale widget on top
         /// </summary>
-        private void RefreshMapLayers()
+        private async Task RefreshMapLayers()
         {
             foreach (var layer in Map.Layers)
             {
@@ -818,7 +818,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             try
             {
-                MapLayers = MapModel.MakeArrayOfLayers();
+                MapLayers = await MapModel.MakeArrayOfLayers();
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     AddLayersToMap();
@@ -1473,7 +1473,7 @@ namespace BioDivCollectorXamarin.ViewModels
             
             if (GeomToEdit > 0)
             {
-                ReferenceGeometry.UpdateGeometry(TempCoordinates, GeomToEdit);
+                await ReferenceGeometry.UpdateGeometry(TempCoordinates, GeomToEdit);
                 GeomToEdit = 0;
                 AllowAddNewGeom();
                 RemoveTempGeometry();
@@ -1486,7 +1486,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
 
                 string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie eine Geometriename ein", accept:"Speichern", cancel:"Abbrechen");
-                string geomId = ReferenceGeometry.SaveGeometry(TempCoordinates, geomName);
+                string geomId = await ReferenceGeometry.SaveGeometry(TempCoordinates, geomName);
 
                 var geom = ReferenceGeometry.GetGeometry(geomId);
 
@@ -1687,6 +1687,8 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void SaveMaps()
         {
+            Task.Run(async () =>
+            {
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     SaveCountText = "Berechnet welche Kacheln zu speichern sind";
@@ -1694,7 +1696,8 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 BoundingBox bb = VMMapView.Viewport.Extent;
                 var extent = new Extent(bb.MinX, bb.MinY, bb.MaxX, bb.MaxY);
-                MapModel.saveMaps(extent);
+                await MapModel.saveMaps(extent);
+            });
         }
 
         /// <summary>

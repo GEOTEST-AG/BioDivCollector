@@ -76,7 +76,7 @@ namespace BioDivCollectorXamarin.ViewModels
             set
             {
                 baseLayerName = value;
-                if (MapLayers == null) { MapLayers = MapModel.MakeArrayOfLayers(); }
+                if (MapLayers == null) { Task.Run(async () => { MapLayers = await MapModel.MakeArrayOfLayers(); }); }
                 BaseLayerSize = MapModel.GetLocalStorageSizeForLayer(Preferences.Get("BaseLayer", "swisstopo_pixelkarte"));
                 OnPropertyChanged("BaseLayerName");
                 OnPropertyChanged("BaseLayerSize");
@@ -100,7 +100,10 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 Shell.Current.Navigation.PushAsync(new LayersInfoPage());
             });
-            MapLayers = MapModel.MakeArrayOfLayers();
+            Task.Run(async () =>
+            {
+                MapLayers = await MapModel.MakeArrayOfLayers();
+            });
             BaseLayerName = "Base";
             ShowLocalOnly = Preferences.Get("ShowLocalOnly", false);
 
@@ -118,10 +121,10 @@ namespace BioDivCollectorXamarin.ViewModels
             MessagingCenter.Subscribe<MapLayersPageVM>(this, "LayerOrderChanged", (sender) =>
             {
 
-                Device.BeginInvokeOnMainThread(() =>
+                Device.BeginInvokeOnMainThread(async () =>
                 {
                     var model = new MapModel();
-                    MapLayers = MapModel.MakeArrayOfLayers();
+                    MapLayers = await MapModel.MakeArrayOfLayers();
                     OnPropertyChanged("MapLayers");
                 });
             });
@@ -165,7 +168,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     var layer = (parameter as MapLayer);
                     await MapModel.DeleteMapLayer(layer.Name);
                 }
-                MapLayers = MapModel.MakeArrayOfLayers();
+                MapLayers = await MapModel.MakeArrayOfLayers();
                 ChangeBaseLayerLabel(); //Trigger the mbtiles file size to be recalculated
                 
             });
@@ -303,9 +306,9 @@ namespace BioDivCollectorXamarin.ViewModels
             MapModel.RemoveOfflineLayersFromProject();
         }
 
-        public void UpdateMapLayers()
+        public async Task UpdateMapLayers()
         {
-            MapLayers = MapModel.MakeArrayOfLayers();
+            MapLayers = await MapModel.MakeArrayOfLayers();
 
             Device.BeginInvokeOnMainThread(() =>
             {

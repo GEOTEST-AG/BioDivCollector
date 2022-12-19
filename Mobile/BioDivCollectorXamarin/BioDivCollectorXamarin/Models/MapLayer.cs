@@ -27,14 +27,16 @@ namespace BioDivCollectorXamarin.Models
                 enabled = value;
                 if (Name != null)
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                    var existingLayer = Layer.FetchLayerByName(Name).Result;
+                    var existingLayerWithOpacaty = existingLayer.Where(Layer => Layer.opacity == Opacity).FirstOrDefault();
+                    if (existingLayerWithOpacaty != null)
                     {
-                        var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.title == Name).Where(Layer => Layer.opacity == Opacity).FirstOrDefault();
-                        if (existingLayer != null)
+                        existingLayerWithOpacaty.visible = enabled;
+                        Task.Run(async () =>
                         {
-                            existingLayer.visible = enabled;
-                            conn.Update(existingLayer);
-                        }
+                            var conn = App.ActiveDatabaseConnection;
+                            await conn.UpdateAsync(existingLayerWithOpacaty);
+                        });
                     }
                     OnPropertyChanged("Enabled");
                     OnPropertyChanged("MapLayers");
@@ -54,39 +56,42 @@ namespace BioDivCollectorXamarin.Models
                 var prevZ = layerZ;
                 layerZ = value;
 
-                try
+                Task.Run(async() =>
                 {
-                    var project = Project.FetchCurrentProject();
-                    if (prevZ != layerZ && value > 0 && prevZ > 0)
-                    {
-                        var dic = new Dictionary<string, int>();
-                        dic.Add("oldZ", prevZ);
-                        dic.Add("newZ", value);
 
-                        if (Name != null)
+                    try
+                    {
+                        var project = await Project.FetchCurrentProject();
+                        if (prevZ != layerZ && value > 0 && prevZ > 0)
                         {
-                            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                            var dic = new Dictionary<string, int>();
+                            dic.Add("oldZ", prevZ);
+                            dic.Add("newZ", value);
+
+                            if (Name != null)
                             {
-                                var layerInPostionAlready = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.order == value).Where(Layer => Layer.project_fk == project.Id).FirstOrDefault();
-                                if (layerInPostionAlready != null)
-                                {
-                                    var layerToMove = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.title == Name).Where(Layer => Layer.order == prevZ).Where(Layer => Layer.project_fk == project.Id).FirstOrDefault();
-                                    if (layerToMove != null)
+                                var conn = App.ActiveDatabaseConnection;
+
+                                    var layerInPostionAlready = await conn.Table<Layer>().Where(Layer => Layer.order == value).Where(Layer => Layer.project_fk == project.Id).FirstOrDefaultAsync();
+                                    if (layerInPostionAlready != null)
                                     {
-                                        layerInPostionAlready.order = prevZ;
-                                        layerToMove.order = value;
-                                        conn.Update(layerToMove);
-                                        conn.Update(layerInPostionAlready);
+                                        var layerToMove = await conn.Table<Layer>().Where(Layer => Layer.title == Name).Where(Layer => Layer.order == prevZ).Where(Layer => Layer.project_fk == project.Id).FirstOrDefaultAsync();
+                                        if (layerToMove != null)
+                                        {
+                                            layerInPostionAlready.order = prevZ;
+                                            layerToMove.order = value;
+                                            await conn.UpdateAsync(layerToMove);
+                                            await conn.UpdateAsync(layerInPostionAlready);
+                                        }
                                     }
-                                }
                             }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                });
             }
         }
 
@@ -101,28 +106,28 @@ namespace BioDivCollectorXamarin.Models
             set
             {
                 opacity = value;
-                if (Name != null)
+                Task.Run(async () =>
                 {
-                    try
+                    if (Name != null)
                     {
-                        using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                        try
                         {
-                            var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.title == Name).Where(Layer => Layer.visible == enabled).FirstOrDefault();
+                            var conn = App.ActiveDatabaseConnection;
+                            var existingLayer = await conn.Table<Layer>().Where(Layer => Layer.title == Name).Where(Layer => Layer.visible == enabled).FirstOrDefaultAsync();
                             if (existingLayer != null)
                             {
                                 existingLayer.opacity = opacity;
-                                conn.Update(existingLayer);
+                                await conn.UpdateAsync(existingLayer);
                             }
+                            OnPropertyChanged("Opacity");
+                            OnPropertyChanged("MapLayers");
                         }
-                        OnPropertyChanged("Opacity");
-                        OnPropertyChanged("MapLayers");
-                    }
-                    catch (Exception e)
-                    {
+                        catch (Exception e)
+                        {
 
+                        }
                     }
-                }
-
+                });
             }
         }
 

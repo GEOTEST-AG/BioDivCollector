@@ -56,16 +56,16 @@ namespace BioDivCollectorXamarin.Views
         /// <summary>
         /// On appearing, deal with iOS safe areas
         /// </summary>
-        protected override async void OnAppearing()
+        protected override void OnAppearing()
         {
             base.OnAppearing();
             App.CurrentRoute = "//Projects";
-            Device.BeginInvokeOnMainThread(() =>
+            Device.BeginInvokeOnMainThread(async() =>
                 {
                     var safeInsets = On<iOS>().SafeAreaInsets();
                     Padding = safeInsets;
                     ViewModel.OnAppearing();
-                    DisplayProjectWarningAsync();
+                    await DisplayProjectWarningAsync();
                 });
         }
 

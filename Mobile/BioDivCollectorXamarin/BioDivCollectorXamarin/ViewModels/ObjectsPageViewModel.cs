@@ -59,16 +59,16 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Refresh the list of geometries
         /// </summary>
-        private void UpdateGeometries()
+        private async void UpdateGeometries()
         {
             if (App.CurrentProjectId != null && App.CurrentProjectId != String.Empty)
             {
-                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                {
+                var conn = App.ActiveDatabaseConnection;
                     var project = new Project();
                     try
                     {
-                        project = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+                        //project = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+                        project = await Project.FetchProject(App.CurrentProjectId);
                     }
                     catch (Exception e)
                     {
@@ -80,7 +80,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         {
                             try
                             {
-                                var objectList = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).Where(ReferenceGeometry => ReferenceGeometry.status < 3).OrderBy(ReferenceGeometry => ReferenceGeometry.geometryName).ToList();
+                                var objectList = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).Where(ReferenceGeometry => ReferenceGeometry.status < 3).OrderBy(ReferenceGeometry => ReferenceGeometry.geometryName).ToListAsync();
                                 Objects = new ObservableCollection<ReferenceGeometry>(objectList);
                                 OnPropertyChanged("Objects");
                             }
@@ -90,7 +90,6 @@ namespace BioDivCollectorXamarin.ViewModels
                             }
                         }
                     }
-                }
             }
         }
     }
@@ -168,7 +167,7 @@ namespace BioDivCollectorXamarin.ViewModels
             if (response == "Entfernen")
             {
                 var geom = parameter as ReferenceGeometry;
-                ReferenceGeometry.DeleteGeometry(geom.Id);
+                await ReferenceGeometry.DeleteGeometry(geom.Id);
             }
         }
 

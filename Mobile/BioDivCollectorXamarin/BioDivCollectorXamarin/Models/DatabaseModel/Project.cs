@@ -8,13 +8,14 @@ using SQLiteNetExtensions.Extensions;
 using Xamarin.Forms;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
+using SQLiteNetExtensionsAsync.Extensions;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {
-    [Table ("Project")]
-    public class Project:ObservableClass
+    [Table("Project")]
+    public class Project : ObservableClass
     {
-        
+
         /// <summary>
         /// Project database definition
         /// </summary>
@@ -35,7 +36,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public string projectManager { get; set; }
         public string projectConfigurator { get; set; }
 
-        [OneToMany(CascadeOperations = CascadeOperation.All)] 
+        [OneToMany(CascadeOperations = CascadeOperation.All)]
         public List<ReferenceGeometry> geometries { get; set; } = new List<ReferenceGeometry>();
         [OneToMany(CascadeOperations = CascadeOperation.All)]
         public List<Record> records { get; set; } = new List<Record>();
@@ -46,7 +47,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         //  -ProjectLayer
         //  -UserLayer
 
-        
+
 
         /// <summary>
         /// Create a project object
@@ -61,29 +62,26 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns>Whether it exists</returns>
-        public static bool LocalProjectExists(string projectId)
+        public static async Task<bool> LocalProjectExists(string projectId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            var conn = App.ActiveDatabaseConnection;
+            try
             {
-                try
-                {
-                    var projs = conn.Table<Project>().Select(g => g.projectId);
+                var projs = await conn.Table<Project>().Where(g => g.projectId != null).ToListAsync();
 
-                    foreach (var proj in projs)
+                foreach (var proj in projs)
+                {
+                    if (proj != null && proj.projectId == projectId)
                     {
-                        if (proj != null && proj == projectId)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
-                    return false;
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    return false;
-                }
-
+                return false;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
             }
         }
         /// <summary>
@@ -91,31 +89,27 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="project_pk"></param>
         /// <returns>The project</returns>
-        public static Project FetchProject(string project_pk)
+        public static async Task<Project> FetchProject(string project_pk)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            var conn = App.ActiveDatabaseConnection;
+            try
             {
-                try
-                {
-                    var projTableTest = conn.Table<Project>().ToList();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    conn.CreateTable<DatabaseModel.Project>();
-                }
+                var projTableTest = await conn.Table<Project>().ToListAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                await conn.CreateTableAsync<Project>();
+            }
 
-                try
-                {
-                    var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == project_pk.ToLower()).FirstOrDefault();
-                    return proj;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
-
+            try
+            {
+                var proj = await conn.Table<Project>().Where(Project => Project.projectId == project_pk.ToLower()).FirstOrDefaultAsync();
+                return proj;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
             return null;
         }
@@ -124,32 +118,28 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Fetch the current project defined in the App.cs file
         /// </summary>
         /// <returns>The project</returns>
-        public static Project FetchCurrentProject()
+        public static async Task<Project> FetchCurrentProject()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            var conn = App.ActiveDatabaseConnection;
+            try
             {
-                try
-                {
-                    var projTableTest = conn.Table<Project>().ToList();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    conn.CreateTable<DatabaseModel.Project>();
-                }
+                var projTableTest = await conn.Table<Project>().ToListAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                await conn.CreateTableAsync<Project>();
+            }
 
-                try
-                {
-                    var currentProjectId = Preferences.Get("currentProject", "");
-                    var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == currentProjectId).FirstOrDefault();
-                    return proj;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
-
+            try
+            {
+                var currentProjectId = Preferences.Get("currentProject", "");
+                var proj = await conn.Table<Project>().Where(Project => Project.projectId == currentProjectId).FirstOrDefaultAsync();
+                return proj;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
             return null;
         }
@@ -159,32 +149,28 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="project_pk"></param>
         /// <returns>The whole project</returns>
-        public static Project FetchProjectWithChildren(string project_pk)
+        public static async Task<Project> FetchProjectWithChildren(string project_pk)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            var conn = App.ActiveDatabaseConnection;
+            try
             {
-                try
-                {
-                    var projTableTest = conn.Table<Project>().ToList();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    conn.CreateTable<DatabaseModel.Project>();
-                }
+                var projTableTest = await conn.Table<Project>().ToListAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                await conn.CreateTableAsync<Project>();
+            }
 
-                try
-                {
-                    var temp = Project.FetchProject(project_pk);
-                    var proj = conn.GetWithChildren<Project>(temp.Id, recursive: true);
-                    return proj;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
-
+            try
+            {
+                var temp = await Project.FetchProject(project_pk);
+                var proj = await conn.GetWithChildrenAsync<Project>(temp.Id, recursive: true);
+                return proj;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
             return null;
         }
@@ -194,19 +180,17 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="projId"></param>
         /// <returns>Geometry count</returns>
-        public static int FetchNumberOfGeometriesForProject(int projId)
+        public static async Task<int> FetchNumberOfGeometriesForProject(int projId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            var conn = App.ActiveDatabaseConnection;
+            try
             {
-                try
-                {
-                    var geoms = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.project_fk == projId).Count();
-                    return geoms;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                var geoms = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == projId).CountAsync();
+                return geoms;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
             return 0;
         }
@@ -216,21 +200,18 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="projId"></param>
         /// <returns>Record count</returns>
-        public static int FetchNumberOfRecordsForProject(int projId)
+        public static async Task<int> FetchNumberOfRecordsForProject(int projId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            var conn = App.ActiveDatabaseConnection;
+            try
             {
+                var recs = await conn.Table<Record>().Where(Record => Record.project_fk == projId).CountAsync();
 
-                try
-                {
-                    var recs = conn.Table<Record>().Select(g => g).Where(Record => Record.project_fk == projId).Count();
-
-                    return recs;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                return recs;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
             return 0;
         }
@@ -240,17 +221,15 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="project"></param>
         /// <returns>Delete successful</returns>
-        public static bool DeleteProject(ProjectSimple project)
+        public static async Task<bool> DeleteProject(ProjectSimple project)
         {
-           try
+            try
             {
-                Project existingProject = FetchProjectWithChildren(project.projectId);
+                Project existingProject = await FetchProjectWithChildren(project.projectId);
                 if (existingProject != null)
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                    {
-                        conn.Delete(existingProject,true);
-                    }
+                    var conn = App.ActiveDatabaseConnection;
+                    await conn.DeleteAsync(existingProject, true);
                 }
 
                 return true;
@@ -267,21 +246,18 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="project"></param>
         /// <returns>Delete successful</returns>
-        public static bool DeleteProject(string projectId)
+        public static async Task<bool> DeleteProject(string projectId)
         {
             try
             {
-                Project existingProject = FetchProjectWithChildren(projectId);
+                Project existingProject = await FetchProjectWithChildren(projectId);
                 var success = false;
                 if (existingProject != null)
                 {
-                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                    {
-                        conn.Delete(existingProject,true);
-                        success = true;
-                    }
+                    var conn = App.ActiveDatabaseConnection;
+                    await conn.DeleteAsync(existingProject, true);
+                    success = true;
                 }
-                
                 return success;
             }
             catch (Exception e)
@@ -297,17 +273,17 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <param name="projectId"></param>
         public static async Task DownloadProjectData(string projectId)
         {
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "Synchronisiert ...");
-                Project proj = Project.FetchProject(projectId);
+                Project proj = await Project.FetchProject(projectId);
 
 #if __IOS__
 // iOS-specific code
             DataDAO.GetJsonStringForProject(projectId.ToUpper(), null);
 #else
                 // Android-specific code
-                DataDAO.GetJsonStringForProject(projectId, null);
+                await DataDAO.GetJsonStringForProject(projectId, null);
 #endif
             });
 
@@ -317,52 +293,49 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Synchronise the project with the connector given the project GUID
         /// </summary>
         /// <param name="projectId"></param>
-        public static void SynchroniseProjectData(string projectId)
+        public static async Task SynchroniseProjectData(string projectId)
         {
             MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "Synchronisiert ...");
-            Project proj = Project.FetchProject(projectId);
-            DataDAO.SynchroniseDataForProject(projectId);
+            Project proj = await Project.FetchProject(projectId);
+            await DataDAO.SynchroniseDataForProject(projectId);
         }
-        
+
         /// <summary>
         /// Check if the project has changes which need synchronising
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns>Whether it has unsaved changes</returns>
-        public static bool ProjectHasUnsavedChanges(string projectId)
+        public static async Task<bool> ProjectHasUnsavedChanges(string projectId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            var conn = App.ActiveDatabaseConnection;
+            try
             {
-
-                try
+                Project proj = await Project.FetchProject(projectId);
+                var recs = await conn.Table<Record>().Where(Record => Record.project_fk == proj.Id).ToListAsync();
+                foreach (Record rec in recs)
                 {
-                    Project proj = Project.FetchProject(projectId);
-                    var recs = conn.Table<Record>().Select(g => g).Where(Record => Record.project_fk == proj.Id);
-                    foreach (Record rec in recs)
+                    if (rec.status == 2)
                     {
-                        if (rec.status == 2)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
-                    var geoms = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.project_fk == proj.Id).ToList();
-                    foreach (var geom in geoms)
-                    {
-                        if (geom.status == 2)
-                        {
-                            return true;
-                        }
-                        var geomRecs = conn.Table<Record>().Select(g => g).Where(Record => Record.geometry_fk == geom.Id).Where(Record => Record.status == 2).ToList();
-                        if (geomRecs.Count > 0)
-                        { return true; }
-                    }
-                    return false;
                 }
-                catch (Exception e)
+                var geoms = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == proj.Id).ToListAsync();
+                foreach (var geom in geoms)
                 {
-                    Console.WriteLine(e);
-                    return false;
+                    if (geom.status == 2)
+                    {
+                        return true;
+                    }
+                    var geomRecs = await conn.Table<Record>().Where(Record => Record.geometry_fk == geom.Id).Where(Record => Record.status == 2).ToListAsync();
+                    if (geomRecs.Count > 0)
+                    { return true; }
                 }
+                return false;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
             }
         }
     }

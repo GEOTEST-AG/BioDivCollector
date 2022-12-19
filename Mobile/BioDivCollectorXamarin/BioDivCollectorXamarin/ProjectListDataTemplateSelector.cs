@@ -2,6 +2,7 @@
 using BioDivCollectorXamarin.Models.LoginModel;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using Xamarin.Forms;
+using System.Threading.Tasks;
 
 namespace BioDivCollectorXamarin
 {
@@ -13,28 +14,32 @@ namespace BioDivCollectorXamarin
 
         protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
         {
-            try
+            Task.Run(async () =>
             {
-                var proj = (ProjectSimple)item;
-                var projId = proj.projectId;
-                string projectId = projId.ToString();
-                if (projectId != null && projectId == App.CurrentProjectId)
-                {
-                    return CurrentProject;
-                }
-                bool exists = Project.LocalProjectExists(projectId);
-                if (exists)
-                {
-                    return ExistingProject;
-                }
-                return OnlineProject;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return OnlineProject;
-            }
 
+                try
+                {
+                    var proj = (ProjectSimple)item;
+                    var projId = proj.projectId;
+                    string projectId = projId.ToString();
+                    if (projectId != null && projectId == App.CurrentProjectId)
+                    {
+                        return CurrentProject;
+                    }
+                    bool exists = await Project.LocalProjectExists(projectId);
+                    if (exists)
+                    {
+                        return ExistingProject;
+                    }
+                    return OnlineProject;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return OnlineProject;
+                }
+            });
+            return new DataTemplate();
         }
     }
 }

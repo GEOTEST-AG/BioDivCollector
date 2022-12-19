@@ -6,6 +6,7 @@ using BioDivCollectorXamarin.Models.DatabaseModel;
 using System.Collections.Generic;
 using BioDivCollectorXamarin.Models.IEssentials;
 using Xamarin.Essentials;
+using System.Threading.Tasks;
 
 namespace BioDivCollectorXamarin.iOS.Test
 {
@@ -40,16 +41,16 @@ namespace BioDivCollectorXamarin.iOS.Test
         }
 
         [Test]
-        public void FetchForms()
+        public async Task FetchForms()
         {
-            var forms = Form.FetchFormsForProject();
+            var forms = await Form.FetchFormsForProject();
             Assert.IsTrue(forms.Count == 3);
         }
 
         [Test]
-        public void FetchProject()
+        public async Task FetchProject()
         {
-            var project = Project.FetchProject("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+            var project = await Project.FetchProject("3fa85f64-5717-4562-b3fc-2c963f66afa6");
             var correctProject = project.projectId == "3fa85f64-5717-4562-b3fc-2c963f66afa6";
             var correctName = project.projectName == "TestProject";
             var correctDescription = project.description == "project description";
@@ -60,9 +61,9 @@ namespace BioDivCollectorXamarin.iOS.Test
         }
 
         [Test]
-        public void FetchWholeProject()
+        public async Task FetchWholeProject()
         {
-            var project = Project.FetchProjectWithChildren("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+            var project = await Project.FetchProjectWithChildren("3fa85f64-5717-4562-b3fc-2c963f66afa6");
             var geoms = project.geometries;
             var recs = new List<Record>();
             foreach (var geom in geoms)

@@ -34,7 +34,7 @@ namespace BioDivCollectorXamarin.Models
         /// Create an array of map layers: either mbtiles layers if offline and the mbtiles file exists, or direct links to the map servers 
         /// </summary>
         /// <returns>An observable collection of map layers</returns>
-        public static ObservableCollection<MapLayer> MakeArrayOfLayers()
+        public static async Task<ObservableCollection<MapLayer>> MakeArrayOfLayers()
         {
             int i = 0;
 
@@ -42,7 +42,7 @@ namespace BioDivCollectorXamarin.Models
             //Get the offline layers
             var offlineLayers = GetOfflineLayers(dirPath);
             //Get the online layers
-            var layers = GetLayersForMap(App.CurrentProjectId);
+            var layers = await GetLayersForMap(App.CurrentProjectId);
             //Add online wms layers
             var layerStack = layers.OrderByDescending(o => o.order).ToList();
 
@@ -453,9 +453,9 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="geometryId"></param>
         /// <returns>A point object representing the centroid</returns>
-        public static Mapsui.Geometries.Point GetCentreOfGeometry(int geometryId)
+        public static async Task<Mapsui.Geometries.Point> GetCentreOfGeometry(int geometryId)
         {
-            var items = DataDAO.getDataForMap(App.CurrentProjectId);
+            var items = await DataDAO.getDataForMap(App.CurrentProjectId);
             foreach (var item in items)
             {
                 if (item.geomId == geometryId)
@@ -472,10 +472,10 @@ namespace BioDivCollectorXamarin.Models
         /// Create each of the geometries, style them and add them to both the respective geometry type array and the 'AllShapes'array (used for centering the map)
         /// </summary>
         /// <returns>A dictionary of geometry layers</returns>
-        public static Dictionary<string, ILayer> CreateShapes()
+        public static async Task<Dictionary<string, ILayer>> CreateShapes()
         {
             var layerDic = new Dictionary<string, ILayer>();
-            var items = DataDAO.getDataForMap(App.CurrentProjectId);
+            var items = await DataDAO.getDataForMap(App.CurrentProjectId);
 
 
             if (items != null && items.Count > 0)
@@ -493,10 +493,9 @@ namespace BioDivCollectorXamarin.Models
                     var coords = item.shapeGeom.Coordinates;
                     var coordCount = item.shapeGeom.Coordinates.Length;
                     var hasRecords = false;
-                    using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                    {
-                        hasRecords = conn.Table<Record>().Select(c => c).Where(c => c.geometry_fk == item.geomId).Count() > 0;
-                    }
+                        //hasRecords = conn.Table<Record>().Select(c => c).Where(c => c.geometry_fk == item.geomId).Count() > 0;
+                        var recordList = await Record.FetchRecordByGeomId(item.geomId);
+                        hasRecords = recordList.Count > 0;
                     if (coordCount > 0)
                     {
                         if (coordCount == 1)
@@ -740,7 +739,7 @@ namespace BioDivCollectorXamarin.Models
         /// Save each of the map layers on-screen (the extent is provided by the screen edges) to an mbtiles file
         /// </summary>
         /// <param name="extent"></param>
-        public static async void saveMaps(Extent extent)
+        public static async Task saveMaps(Extent extent)
         {
             
             var basemap = Preferences.Get("BaseLayer", "swisstopo_pixelkarte"); //Check which basemap
@@ -753,7 +752,7 @@ namespace BioDivCollectorXamarin.Models
 
 
             //Get the online layers
-            var layers = GetLayersForMap(App.CurrentProjectId);
+            var layers = await GetLayersForMap(App.CurrentProjectId);
             //Create an array for adding the layers into in an ordered fashion
             var mapLayersTemp = new MapLayer[layers.Count];
             //Add online wms layers
@@ -817,7 +816,7 @@ namespace BioDivCollectorXamarin.Models
             //Save tiles
             long tilesSaved = 0;
 
-            MessagingCenter.Subscribe<Application>(App.Current, "TileSavedInternal", (sender) =>
+            MessagingCenter.Subscribe<Application>(App.Current, "TileSavedInternal", async (sender) =>
             {
                 //Listen for tile save updates and update the count
 
@@ -831,7 +830,7 @@ namespace BioDivCollectorXamarin.Models
                 {
                     MessagingCenter.Send<Application, string>(App.Current, "TileSaved", String.Empty);
                     MessagingCenter.Unsubscribe<Application>(App.Current, "TileSavedInternal");
-                    MapModel.MakeArrayOfLayers();
+                    await MapModel.MakeArrayOfLayers();
                 }
             });
 
@@ -986,13 +985,13 @@ namespace BioDivCollectorXamarin.Models
         /// <summary>
         ///  Add layers to the database corresponding to mbtiles files
         /// </summary>
-        public static void AddOfflineLayersToProject()
+        public static async Task AddOfflineLayersToProject()
         {
             var dirPath = App.TileLocation;
             //Get the offline layers
             var offlineLayers = GetOfflineLayers(dirPath);
             //Get the online layers
-            var layers = GetLayersForMap(App.CurrentProjectId);
+            var layers = await GetLayersForMap(App.CurrentProjectId);
             //Add online wms layers
             var layerStack = layers.OrderBy(o => o.order).ToList();
 
@@ -1015,15 +1014,15 @@ namespace BioDivCollectorXamarin.Models
                     var lay = new DatabaseModel.Layer();
                     var path = dirPath + "/" + layertitle;
                     var proj = Project.FetchProject(App.CurrentProjectId);
-                    BioDivCollectorXamarin.Models.DatabaseModel.Layer.AddFileLayer(layer.Name, layertitle, dirPath + "/" + layertitle + ".mbtiles", proj.Id, layers.Count + i++);
+                    await BioDivCollectorXamarin.Models.DatabaseModel.Layer.AddFileLayer(layer.Name, layertitle, dirPath + "/" + layertitle + ".mbtiles", proj.Id, layers.Count + i++);
                 }
             }
         }
 
-        public static void RemoveOfflineLayersFromProject()
+        public static async Task RemoveOfflineLayersFromProject()
         {
             var proj = Project.FetchProject(App.CurrentProjectId);
-            DatabaseModel.Layer.RemoveFileLayers(proj.Id);
+            await DatabaseModel.Layer.RemoveFileLayers(proj.Id);
         }
     }
 }

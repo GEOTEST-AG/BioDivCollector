@@ -65,12 +65,12 @@ namespace BioDivCollectorXamarin.Views
                 await DisplayAlert("BDC GUID kopiert", String.Empty, "OK");
             });
 
-            MessagingCenter.Subscribe<MapPageVM, string>(this, "GenerateNewForm", (sender, geomId) =>
+            MessagingCenter.Subscribe<MapPageVM, string>(this, "GenerateNewForm", async (sender, geomId) =>
             {
-                var formList = Form.FetchFormsForProject();
+                var formList = await Form.FetchFormsForProject();
                 int i = formList.Count;
 
-                var geom = ReferenceGeometry.GetGeometry(geomId);
+                var geom = await ReferenceGeometry.GetGeometry(geomId);
 
                 AddFormToNewGeometry(i, formList, geom, geomId);
                 MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
@@ -177,7 +177,9 @@ namespace BioDivCollectorXamarin.Views
             else if (action == "Formulartyp")
             {
                 ViewModel.FilterBy = "Formulartyp";
-                string formAction = await DisplayActionSheet("Filtern nach", "Abbrechen", null, Form.FetchFormNamesForProject().ToArray());
+                var formNames = await Form.FetchFormNamesForProject();
+                var formNamesArray = formNames.ToArray();
+                string formAction = await DisplayActionSheet("Filtern nach", "Abbrechen", null, formNamesArray);
                 if (formAction != "Abbrechen")
                 {
                     ViewModel.FormName = formAction;
@@ -207,7 +209,7 @@ namespace BioDivCollectorXamarin.Views
                 {
                     if (ViewModel.Object_pk == formRec.GeomId)
                     { ViewModel.Object_pk = null; }
-                    ReferenceGeometry.DeleteGeometry((int)formRec.GeomId);
+                    await ReferenceGeometry.DeleteGeometry((int)formRec.GeomId);
                     MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
                 }
             }
@@ -233,7 +235,7 @@ namespace BioDivCollectorXamarin.Views
                     try
                     {
                         GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
-                        var geom = ReferenceGeometry.GetGeometry((int)formRec.GeomId);
+                        var geom = await ReferenceGeometry.GetGeometry((int)formRec.GeomId);
                         var extId = geom.geometryId;
                         ViewModel.CopyGUID(extId);
                         await DisplayAlert("BDC GUID kopiert", "", "OK");
@@ -248,7 +250,7 @@ namespace BioDivCollectorXamarin.Views
                     try
                     {
                         GroupedFormRec formRec = ((Button)sender).BindingContext as GroupedFormRec;
-                        var geom = ReferenceGeometry.GetGeometry((int)formRec.GeomId);
+                        var geom = await ReferenceGeometry.GetGeometry((int)formRec.GeomId);
                         string newName = await DisplayPromptAsync("Geometriename", "Editieren Sie bitte der Geometriename", accept: "OK", cancel: "Abbrechen", initialValue: geom.geometryName, keyboard: Keyboard.Text);
                         if (newName != null) { geom.ChangeGeometryName(newName); }
                         MessagingCenter.Send<Application>(App.Current, "RefreshGeometries");
@@ -263,7 +265,7 @@ namespace BioDivCollectorXamarin.Views
                 {
                     SendGeometryToMapForEditing((Button)sender);
                     App.CurrentRoute = "//Map";
-                    Shell.Current.GoToAsync($"//Map", true);
+                    await Shell.Current.GoToAsync($"//Map", true);
                 }
             });
         }
@@ -282,12 +284,12 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void GUIDItem_Clicked(object sender, EventArgs e)
+        private async void GUIDItem_Clicked(object sender, EventArgs e)
         {
             var rec = ((MenuItem)sender).CommandParameter as FormRec;
-            var record = Record.FetchRecord(rec.RecId);
+            var record = await Record.FetchRecord(rec.RecId);
             var bguid = "<<BDC><" + record.recordId + ">>";
-            Clipboard.SetTextAsync(bguid);
+            await Clipboard.SetTextAsync(bguid);
             MessagingCenter.Send<Application>(Application.Current, "CopiedRecordGuid");
         }
 
@@ -296,29 +298,29 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void AddButton_Clicked(object sender, EventArgs e)
+        private async void AddButton_Clicked(object sender, EventArgs e)
         {
 
             var button = sender as Button;
             var geomId = button.CommandParameter as int?;
 
-            var formList = Form.FetchFormsForProject();
+            var formList = await Form.FetchFormsForProject();
             int i = formList.Count;
 
             if (i == 1)
             {
-                Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
+                await Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
             }
             else
             {
 
                 if (geomId != null)
                 {
-                    Navigation.PushAsync(new FormSelectionPage((int?)geomId), true);
+                    await Navigation.PushAsync(new FormSelectionPage((int?)geomId), true);
                 }
                 else
                 {
-                    Navigation.PushAsync(new FormSelectionPage(null), true);
+                    await Navigation.PushAsync(new FormSelectionPage(null), true);
                 }
 
             }

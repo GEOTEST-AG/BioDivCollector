@@ -154,8 +154,10 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                     else
                     {
                         //Use refresh token and show a page whilst we are waiting for the token to return
-
-                        Authentication.RequestRefreshTokenAsync();
+                        Task.Run(async () =>
+                        {
+                            await Authentication.RequestRefreshTokenAsync();
+                        });
                         return new LoginPage();
                     }
                 }

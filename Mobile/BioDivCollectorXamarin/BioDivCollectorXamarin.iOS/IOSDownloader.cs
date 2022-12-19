@@ -30,7 +30,7 @@ namespace BioDivCollectorXamarin.iOS
 
             try
             {
-                Task.Run(async () => {
+                Task.Run(() => {
                     WebClient webClient = new WebClient();
                     webClient.UseDefaultCredentials = false;
                     var token = Preferences.Get("AccessToken","");

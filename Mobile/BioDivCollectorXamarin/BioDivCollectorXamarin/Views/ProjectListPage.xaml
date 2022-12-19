@@ -5,7 +5,7 @@
              xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
              xmlns:xct="clr-namespace:Xamarin.CommunityToolkit.UI.Views;assembly=Xamarin.CommunityToolkit"
              x:Class="BioDivCollectorXamarin.Views.ProjectListPage"
-             xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views"
+             xmlns:converter ="clr-namespace:BioDivCollectorXamarin.Views" xmlns:viewmodels="clr-namespace:BioDivCollectorXamarin.ViewModels" x:DataType="viewmodels:ProjectListVM"
              x:Name ="ProjectListObject"
              ios:Page.UseSafeArea="true">
     <ContentPage.Content>

@@ -27,7 +27,7 @@ namespace BioDivCollectorXamarin.Droid
                 string pathToNewFile = Path.Combine(pathToNewFolder, Path.GetFileName(url));
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);
                 webClient.DownloadFileAsync(new Uri(url), pathToNewFile);
-                Launcher.OpenAsync(pathToNewFile);
+                await Launcher.OpenAsync(pathToNewFile);
             }
             catch (Exception ex)
             {

@@ -10,6 +10,7 @@ using BioDivCollectorXamarin.Views;
 using Mapsui.UI.Forms;
 using SQLite;
 using SQLiteNetExtensions.Extensions;
+using SQLiteNetExtensionsAsync.Extensions;
 using Syncfusion.SfAutoComplete.XForms;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -58,7 +59,7 @@ namespace BioDivCollectorXamarin.ViewModels
             CancelCommand = new Command(OnCancel);
         }
 
-        public void CreateForm(int? recId, int formId, int? geomId)
+        public async Task CreateForm(int? recId, int formId, int? geomId)
         {
             FormId = formId;
             GeomId = geomId;
@@ -68,16 +69,13 @@ namespace BioDivCollectorXamarin.ViewModels
             //Get the record and its corresponding variable values
             if (recId != null && recId > 0)
             {
-                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                {
-                    queriedrec = Record.FetchRecord((int)recId);
-                }
+                    queriedrec = await Record.FetchRecord((int)recId);
                 ReadOnly = queriedrec.readOnly;
                 RecId = (int)recId;
             }
             else
             {
-                queriedrec = Record.CreateRecord(formId, geomId);
+                queriedrec = await Record.CreateRecord(formId, geomId);
                 RecId = queriedrec.Id;
                 NewRecord = true;
             }
@@ -87,21 +85,17 @@ namespace BioDivCollectorXamarin.ViewModels
             var txts = new List<TextData>();
             var nums = new List<NumericData>();
             var bools = new List<BooleanData>();
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                txts = conn.Table<TextData>().Where(x => x.record_fk == recId).ToList();
-                nums = conn.Table<NumericData>().Where(x => x.record_fk == recId).ToList();
-                bools = conn.Table<BooleanData>().Where(x => x.record_fk == recId).ToList();
-            }
+                txts = await TextData.FetchTextData((int)recId);
+                nums = await NumericData.FetchNumericDataByRecordId((int)recId);
+                bools = await BooleanData.FetchBooleanData((int)recId);
             //Compile the GUID
             BDCGUIDtext = "<<BDC><" + queriedrec.recordId + ">>";
 
-            var projekt = Project.FetchCurrentProject();
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                var formTemp = conn.Table<Form>().Where(Form => Form.formId == formId).Where(Form => Form.project_fk == projekt.Id).FirstOrDefault();
-                formType = conn.GetWithChildren<Form>(formTemp.Id);
-            }
+            var projekt = await Project.FetchCurrentProject();
+                //var formTemp = conn.Table<Form>().Where(Form => Form.formId == formId).Where(Form => Form.project_fk == projekt.Id).FirstOrDefault();
+                var formTemp = await Form.FetchFormByFormAndProjectId(formId, projekt.Id);
+            var conn = App.ActiveDatabaseConnection;
+            formType = await conn.GetWithChildrenAsync<Form>(formTemp.Id);
 
 
             foreach (var formField in formType.formFields.OrderBy(f => f.order))
@@ -154,28 +148,22 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            TextData text;
-                            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                            {
-                                text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
-                            }
+                            var textList = await TextData.FetchTextData((int)recId);
+                                var text = textList.Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
                             var textField = new CustomEntry();
 
                             if (text == null)
                             {
                                 //CreateNew
                                 var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = RecId };
-                                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                                {
-                                    conn.Insert(txt);
-                                }
+                                    await conn.InsertAsync(txt);
                                 txts.Add(txt);
                                 queriedrec.texts = txts;
                                 text = txt;
                             }
                             var localReadOnly = ReadOnly;
                             if (formField.standardValue != null && formField.standardValue.Substring(0, 1) == "=") { localReadOnly = true; }
-                            textField.Text = Form.DetermineText(queriedrec, text, formField.standardValue);
+                            textField.Text = await Form.DetermineText(queriedrec, text, formField.standardValue);
                             textField.Keyboard = Keyboard.Text;
                             textField.Placeholder = formField.description;
                             textField.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
@@ -209,11 +197,8 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            TextData text;
-                            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                            {
-                                text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                            }
+                            var textList = await TextData.FetchTextData((int)recId);
+                            var text = textList.Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var dateField = new CustomDatePicker();
                             var timeField = new CustomTimePicker();
                             var nowButton = new Button();
@@ -234,10 +219,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             {
                                 //CreateNew
                                 var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = RecId };
-                                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                                {
-                                    conn.Insert(txt);
-                                }
+                                await conn.InsertAsync(txt);
                                 txts.Add(txt);
                                 queriedrec.texts = txts;
                                 text = txt;
@@ -362,20 +344,14 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            TextData text;
-                            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                            {
-                                text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                            }
+                            var textList = await TextData.FetchTextData(RecId);
+                            var text = textList.Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var dropField = new CustomAutoComplete();
                             if (text == null)
                             {
                                 //CreateNew
                                 var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = String.Empty, formFieldId = formField.fieldId, record_fk = RecId };
-                                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                                {
-                                    conn.Insert(txt);
-                                }
+                                    await conn.InsertAsync(txt);
                                 txts.Add(txt);
                                 queriedrec.texts = txts;
                                 text = txt;
@@ -384,7 +360,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             dropField.SetAppThemeColor(SfAutoComplete.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
                             dropField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
 
-                            List<FieldChoice> fieldChoices = Form.FetchFormChoicesForDropdown(formField.Id);
+                            List<FieldChoice> fieldChoices = await Form.FetchFormChoicesForDropdown(formField.Id);
 
                             dropField.AutoCompleteSource = fieldChoices.Select(choice => choice.text).ToList();
                             dropField.ItemsSource = fieldChoices;
@@ -444,20 +420,14 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            NumericData num;
-                            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                            {
-                                num = conn.Table<NumericData>().Select(n => n).Where(NumericData => NumericData.record_fk == RecId).Where(NumericData => NumericData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                            }
+                            var numList = await NumericData.FetchNumericDataByRecordId(RecId);
+                               var num = numList.Where(NumericData => NumericData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var textField = new CustomEntry();
                             if (num == null)
                             {
                                 //CreateNew
                                 var nm = new NumericData { numericId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = RecId };
-                                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                                {
-                                    conn.Insert(nm);
-                                }
+                                await conn.InsertAsync(nm);
                                 nums.Add(nm);
                                 queriedrec.numerics = nums;
                                 num = nm;
@@ -499,20 +469,14 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            BooleanData boolValue;
-                            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                            {
-                                boolValue = conn.Table<BooleanData>().Select(n => n).Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
-                            }
+                            var boolList = await BooleanData.FetchBooleanData(RecId);
+                            var boolValue = boolList.Where(BooleanData => BooleanData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var checkBox = new CustomCheckBox();
                             if (boolValue == null)
                             {
                                 //CreateNew
                                 boolValue = new BooleanData { booleanId = Guid.NewGuid().ToString(), title = String.Empty, value = false, formFieldId = formField.fieldId, record_fk = RecId };
-                                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                                {
-                                    conn.Insert(boolValue);
-                                }
+                                await conn.InsertAsync(boolValue);
                                 bools.Add(boolValue);
                                 queriedrec.booleans = bools;
                             }
@@ -628,7 +592,8 @@ namespace BioDivCollectorXamarin.ViewModels
             Assets.Add(geomlabel);
 
             AssociatedGeometry = new CustomAutoComplete();
-            Geoms = ReferenceGeometry.GetAllGeometries().Where(g => g.status < 3).OrderBy(g => g.geometryName).ToList();
+            var geomList = await ReferenceGeometry.GetAllGeometries();
+            Geoms = geomList.Where(g => g.status < 3).OrderBy(g => g.geometryName).ToList();
             foreach (var gm in Geoms)
             {
                 if (gm.geometryName == null)
@@ -801,7 +766,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             NewRecord = false;
             UpdateAssociatedGeometry(AssociatedGeometry);
-            Form.SaveValuesFromFormFields(Assets, RecId);
+            await Form.SaveValuesFromFormFields(Assets, RecId);
 
             MessagingCenter.Send<Xamarin.Forms.Application>(App.Current, "RefreshGeometries");
             // This will pop the current page off the navigation stack
@@ -813,16 +778,14 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private async void OnDelete()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
+            var conn = App.ActiveDatabaseConnection;
                 var response = await App.Current.MainPage.DisplayActionSheet("Möchten Sie diese Beobachtung vom Gerät entfernen?", "Abbrechen", "Entfernen");
                 if (response == "Entfernen")
                 {
-                    var rec = conn.GetWithChildren<Record>(RecId);
-                    Record.DeleteRecord(rec.Id);
+                    var rec = await conn.GetWithChildrenAsync<Record>(RecId);
+                    await Record.DeleteRecord(rec.Id);
                     await Shell.Current.GoToAsync("//Records",true);
                 }
-            }
         }
 
         /// <summary>
@@ -831,34 +794,30 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="choice"></param>
         private async void UpdateAssociatedGeometry(SfAutoComplete choice)
         {
-            var proj = Project.FetchCurrentProject();
+            var proj = await Project.FetchCurrentProject();
             if (choice.SelectedIndex > 0)
             {
                 var source = (List<ReferenceGeometry>)choice.ItemsSource;
                 var geom = source[(int)choice.SelectedIndex] as ReferenceGeometry;
-                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                {
-                    queriedrec.geometry_fk = geom.Id;
+                queriedrec.geometry_fk = geom.Id;
                     queriedrec.project_fk = proj.Id;
                     if (queriedrec.status != -1)
                     {
                         queriedrec.status = 2;
                     }
-                    conn.Update(queriedrec);
-                }
+                var conn = App.ActiveDatabaseConnection;
+                    await conn.UpdateAsync(queriedrec);
             }
             else
             {
-                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                {
                     queriedrec.geometry_fk = null;
                     queriedrec.project_fk = proj.Id;
                     if (queriedrec.status != -1)
                     {
                         queriedrec.status = 2;
                     }
-                    conn.Update(queriedrec);
-                }
+                    var conn = App.ActiveDatabaseConnection;
+                    await conn.UpdateAsync(queriedrec);
             }
         }
 
@@ -915,10 +874,8 @@ namespace BioDivCollectorXamarin.ViewModels
                 SaveCommand.ChangeCanExecute();
             }
 
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
+            //using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
                 text.value = String.Empty;
-            }
         }
 
 
@@ -1039,15 +996,14 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void DidSelectFromChoices(object sender, EventArgs e)
+        private async void DidSelectFromChoices(object sender, EventArgs e)
         {
             var choice = sender as CustomAutoComplete;
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.Id == choice.ValueId).FirstOrDefault();
+            var conn = App.ActiveDatabaseConnection;
+                var text = await conn.Table<TextData>().Where(TextData => TextData.Id == choice.ValueId).FirstOrDefaultAsync();
                 var choiceString = choice.SelectedItem.ToString();
                 text.value = choiceString;
-                var chosen = conn.Table<FieldChoice>().Select(t => t).Where(mychoice => mychoice.formField_fk == choice.TypeId).Where(mychoice => mychoice.text == choiceString).FirstOrDefault();
+                var chosen = await conn.Table<FieldChoice>().Where(mychoice => mychoice.formField_fk == choice.TypeId).Where(mychoice => mychoice.text == choiceString).FirstOrDefaultAsync();
 
                 if (chosen != null)
                 {
@@ -1068,7 +1024,6 @@ namespace BioDivCollectorXamarin.ViewModels
                     Console.WriteLine(ex);
                 }
 
-            }
 
         }
 
@@ -1085,8 +1040,8 @@ namespace BioDivCollectorXamarin.ViewModels
 
         private async Task<List<Image>> GetImages(int fieldId)
         {
-            var rec = Record.FetchRecord(RecId);
-            var binaryIds = BinaryData.GetBinaryDataIds(rec.Id, fieldId);
+            var rec = await Record.FetchRecord(RecId);
+            var binaryIds = await BinaryData.GetBinaryDataIds(rec.Id, fieldId);
             if (binaryIds == null || binaryIds.Count == 0)
             { binaryIds = new List<string>() { Guid.NewGuid().ToString() }; }
             var images = new List<Image>();
@@ -1151,18 +1106,18 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     await layout.FadeTo(0, 250, null);
                     await BinaryData.DeleteBinary(button.BinaryId);
-                    Record.UpdateRecord(button.RecordId);
+                    await Record.UpdateRecord(button.RecordId);
                     MessagingCenter.Send<FormPageVM>(this, "PhotoDeleted");
                 }
             });
         }
 
-        private void New_Image_Button_Clicked(object sender, EventArgs e)
+        private async void New_Image_Button_Clicked(object sender, EventArgs e)
         {
             NewRecord = false;
             var button = sender as CameraButton;
-            var rec = Record.FetchRecord(RecId);
-            if (rec == null) { rec = Record.CreateRecord(FormId, GeomId); }
+            var rec = await Record.FetchRecord(RecId);
+            if (rec == null) { rec = await Record.CreateRecord(FormId, GeomId); }
             Device.BeginInvokeOnMainThread(async () =>
             {
                 await Shell.Current.Navigation.PushAsync(new SfImageEditorPage(button.FormFieldId, null, RecId), true);

@@ -10,6 +10,8 @@ using System.Xml.Linq;
 using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.IEssentials;
 using BioDivCollectorXamarin.Models.LoginModel;
+using FeldAppX.Models.DatabaseModel;
+using SQLite;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 
@@ -67,6 +69,11 @@ namespace BioDivCollectorXamarin
         /// Whether the app has a data connection
         /// </summary>
         public static bool IsConnected = true;
+
+        /// <summary>
+        /// Single running Databaseconnection
+        /// </summary>
+        public static SQLiteAsyncConnection ActiveDatabaseConnection;
 
         /// <summary>
         /// Configure the app to the test or prod connector
@@ -178,11 +185,19 @@ namespace BioDivCollectorXamarin
             LoadXMLLicenceData();
             var licence = Preferences.Get("sflicence", "");
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(Preferences.Get("sflicence", ""));
+
             InitializeComponent();
             Device.SetFlags(new string[] { "RadioButton_Experimental", "Shapes_Experimental", "Expander_Experimental" });
-            CurrentUser = User.RetrieveUser();
             BioDivPrefs = new BioDivPreferences();
             Preferences.Set("databaseLocation", databaseLocation);
+
+            Task.Run(async () =>
+            {
+                ActiveDatabaseConnection = await DatabaseConnection.Instance;
+            });
+
+            CurrentUser = User.RetrieveUser();
+
             TileLocation = tileLocation;
             CurrentProjectId = Preferences.Get("currentProject", "");
             Busy = false;

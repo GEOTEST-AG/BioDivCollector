@@ -47,7 +47,8 @@
     <PackageReference Include="NetTopologySuite" Version="2.5.0" />
     <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="2.0.4" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="SQLiteNetExtensions" Version="2.1.0" />
+    <PackageReference Include="SQLiteNetExtensionsAsyncUpdate" Version="2.1.2" />
+    <PackageReference Include="SQLiteNetExtensionsUpdate" Version="2.1.2" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="Xam.Plugin.Geolocator" Version="4.5.0.6" />
     <PackageReference Include="Xamarin.Auth.Extensions" Version="1.7.0" />
@@ -135,7 +136,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="ProjNet" Version="2.0.0" />
     <PackageReference Include="SQLite" Version="3.13.0" />
-    <PackageReference Include="SQLiteNetExtensions" Version="2.1.0" />
     <PackageReference Include="Syncfusion.Licensing" Version="20.3.0.50" />
     <PackageReference Include="Syncfusion.Xamarin.Core" Version="20.3.0.50" />
     <PackageReference Include="Syncfusion.Xamarin.SfAutoComplete" Version="19.3.0.46" />

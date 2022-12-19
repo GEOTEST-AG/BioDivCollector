@@ -13,8 +13,9 @@ using NetTopologySuite.IO;
 using Mapsui.Projection;
 using Mapsui.Geometries;
 using ProjNet.CoordinateSystems;
-using ProjNet.CoordinateSystems.Transformations;
-using NetTopologySuite.Geometries;
+using System.Threading.Tasks;
+using SQLiteNetExtensionsAsync.Extensions;
+
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {
@@ -61,13 +62,11 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="geomId"></param>
         /// <returns></returns>
-        public static ReferenceGeometry GetGeometry(int geomId)
+        public static async Task<ReferenceGeometry> GetGeometry(int geomId)
         {
             ReferenceGeometry queriedGeom;
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                queriedGeom = conn.Get<ReferenceGeometry>(geomId);
-            }
+            var conn = App.ActiveDatabaseConnection;
+            queriedGeom = await conn.GetAsync<ReferenceGeometry>(geomId);
             return queriedGeom;
         }
 
@@ -76,13 +75,11 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="geomId"></param>
         /// <returns></returns>
-        public static ReferenceGeometry GetGeometry(string geometryId)
+        public static async Task<ReferenceGeometry> GetGeometry(string geometryId)
         {
             ReferenceGeometry queriedGeom;
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                queriedGeom = conn.Table<ReferenceGeometry>().Where(geom => geom.geometryId == geometryId).FirstOrDefault();
-            }
+            var conn = App.ActiveDatabaseConnection;
+            queriedGeom = await conn.Table<ReferenceGeometry>().Where(geom => geom.geometryId == geometryId).FirstOrDefaultAsync();
             return queriedGeom;
         }
 
@@ -90,15 +87,12 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Get all geometries for the current project
         /// </summary>
         /// <returns></returns>
-        public static List<ReferenceGeometry> GetAllGeometries()
+        public static async Task<List<ReferenceGeometry>> GetAllGeometries()
         {
             var queriedGeoms = new List<ReferenceGeometry>();
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                var currentProj = conn.Table<Project>().Where(p => p.projectId == App.CurrentProjectId).FirstOrDefault();
-                queriedGeoms = conn.Table<ReferenceGeometry>().Where(g => g.project_fk == currentProj.Id).ToList();
-
-            }
+            var conn = App.ActiveDatabaseConnection;
+            var currentProj = await conn.Table<Project>().Where(p => p.projectId == App.CurrentProjectId).FirstOrDefaultAsync();
+            queriedGeoms = await conn.Table<ReferenceGeometry>().Where(g => g.project_fk == currentProj.Id).ToListAsync();
             return queriedGeoms;
         }
 
@@ -106,15 +100,25 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Get a list of only the names of the geometries for the current project
         /// </summary>
         /// <returns></returns>
-        public static List<ReferenceGeometry> GetAllGeometryNames()
+        public static async Task<List<ReferenceGeometry>> GetAllGeometryNames()
         {
             var queriedGeoms = new List<ReferenceGeometry>();
             var project = Project.FetchCurrentProject();
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                queriedGeoms = conn.Table<ReferenceGeometry>().Select(g => g).Where(geom => geom.project_fk == project.Id).ToList();
-            }
+            var conn = App.ActiveDatabaseConnection;
+            queriedGeoms = await conn.Table<ReferenceGeometry>().Where(geom => geom.project_fk == project.Id).ToListAsync();
             return queriedGeoms;
+        }
+
+        /// <summary>
+        /// Get all geometries for a specific project
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<List<ReferenceGeometry>> GetAllGeometriesByProjectId(int projectId)
+        {
+            var geoms = new List<ReferenceGeometry>();
+            var conn = App.ActiveDatabaseConnection;
+            geoms = await conn.Table<ReferenceGeometry>().Where(geom => geom.project_fk == projectId).Where(r => r.status != 3).ToListAsync();
+            return geoms;
         }
 
 
@@ -123,7 +127,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="pointList"></param>
         /// <param name="name"></param>
-        public static string SaveGeometry(List<Mapsui.Geometries.Point> pointList, string name)
+        public static async Task<string> SaveGeometry(List<Mapsui.Geometries.Point> pointList, string name)
         {
             var geom = new ReferenceGeometry();
             geom.geometryId = Guid.NewGuid().ToString();
@@ -138,15 +142,13 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var proj = Project.FetchCurrentProject();
             geom.project_fk = proj.Id;
 
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                conn.Insert(geom);
+            var conn = App.ActiveDatabaseConnection;
+            await conn.InsertAsync(geom);
 
-                var project = conn.GetWithChildren<Project>(proj.Id);
-                project.geometries = conn.Table<ReferenceGeometry>().Where(g => g.project_fk == proj.Id).ToList();
-                conn.UpdateWithChildren(project);
+            var project = await conn.GetWithChildrenAsync<Project>(proj.Id);
+            project.geometries = await conn.Table<ReferenceGeometry>().Where(g => g.project_fk == proj.Id).ToListAsync();
+            await conn.UpdateWithChildrenAsync(project);
 
-            }
             return geom.geometryId;
         }
 
@@ -156,18 +158,16 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="pointList"></param>
         /// <param name="name"></param>
-        public static void UpdateGeometry(List<Mapsui.Geometries.Point> pointList, int GeomId)
+        public static async Task UpdateGeometry(List<Mapsui.Geometries.Point> pointList, int GeomId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                var geom = conn.GetWithChildren<ReferenceGeometry>(GeomId);
+            var conn = App.ActiveDatabaseConnection;
+                var geom = await conn.GetWithChildrenAsync<ReferenceGeometry>(GeomId);
                 geom.geometry = DataDAO.CoordinatesToGeoJSON(pointList);
                 geom.userName = App.CurrentUser.userId;
                 geom.fullUserName = App.CurrentUser.firstName + " " + App.CurrentUser.name;
                 geom.timestamp = DateTime.Now;
                 geom.status = 2;
-                conn.Update(geom);
-            }
+                await conn.UpdateAsync(geom);
         }
 
         /// <summary>
@@ -176,10 +176,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <param name="geom"></param>
         public static void SaveGeometry(ReferenceGeometry geom)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                conn.Update(geom);
-            }
+            var conn = App.ActiveDatabaseConnection;
+                conn.UpdateAsync(geom);
         }
 
 
@@ -187,14 +185,13 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Delete a geometry from the database (set its status to deleted) given its database geometry id
         /// </summary>
         /// <param name="geomId"></param>
-        public static void DeleteGeometry(int geomId)
+        public static async Task DeleteGeometry(int geomId)
         {
             try
             {
                 ReferenceGeometry queriedGeom;
-                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                {
-                    queriedGeom = conn.GetWithChildren<ReferenceGeometry>(geomId);
+                var conn = App.ActiveDatabaseConnection;
+                    queriedGeom = await conn.GetWithChildrenAsync<ReferenceGeometry>(geomId);
 
                     if (queriedGeom.status > -1)
                     {
@@ -205,16 +202,15 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                         {
                             rec.status = 3;
                             rec.timestamp = DateTime.Now;
-                            conn.Update(rec);
+                            await conn.UpdateAsync(rec);
                         }
 
-                        conn.Update(queriedGeom);
+                        await conn.UpdateAsync(queriedGeom);
                     }
                     else
                     {
-                        conn.Delete(queriedGeom,true);
+                        await conn.DeleteAsync(queriedGeom, true);
                     }
-                }
 
             }
             catch (Exception e)

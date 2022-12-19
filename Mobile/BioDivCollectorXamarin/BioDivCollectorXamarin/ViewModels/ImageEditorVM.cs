@@ -336,7 +336,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             try
             {
-                WriteBinaryRecord();
+                await WriteBinaryRecord();
                 BinaryData.SaveData(arr, BinaryDataId);
                 UpdateRoute();
                 return true;
@@ -358,7 +358,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             try
             {
-                WriteBinaryRecord();
+                await WriteBinaryRecord();
                 BinaryData.SaveData(stream, BinaryDataId);
                 UpdateRoute();
                 return true;
@@ -373,14 +373,14 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Write the binary record to the database
         /// </summary>
-        private void WriteBinaryRecord()
+        private async Task WriteBinaryRecord()
         {
             if (BinaryDataId == null)
             {
                 BinaryData binDat = new BinaryData();
                 binDat.record_fk = RecordId;
                 binDat.formFieldId = FormFieldId;
-                binDat.SaveBinaryRecord();
+                await binDat.SaveBinaryRecord();
                 BinaryDataId = binDat.binaryId;
             }
         }

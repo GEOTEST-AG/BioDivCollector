@@ -85,14 +85,14 @@ namespace BioDivCollectorXamarin.ViewModels
             LogoutCommand = new LogoutCommand(this);
             CurrentAppVersion = VersionTracking.CurrentVersion.ToString() + "(" + VersionTracking.CurrentBuild.ToString() + ")";
 
-            MessagingCenter.Subscribe<Application>(App.Current, "RefreshRecords", (sender) =>
+            MessagingCenter.Subscribe<Application>(App.Current, "RefreshRecords", async (sender) =>
             {
-                ChangesMessageVisible = Project.ProjectHasUnsavedChanges(App.CurrentProjectId);
+                ChangesMessageVisible = await Project.ProjectHasUnsavedChanges(App.CurrentProjectId);
             });
 
-            MessagingCenter.Subscribe<Application>(App.Current, "RefreshGeometries", (sender) =>
+            MessagingCenter.Subscribe<Application>(App.Current, "RefreshGeometries", async (sender) =>
             {
-                ChangesMessageVisible = Project.ProjectHasUnsavedChanges(App.CurrentProjectId);
+                ChangesMessageVisible = await Project.ProjectHasUnsavedChanges(App.CurrentProjectId);
             });
 
             //Get user or log new one in
@@ -107,10 +107,10 @@ namespace BioDivCollectorXamarin.ViewModels
             }
 
             //Subscribe to messages
-            MessagingCenter.Subscribe<Application>(App.Current, "SetProject", (sender) =>
+            MessagingCenter.Subscribe<Application>(App.Current, "SetProject", async (sender) =>
             {
                 var newId = Preferences.Get("currentProject", "");
-                this.SetProject(newId);
+                await this.SetProject(newId);
             });
 
             Activity = "";
@@ -126,13 +126,13 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void OnAppearing()
         {
-            Task.Run(() =>
+            Task.Run(async() =>
             {
                 string projId = Preferences.Get("currentProject", @"");
                 App.CurrentProjectId = projId;
                 try
                 {
-                    this.SetProject(projId);
+                    await this.SetProject(projId);
                 }
                 catch (Exception exp)
                 {
@@ -184,10 +184,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// Set the current project and reset any filter settings
         /// </summary>
         /// <param name="projectGUID"></param>
-        public void SetProject(string projectGUID)
+        public async Task SetProject(string projectGUID)
         {
-            CurrentProject = Project.FetchProject(projectGUID);
-            ChangesMessageVisible = Project.ProjectHasUnsavedChanges(projectGUID);
+            CurrentProject = await Project.FetchProject(projectGUID);
+            ChangesMessageVisible = await Project.ProjectHasUnsavedChanges(projectGUID);
             Preferences.Set("FilterGeometry", String.Empty);
             SyncCommand.RaiseCanExecuteChanged();
         }
@@ -287,7 +287,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (App.CurrentProjectId != null)
                 {
                     Debug.WriteLine("Deleting ");
-                    bool success = Project.DeleteProject(App.CurrentProjectId);
+                    bool success = await Project.DeleteProject(App.CurrentProjectId);
                     if (success)
                     {
                         App.SetProject(String.Empty);

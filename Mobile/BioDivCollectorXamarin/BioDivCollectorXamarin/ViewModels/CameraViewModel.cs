@@ -172,18 +172,21 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             try
             {
-                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                {
-                    Rec.binaries = conn.Table<BinaryData>().Where(x => x.record_fk == Rec.Id).ToList();
-                    Rec.texts = conn.Table<TextData>().Where(x => x.record_fk == Rec.Id).ToList();
-                    Rec.booleans = conn.Table<BooleanData>().Where(x => x.record_fk == Rec.Id).ToList();
-                    Rec.numerics = conn.Table<NumericData>().Where(x => x.record_fk == Rec.Id).ToList();
+                    //Rec.binaries = conn.Table<BinaryData>().Where(x => x.record_fk == Rec.Id).ToList();
+                    Rec.binaries = await BinaryData.FetchBinaryData(Rec.Id);
+                    //Rec.texts = conn.Table<TextData>().Where(x => x.record_fk == Rec.Id).ToList();
+                    Rec.texts = await TextData.FetchTextData(Rec.Id);
+                    //Rec.booleans = conn.Table<BooleanData>().Where(x => x.record_fk == Rec.Id).ToList();
+                    Rec.booleans = await BooleanData.FetchBooleanData(Rec.Id);
+                    //Rec.numerics = conn.Table<NumericData>().Where(x => x.record_fk == Rec.Id).ToList();
+                    Rec.numerics = await NumericData.FetchNumericDataByRecordId(Rec.Id);
+                    var conn = App.ActiveDatabaseConnection;
                     if (BinaryDataId == null)
                     {
                         BinaryData binDat = new BinaryData();
                         binDat.record_fk = Rec.Id;
                         binDat.formFieldId = FormFieldId;
-                        conn.InsertOrReplace(binDat);
+                        await conn.InsertOrReplaceAsync(binDat);
                         BinaryDataId = binDat.binaryId;
                         Rec.binaries.Add(binDat);
                     }
@@ -195,8 +198,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         Rec.status = 2;
                     }
-                    conn.UpdateWithChildren(Rec);
-                }
+                    await conn.InsertOrReplaceAsync(Rec);
                 return true;
             }
             catch (Exception e)

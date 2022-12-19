@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Xamarin.Essentials;
 
 namespace BioDivCollectorXamarin.ViewModels
@@ -21,7 +22,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             try
             {
-                Forms = Form.FetchFormsForProject();
+                Task.Run(async () => { Forms = await Form.FetchFormsForProject(); });
             }
             catch (Exception e)
             {

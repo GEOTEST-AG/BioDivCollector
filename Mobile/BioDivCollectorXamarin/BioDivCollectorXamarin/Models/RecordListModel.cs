@@ -71,14 +71,13 @@ namespace BioDivCollectorXamarin.Models
         /// <param name="filter"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static List<GroupedFormRec> ListRecords(Project project, string sortby, string filter, int? id)
+        public static async Task<List<GroupedFormRec>> ListRecords(Project project, string sortby, string filter, int? id)
         {
             try
             {
                 var longName = string.Empty;
                 var shortName = string.Empty;
-                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                {
+                var conn = App.ActiveDatabaseConnection;
                     //SORT BY GEOMETRY CASE
 
                     //No Geometry
@@ -88,10 +87,10 @@ namespace BioDivCollectorXamarin.Models
 
                     if (filter == "Formulartyp")
                     {
-                        norecList = (from record in conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == null).Where(Record => Record.project_fk == project.Id).Where(Record => Record.status < 3).Where(Record => Record.formId == id).ToList()
-                                     join form in conn.Table<Form>().Where(f => f.project_fk == project.Id).ToList()
+                        norecList = (from record in await conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == null).Where(Record => Record.project_fk == project.Id).Where(Record => Record.status < 3).Where(Record => Record.formId == id).ToListAsync()
+                                     join form in await conn.Table<Form>().Where(f => f.project_fk == project.Id).ToListAsync()
                                                   on record.formId equals form.formId
-                                     select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, RecId = record.Id, FormId = record.formId }).ToList();
+                                     select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id).ToString(), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, RecId = record.Id, FormId = record.formId }).ToList();
 
                         foreach (var rec in norecList)
                         {
@@ -104,10 +103,10 @@ namespace BioDivCollectorXamarin.Models
                     }
                     else if (filter != "Geometrie")
                     {
-                        norecList = (from record in conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == null).Where(Record => Record.project_fk == project.Id).Where(Record => Record.status < 3).ToList()
-                                     join form in conn.Table<Form>().Where(f => f.project_fk == project.Id).ToList()
+                        norecList = (from record in await conn.Table<Record>().Where(ReferenceGeometry => ReferenceGeometry.geometry_fk == null).Where(Record => Record.project_fk == project.Id).Where(Record => Record.status < 3).ToListAsync()
+                                     join form in await conn.Table<Form>().Where(f => f.project_fk == project.Id).ToListAsync()
                                                   on record.formId equals form.formId
-                                     select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, RecId = record.Id, FormId = record.formId }).ToList();
+                                     select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id).ToString(), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, RecId = record.Id, FormId = record.formId }).ToList();
 
                         foreach (var rec in norecList)
                         {
@@ -125,36 +124,36 @@ namespace BioDivCollectorXamarin.Models
 
                     if (filter == "Geometrie")
                     {
-                        recList = (from record in conn.Table<Record>().Where(Record => Record.status < 3).Where(Record => Record.geometry_fk == id).ToList()
-                                   join form in conn.Table<Form>().Where(f => f.project_fk == project.Id).ToList()
+                        recList = (from record in await conn.Table<Record>().Where(Record => Record.status < 3).Where(Record => Record.geometry_fk == id).ToListAsync()
+                                   join form in await conn.Table<Form>().Where(f => f.project_fk == project.Id).ToListAsync()
                                                 on record.formId equals form.formId
-                                   join referenceGeometry in conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList()
+                                   join referenceGeometry in await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToListAsync()
                                                 on record.geometry_fk equals referenceGeometry.Id
-                                   select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, GeomId = referenceGeometry.Id, RecId = record.Id, FormId = record.formId }).ToList();
+                                   select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id).ToString(), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, GeomId = referenceGeometry.Id, RecId = record.Id, FormId = record.formId }).ToList();
                     } else if (filter == "Formulartyp")
                     {
-                        recList = (from record in conn.Table<Record>().Where(Record => Record.status < 3).Where(Record => Record.formId == id).ToList()
-                                   join form in conn.Table<Form>().Where(f => f.project_fk == project.Id).ToList()
+                        recList = (from record in await conn.Table<Record>().Where(Record => Record.status < 3).Where(Record => Record.formId == id).ToListAsync()
+                                   join form in await conn.Table<Form>().Where(f => f.project_fk == project.Id).ToListAsync()
                                                 on record.formId equals form.formId
-                                   join referenceGeometry in conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList()
+                                   join referenceGeometry in await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToListAsync()
                                                 on record.geometry_fk equals referenceGeometry.Id
-                                   select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, GeomId = referenceGeometry.Id, RecId = record.Id, FormId = record.formId }).ToList();
+                                   select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id).ToString(), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, GeomId = referenceGeometry.Id, RecId = record.Id, FormId = record.formId }).ToList();
                     }
                     else
                     {
-                        recList = (from record in conn.Table<Record>().Where(Record => Record.status < 3).ToList()
-                                       join form in conn.Table<Form>().Where(f => f.project_fk == project.Id).ToList()
+                        recList = (from record in await conn.Table<Record>().Where(Record => Record.status < 3).ToListAsync()
+                                       join form in await conn.Table<Form>().Where(f => f.project_fk == project.Id).ToListAsync()
                                                     on record.formId equals form.formId
-                                       join referenceGeometry in conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList()
+                                       join referenceGeometry in await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToListAsync()
                                                     on record.geometry_fk equals referenceGeometry.Id
-                                       select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, GeomId = referenceGeometry.Id, RecId = record.Id, FormId = record.formId }).ToList();
+                                       select new FormRec { String1 = CreateTitleStringForRecordFromForm(form.Id, record.Id).ToString(), String2 = record.timestamp.ToString("g", CultureInfo.CreateSpecificCulture("de-DE")) + ", " + record.fullUserName, GeomId = referenceGeometry.Id, RecId = record.Id, FormId = record.formId }).ToList();
                     }
 
                     if (sortby == "Formulartyp")
                     {
                         recList.AddRange(norecList);
                         var formResults = recList.GroupBy(r => r.FormId, r => r, (key, r) => new { Form = key, Rec = r.ToList() });
-                        var forms = conn.Table<Form>().Where(Form => Form.project_fk == project.Id).ToList();
+                        var forms = await conn.Table<Form>().Where(Form => Form.project_fk == project.Id).ToListAsync();
                         var recordsByForm = formResults.Join(forms, rid => rid.Form, fid => fid.formId, (formrec, form) => new { LongGeomName = form.title, GeomId = form.Id, ShowButton = false, RecList = formrec.Rec }).Select(g => new GroupedFormRec(g.RecList as List<FormRec>) { LongGeomName = g.LongGeomName, GeomId = g.GeomId, ShowButton = false }).ToList();
                         //Sort groups by name
                         var recordsByFormOrdered = recordsByForm.OrderBy(rec => rec.LongGeomName).Select(rec => rec).ToList();
@@ -163,18 +162,18 @@ namespace BioDivCollectorXamarin.Models
                     else
                     {
                         var recResults = recList.GroupBy(r => r.GeomId, r => r, (key, r) => new { Geom = key, Rec = r.ToList() });
-                        var geoms = conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToList();
+                        var geoms = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToListAsync();
                         var recordsByGeometry = recResults.Join(geoms, rid => rid.Geom, gid => gid.Id, (formrec, geom) => new { LongGeomName = geom.geometryName, GeomId = geom.Id, ShowButton = true, RecList = formrec.Rec }).Select(g => new GroupedFormRec(g.RecList as List<FormRec>) { LongGeomName = g.LongGeomName, GeomId = g.GeomId, ShowButton = true }).ToList();
 
                         //Add in geometries with no records
                         var geomlist = new List<ReferenceGeometry>();
                         if (id == null || filter == "Formulartyp")
                         {
-                            geomlist = conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).Where(ReferenceGeometry => ReferenceGeometry.status != 3).ToList();
+                            geomlist = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).Where(ReferenceGeometry => ReferenceGeometry.status != 3).ToListAsync();
                         }
                         else
                         {
-                            geomlist = conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).Where(ReferenceGeometry => ReferenceGeometry.Id == id).Where(ReferenceGeometry => ReferenceGeometry.status != 3).ToList();
+                            geomlist = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).Where(ReferenceGeometry => ReferenceGeometry.Id == id).Where(ReferenceGeometry => ReferenceGeometry.status != 3).ToListAsync();
                         }
                            
                         foreach (var geom in geomlist)
@@ -190,7 +189,6 @@ namespace BioDivCollectorXamarin.Models
                         if (nogroup != null && (id == null || filter == "Formulartyp")) { recordsByGeometryOrdered.Insert(0, nogroup); }
                         return recordsByGeometryOrdered;
                     }
-                }
             }
             catch (Exception e)
             {
@@ -207,22 +205,23 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="rec"></param>
         /// <returns>The record title</returns>
-        private static string CreateTitleStringForRecordFromForm(int formId, int recId)
+        private static async Task<string> CreateTitleStringForRecordFromForm(int formId, int recId)
         {
             try
             {
                 bool hasRecords;
-                using (SQLiteConnection txtconn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                {
-                    var noOfTextRecords = txtconn.Table<TextData>().Where(txt => txt.record_fk == recId).Where(txt => txt.value != string.Empty).Where(txt => txt.value != null).Count();
-                    var noOfBoolRecords = txtconn.Table<BooleanData>().Where(boo => boo.record_fk == recId).Where(boo => boo.value != null).Count();
-                    var noOfNumericRecords = txtconn.Table<NumericData>().Where(num => num.record_fk == recId).Count();
-                    var noOfBinaryRecords = txtconn.Table<BinaryData>().Where(bin => bin.record_fk == recId).Count();
-                    hasRecords = (noOfTextRecords + noOfBoolRecords + noOfNumericRecords + noOfBinaryRecords) > 0;
-                }
+                var textRecords = await TextData.FetchTextData(recId);
+                var noOfTextRecords = textRecords.Where(txt => txt.value != string.Empty).Where(txt => txt.value != null).Count();
+                var boolRecords = await BooleanData.FetchBooleanData(recId);
+                var noOfBoolRecords = boolRecords.Where(b => b.value != null).Count();
+                var numericRecords = await NumericData.FetchNumericDataByRecordId(recId);
+                var noOfNumericRecords = numericRecords.Count();
+                var binaryRecords = await BinaryData.FetchBinaryData(recId);
+                var noOfBinaryRecords = binaryRecords.Count();
+                hasRecords = (noOfTextRecords + noOfBoolRecords + noOfNumericRecords + noOfBinaryRecords) > 0;
                 var title = "";
-                var form = Form.FetchForm(formId);
-                var formFields = Form.FetchFormFields(formId);
+                var form = await Form.FetchForm(formId);
+                var formFields = await Form.FetchFormFields(formId);
 
                 if (formFields != null)
                 {
@@ -230,17 +229,15 @@ namespace BioDivCollectorXamarin.Models
                     {
                         if (formField.typeId == 11 || formField.typeId == 51 || formField.typeId == 61)
                         {
-                            using (SQLiteConnection txtconn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+                            try
                             {
-                                try
-                                {
-                                    TextData txt = txtconn.Table<TextData>().Where(Txt => Txt.formFieldId == formField.fieldId).Where(Txt => Txt.record_fk == recId).FirstOrDefault();
-                                    title = title + txt.value + ", ";
-                                }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine(e);
-                                }
+                                var txtList = await TextData.FetchTextDataByFormFieldId(formField.fieldId);
+                                TextData txt = txtList.Where(Txt => Txt.record_fk == recId).FirstOrDefault();
+                                title = title + txt.value + ", ";
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
                             }
                         }
                     }

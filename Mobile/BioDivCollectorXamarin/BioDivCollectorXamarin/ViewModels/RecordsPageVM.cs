@@ -242,14 +242,19 @@ namespace BioDivCollectorXamarin.ViewModels
             Task.Run(async () =>
             {
                 Activity = true;
-                var proj = Project.FetchCurrentProject();
+                var proj = await Project.FetchCurrentProject();
                 if (filterBy == "Formulartyp")
                 {
-                    var frm = Form.FetchForm((int)Form_pk);
-                    Records = new ObservableCollection<GroupedFormRec>(RecordListModel.ListRecords(proj, sortBy, filterBy, frm.formId).ToList());
-                } else
+                    var frm = await Form.FetchForm((int)Form_pk);
+                    var recordsList = await RecordListModel.ListRecords(proj, sortBy, filterBy, frm.formId);
+                    Records = new ObservableCollection<GroupedFormRec>(recordsList);
+                    //Records = new ObservableCollection<GroupedFormRec>(RecordListModel.ListRecords(proj, sortBy, filterBy, frm.formId).ToListAsync);
+                } 
+                else
                 {
-                    Records = new ObservableCollection<GroupedFormRec>(RecordListModel.ListRecords(proj, sortBy, filterBy, Object_pk).ToList());
+                    var recordList = await RecordListModel.ListRecords(proj, sortBy, filterBy, Object_pk);
+                    Records = new ObservableCollection<GroupedFormRec>(recordList);
+                    //Records = new ObservableCollection<GroupedFormRec>(RecordListModel.ListRecords(proj, sortBy, filterBy, Object_pk).ToListAsync());
                 }
                 
                 OnPropertyChanged("Records");
@@ -376,7 +381,7 @@ namespace BioDivCollectorXamarin.ViewModels
             MessagingCenter.Subscribe<RecordDeleteCommand,FormRec>(this,"DeleteRecord", async (sender,rec) =>
             {
                 await Task.Delay(500);
-                Record.DeleteRecord(rec.RecId);
+                await Record.DeleteRecord(rec.RecId);
             });
         }
 

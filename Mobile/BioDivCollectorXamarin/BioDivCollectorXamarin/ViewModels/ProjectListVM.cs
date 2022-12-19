@@ -138,7 +138,7 @@ namespace BioDivCollectorXamarin.ViewModels
         public async Task<bool> CheckProjectStatusAsync(ProjectSimple project)
         {
             string projectId = project.projectId.ToString();
-            bool exists = Project.LocalProjectExists(projectId);
+            bool exists = await Project.LocalProjectExists(projectId);
             if (!exists)
             {
                 await Project.DownloadProjectData(project.projectId);
@@ -169,9 +169,9 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         /// <param name="project"></param>
         /// <returns>success</returns>
-        public bool DeleteProject(ProjectSimple project)
+        public async Task<bool> DeleteProject(ProjectSimple project)
         {
-            bool success = Project.DeleteProject(project);
+            bool success = await Project.DeleteProject(project);
             return success;
         }
 
@@ -218,12 +218,15 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public bool CanExecute(object parameter)
         {
+            Task.Run(async () =>
+            {
 
-            if (parameter == null) { return false; }
-            ProjectSimple proj = parameter as ProjectSimple;
-            bool existsAlready = Project.LocalProjectExists(proj.projectId);
-            return existsAlready;
-
+                if (parameter == null) { return false; }
+                ProjectSimple proj = parameter as ProjectSimple;
+                bool existsAlready = await Project.LocalProjectExists(proj.projectId);
+                return existsAlready;
+            });
+            return false;
         }
 
         public void Execute(object parameter)
@@ -236,7 +239,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (response == "Entfernen")
                 {
                     Debug.WriteLine("Deleting ");
-                    bool success = Project.DeleteProject(proj.projectId);
+                    bool success = await Project.DeleteProject(proj.projectId);
                     
                     if (App.CurrentProjectId == proj.projectId)
                     {
@@ -272,16 +275,20 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public bool CanExecute(object parameter)
         {
-            if (parameter == null) { return false; }
-            ProjectSimple proj = parameter as ProjectSimple;
-            bool existsAlready = Project.LocalProjectExists(proj.projectId);
-            return !App.Busy && (existsAlready || App.IsConnected);
+            Task.Run(async () =>
+            {
+                if (parameter == null) { return false; }
+                ProjectSimple proj = parameter as ProjectSimple;
+                bool existsAlready = await Project.LocalProjectExists(proj.projectId);
+                return !App.Busy && (existsAlready || App.IsConnected);
+            });
+            return false;
         }
 
         public async void Execute(object parameter)
         {
             ProjectSimple proj = parameter as ProjectSimple;
-            bool existsAlready = Project.LocalProjectExists(proj.projectId);
+            bool existsAlready = await Project.LocalProjectExists(proj.projectId);
             if (existsAlready == true)
             {
                 App.SetProject(proj.projectId);

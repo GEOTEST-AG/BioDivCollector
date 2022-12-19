@@ -9,6 +9,9 @@ using Xamarin.Forms;
 using BioDivCollectorXamarin.Controls;
 using BioDivCollectorXamarin.Models;
 using Xamarin.Essentials;
+using System.Threading.Tasks;
+using SQLiteNetExtensionsAsync.Extensions;
+using System.Drawing.Printing;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {
@@ -36,20 +39,37 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Get forms relevant to the current project from the database
         /// </summary>
         /// <returns>List of forms</returns>
-        public static List<Form> FetchFormsForProject()
+        public static async Task<List<Form>> FetchFormsForProject()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
+            var conn = App.ActiveDatabaseConnection;
                 try
                 {
                     var proj = Project.FetchCurrentProject();
-                    var forms = conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).ToList();
+                    var forms = await conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).ToListAsync();
                     return forms;
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
                 }
+                return null;
+        }
+
+        /// <summary>
+        /// Get forms relevant to the current project from the database
+        /// </summary>
+        /// <returns>List of forms</returns>
+        public static async Task<List<Form>> FetchFormsForProject(int projectId)
+        {
+            var conn = App.ActiveDatabaseConnection;
+            try
+            {
+                var forms = await conn.Table<Form>().Where(Form => Form.project_fk == projectId).ToListAsync();
+                return forms;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
             return null;
         }
@@ -58,14 +78,13 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Gets a list of just the form names for the project
         /// </summary>
         /// <returns>List of form names</returns>
-        public static List<String> FetchFormNamesForProject()
+        public static async Task<List<String>> FetchFormNamesForProject()
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                try
+            var conn = App.ActiveDatabaseConnection;
+            try
                 {
                     var proj = Project.FetchCurrentProject();
-                    var forms = conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).ToList();
+                    var forms = await conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).ToListAsync();
                     var formNames = new List<string>();
                     foreach (var form in forms)
                     {
@@ -77,7 +96,6 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 {
                     Console.WriteLine(e);
                 }
-            }
             return null;
         }
 
@@ -86,21 +104,19 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="formName"></param>
         /// <returns>Form</returns>
-        public static Form FetchFormWithFormName(string formName)
+        public static async Task<Form> FetchFormWithFormName(string formName)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
+            var conn = App.ActiveDatabaseConnection;
                 try
                 {
                     var proj = Project.FetchCurrentProject();
-                    var form = conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).Where(Form => Form.title == formName).FirstOrDefault();
+                    var form = await conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).Where(Form => Form.title == formName).FirstOrDefaultAsync();
                     return form;
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
                 }
-            }
             return null;
         }
 
@@ -109,15 +125,14 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="formId"></param>
         /// <returns>A list of form fields</returns>
-        public static List<FormField> FetchFormFields(int formId)
+        public static async Task<List<FormField>> FetchFormFields(int formId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
+            var conn = App.ActiveDatabaseConnection;
                 try
                 {
                     var projekt = Project.FetchCurrentProject();
-                    var formTemp = conn.Table<Form>().Where(Form => Form.formId == formId).Where(Form => Form.project_fk == projekt.Id).FirstOrDefault();
-                    var formType = conn.GetWithChildren<Form>(formTemp.Id);
+                    var formTemp = await conn.Table<Form>().Where(Form => Form.formId == formId).Where(Form => Form.project_fk == projekt.Id).FirstOrDefaultAsync();
+                    var formType = await conn.GetWithChildrenAsync<Form>(formTemp.Id);
                     var formFields = formType.formFields.Where(FormField => FormField.useInRecordTitle == true).ToList();
                     return formFields;
                 }
@@ -125,7 +140,6 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 {
                     Console.WriteLine(e);
                 }
-            }
             return null;
         }
 
@@ -134,20 +148,38 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="formDbId"></param>
         /// <returns>The Form</returns>
-        public static Form FetchForm(int formDbId)
+        public static async Task<Form> FetchForm(int formDbId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
+            var conn = App.ActiveDatabaseConnection;
                 try
                 {
-                    var form= conn.Table<Form>().Where(Form => Form.Id == formDbId).FirstOrDefault();
+                    var form = await conn.Table<Form>().Where(Form => Form.Id == formDbId).FirstOrDefaultAsync();
                     return form;
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
                 }
-            }
+            return null;
+        }
+
+        /// <summary>
+        /// Fetch the Form by its Form id and project id 
+        /// </summary>
+        /// <param name="fieldId"></param>
+        /// <returns>List of choice strings</returns>
+        public static async Task<Form> FetchFormByFormAndProjectId(int formId, int projectId)
+        {
+            var conn = App.ActiveDatabaseConnection;
+                try
+                {
+                    var form = await conn.Table<Form>().Where(Form => Form.formId == formId).Where(Form => Form.project_fk == projectId).FirstOrDefaultAsync();
+                    return form;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
             return null;
         }
 
@@ -156,19 +188,17 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="fieldId"></param>
         /// <returns>List of choice strings</returns>
-        public static List<FieldChoice> FetchFormChoicesForDropdown(int fieldId)
+        public static async Task<List<FieldChoice>> FetchFormChoicesForDropdown(int fieldId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
+            var conn = App.ActiveDatabaseConnection;
+            try
             {
-                try
-                {
-                    var choices = conn.Table<FieldChoice>().Where(FieldChoice => FieldChoice.formField_fk == fieldId).OrderBy(f => f.order).Select(f => f).ToList();
-                    return choices;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                var choices = await conn.Table<FieldChoice>().Where(FieldChoice => FieldChoice.formField_fk == fieldId).OrderBy(f => f.order).ToListAsync();
+                return choices;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
             return null;
         }
@@ -178,10 +208,9 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="Assets"></param>
         /// <param name="RecId"></param>
-        public static void SaveValuesFromFormFields(List<View> Assets, int RecId)
+        public static async Task SaveValuesFromFormFields(List<View> Assets, int RecId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
+            var conn = App.ActiveDatabaseConnection;
                 foreach (var field in Assets)
                 {
                     if (field.GetType() == typeof(CustomEntry))
@@ -191,10 +220,10 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                         {
                             try
                             {
-                                var num = conn.Table<NumericData>().Select(n => n).Where(NumericData => NumericData.record_fk == RecId).Where(NumericData => NumericData.Id == txtField.ValueId).FirstOrDefault();
+                                var num = await conn.Table<NumericData>().Where(NumericData => NumericData.record_fk == RecId).Where(NumericData => NumericData.Id == txtField.ValueId).FirstOrDefaultAsync();
                                 num.value = Convert.ToDouble(txtField.Text);
-                                conn.Update(num);
-                                Record.UpdateRecord(num.record_fk);
+                                await conn.UpdateAsync(num);
+                                await Record.UpdateRecord(num.record_fk);
                             }
                             catch (Exception e)
                             {
@@ -206,10 +235,10 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                         {
                             try
                             {
-                                var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == txtField.ValueId).FirstOrDefault();
+                                var text = await conn.Table<TextData>().Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == txtField.ValueId).FirstOrDefaultAsync();
                                 text.value = txtField.Text;
-                                conn.Update(text);
-                                Record.UpdateRecord(text.record_fk);
+                                await conn.UpdateAsync(text);
+                                await Record.UpdateRecord(text.record_fk);
                             }
                             catch (Exception e)
                             {
@@ -228,16 +257,16 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                             {
                                 if (txtField.SelectedItem != null)
                                 {
-                                    var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == txtField.ValueId).FirstOrDefault(); //Get the existing data from the database
+                                    var text = await conn.Table<TextData>().Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == txtField.ValueId).FirstOrDefaultAsync(); //Get the existing data from the database
                                     var choice = txtField.SelectedIndex;
                                     var choiceString = txtField.AutoCompleteSource[choice];
-                                    var chosen = conn.Table<FieldChoice>().Select(t => t).Where(mychoice => mychoice.formField_fk == txtField.TypeId).Where(mychoice => mychoice.text == choiceString).FirstOrDefault(); //Find the corresponding dropdown choice from the database
+                                    var chosen = await conn.Table<FieldChoice>().Where(mychoice => mychoice.formField_fk == txtField.TypeId).Where(mychoice => mychoice.text == choiceString).FirstOrDefaultAsync(); //Find the corresponding dropdown choice from the database
                                     if (chosen != null)
                                     {
                                         text.value = chosen.text; //update the text from the choice
                                         text.fieldChoiceId = chosen.choiceId; //Update the database entry with the dropdown choice id
-                                        conn.Update(text);
-                                        Record.UpdateRecord(text.record_fk); //Write back to the db
+                                        await conn.UpdateAsync(text);
+                                        await Record.UpdateRecord(text.record_fk); //Write back to the db
                                     }
                                 }
                             }
@@ -253,7 +282,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                         var dateField = (CustomDatePicker)field;
                         try
                         {
-                            var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == dateField.ValueId).FirstOrDefault();
+                            var text = await conn.Table<TextData>().Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == dateField.ValueId).FirstOrDefaultAsync();
                             if (dateField.NullableDate != null)
                             {
                                 var newDate = (DateTime)dateField.NullableDate;
@@ -264,10 +293,10 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                             {
                                 text.value = null;
                             }
-                            conn.Update(text);
+                            await conn.UpdateAsync(text);
 
 
-                            Record.UpdateRecord(text.record_fk);
+                            await Record.UpdateRecord(text.record_fk);
                         }
                         catch (Exception e)
                         {
@@ -284,7 +313,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                 var dateField = (CustomDatePicker)subview;
                                 try
                                 {
-                                    var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == dateField.ValueId).FirstOrDefault();
+                                    var text = await conn.Table<TextData>().Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == dateField.ValueId).FirstOrDefaultAsync();
                                     
                                     if (dateField.NullableDate != null)
                                     {
@@ -303,8 +332,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                     {
                                         text.value = String.Empty;
                                     }
-                                    conn.Update(text);
-                                    Record.UpdateRecord(text.record_fk);
+                                    await conn.UpdateAsync(text);
+                                    await Record.UpdateRecord(text.record_fk);
                                 }
                                 catch (Exception e)
                                 {
@@ -316,7 +345,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                 var timeField = (CustomTimePicker)subview;
                                 try
                                 {
-                                    var text = conn.Table<TextData>().Select(t => t).Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == timeField.ValueId).FirstOrDefault();
+                                    var text = await conn.Table<TextData>().Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == timeField.ValueId).FirstOrDefaultAsync();
                                     if (timeField.NullableDate != null)
                                     {
                                         var oldDate = DateTime.Now;
@@ -334,8 +363,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                         text.value = String.Empty;
                                     }
 
-                                    conn.Update(text);
-                                    Record.UpdateRecord(text.record_fk);
+                                    await conn.UpdateAsync(text);
+                                    await Record.UpdateRecord(text.record_fk);
                                 }
                                 catch (Exception e)
                                 {
@@ -347,10 +376,10 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                 try
                                 {
                                     var checkField = (CustomCheckBox)subview;
-                                    var boolValue = conn.Table<BooleanData>().Select(n => n).Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.Id == checkField.ValueId).FirstOrDefault();
+                                    var boolValue = await conn.Table<BooleanData>().Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.Id == checkField.ValueId).FirstOrDefaultAsync();
                                     boolValue.value = checkField.IsChecked;
-                                    conn.Update(boolValue);
-                                    Record.UpdateRecord(boolValue.record_fk);
+                                    await conn.UpdateAsync(boolValue);
+                                    await Record.UpdateRecord(boolValue.record_fk);
                                 }
                                 catch (Exception e)
                                 {
@@ -365,24 +394,20 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                         try
                         {
                             var checkField = (CustomCheckBox)field;
-                            var boolValue = conn.Table<BooleanData>().Select(n => n).Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.Id == checkField.ValueId).FirstOrDefault();
+                            var boolValue = await conn.Table<BooleanData>().Where(BooleanData => BooleanData.record_fk == RecId).Where(BooleanData => BooleanData.Id == checkField.ValueId).FirstOrDefaultAsync();
                             boolValue.value = checkField.IsChecked;
-                            conn.Update(boolValue);
-                            Record.UpdateRecord(boolValue.record_fk);
+                            await conn.UpdateAsync(boolValue);
+                            await Record.UpdateRecord(boolValue.record_fk);
                         }
                         catch (Exception e)
                         {
                             Console.WriteLine("Could not save data" + e);
                         }
-
                     }
                 }
-
-            }
-
         }
 
-        public static string DetermineText(Record record, TextData text, string standardValue)
+        public static async Task<string> DetermineText(Record record, TextData text, string standardValue)
         {
             var value = text.value;
             if (standardValue == null)
@@ -411,13 +436,13 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 }
                 else if (standardValue == "length()")
                 {
-                    ReferenceGeometry geom = ReferenceGeometry.GetGeometry((int)record.geometry_fk);
+                    ReferenceGeometry geom = await ReferenceGeometry.GetGeometry((int)record.geometry_fk);
                     var length = ReferenceGeometry.CalculateLengthOfLine(geom);
                     return length.ToString("F2");
                 }
                 else if (standardValue == "area()")
                 {
-                    ReferenceGeometry geom = ReferenceGeometry.GetGeometry((int)record.geometry_fk);
+                    ReferenceGeometry geom = await ReferenceGeometry.GetGeometry((int)record.geometry_fk);
                     var area = ReferenceGeometry.CalculateAreaOfPolygon(geom);
                     return area.ToString("F2");
                 }
@@ -455,6 +480,12 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
         [ForeignKey(typeof(Form))]
         public int form_fk { get; set; }
+
+        public static async Task<FormField> FetchFormFieldByFieldIdAndFormKey(int fieldId, int form_fk)
+        {
+            var conn = App.ActiveDatabaseConnection;
+            return await conn.Table<FormField>().Where(FormField => FormField.fieldId == fieldId).Where(FormField => FormField.form_fk == form_fk).FirstOrDefaultAsync();
+        }
     }
 
 

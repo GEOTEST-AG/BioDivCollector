@@ -5,12 +5,14 @@ using NetTopologySuite.IO;
 using Newtonsoft.Json;
 using SQLite;
 using SQLiteNetExtensions.Extensions;
+using SQLiteNetExtensionsAsync.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Auth;
@@ -28,7 +30,7 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="projectId">Specifies project</param>
         /// <param name="time">Specifies the earliest time from which the changes should be downloaded</param>
-        public static void GetJsonStringForProject(string projectId, string time)
+        public static async Task GetJsonStringForProject(string projectId, string time)
         {
             //Refresh token, then synchronise
             var auth = Authentication.AuthParams;
@@ -82,7 +84,7 @@ namespace BioDivCollectorXamarin.Models
                         if (json.ToLower() != "error downloading data" && json.ToLower() != "error parsing data")
                         {
                             
-                            success = DataDAO.GetProjectDataFromJSON(json);
+                            success = await GetProjectDataFromJSON(json);
                             App.CurrentProjectId = projectId;
                             App.SetProject(projectId);
                             ShowSyncCompleteMessage(success);
@@ -115,7 +117,7 @@ namespace BioDivCollectorXamarin.Models
                 //Careful! This triggers on the iPhone even when login is successful
             };
 
-            auth.RequestRefreshTokenAsync(Preferences.Get("RefreshToken", ""));
+            await auth.RequestRefreshTokenAsync(Preferences.Get("RefreshToken", ""));
         }
 
         /// <summary>
@@ -123,7 +125,7 @@ namespace BioDivCollectorXamarin.Models
         /// This includes authorisation
         /// </summary>
         /// <param name="projectId"></param>
-        public async static void SynchroniseDataForProject(string projectId)
+        public async static Task SynchroniseDataForProject(string projectId)
         {
 
             //Refresh token, then synchronise
@@ -142,13 +144,13 @@ namespace BioDivCollectorXamarin.Models
                     string time = "0000-01-01T00:00:00";
                     var lastSync = DateTime.Now;
                     DateTime.TryParse(time, out lastSync);
-                    var project = Project.FetchProject(projectId);
+                    var project = await Project.FetchProject(projectId);
                     if (project.lastSync != null)
                     {
                         lastSync = project.lastSync.ToUniversalTime();
                         time = lastSync.ToString("yyyy-MM-ddTHH:mm:ss" + "Z");
                     }
-                    var json = DataDAO.PrepareJSONForUpload(lastSync); // Prepare data for upload
+                    var json = await PrepareJSONForUpload(lastSync); // Prepare data for upload
 
                     string url = App.ServerURL + "/api/Project/" + time + "?iamgod=true";
 
@@ -182,12 +184,11 @@ namespace BioDivCollectorXamarin.Models
                                     MessagingCenter.Send(new DataDAO(), "SyncMessage", photoUploadResponse);
                                 }
 
-                                DataDAO.ProcessJSON(returnedObject.projectUpdate); //Update database with downloaded data
+                                await ProcessJSON(returnedObject.projectUpdate); //Update database with downloaded data
 
-                                using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-                                {
+                                var conn = App.ActiveDatabaseConnection;
                                     project.lastSync = DateTime.Now;
-                                    conn.Update(project);
+                                    await conn.UpdateAsync(project);
 
                                     var error = returnedObject.error;
                                     var deletedRecords = returnedObject.records.deleted;
@@ -208,15 +209,17 @@ namespace BioDivCollectorXamarin.Models
                                     {
                                         //Delete records from device which have been confirmed by the connector as 'deleted' in the central db
                                         var uid = deletedRecord.Key.ToString();
-                                        var queriedRec = conn.Table<Record>().Where(r => r.recordId == uid).FirstOrDefault();
-                                        conn.Delete(queriedRec, true);
+                                        //var queriedRec = await conn.Table<Record>().Where(r => r.recordId == uid).FirstOrDefaultAsync();
+                                        var queriedRec = await Record.FetchRecord(uid);
+                                        await conn.DeleteAsync(queriedRec);
                                     }
                                     foreach (var deletedGeometry in deletedGeometries)
                                     {
                                         //Delete geometries from device which have been confirmed by the connector as 'deleted' in the central db
                                         var uid = deletedGeometry.Key.ToString();
-                                        var queriedGeom = conn.Table<ReferenceGeometry>().Where(g => g.geometryId == uid).FirstOrDefault();
-                                        conn.Delete(queriedGeom, true);
+                                        //var queriedGeom = conn.Table<ReferenceGeometry>().Where(g => g.geometryId == uid).FirstOrDefault();
+                                        var queriedGeom = await ReferenceGeometry.GetGeometry(uid);
+                                        await conn.DeleteAsync(queriedGeom);
                                     }
 
                                     foreach (var skippedGeom in skippedGeometries)
@@ -235,7 +238,6 @@ namespace BioDivCollectorXamarin.Models
                                     }
 
                                     ShowSyncCompleteMessage(error); //Show any errors in the sync confirmation message
-                                }
                             }
                             else
                             {
@@ -277,7 +279,7 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static string GetProjectDataFromJSON(string json)
+        public static async Task<string> GetProjectDataFromJSON(string json)
         {
             try
             {
@@ -289,7 +291,7 @@ namespace BioDivCollectorXamarin.Models
                 };
                 var projectRoot = JsonConvert.DeserializeObject<Project>(json, settings);
 
-                DataDAO.ProcessJSON((Project)projectRoot);
+                await ProcessJSON((Project)projectRoot);
 
                 return "Data successfully downloaded";
             }
@@ -306,44 +308,41 @@ namespace BioDivCollectorXamarin.Models
         /// Update the database with the deserialised json returned from the connector
         /// </summary>
         /// <param name="projectRoot"></param>
-        public static void ProcessJSON(Project projectRoot)
+        public static async Task ProcessJSON(Project projectRoot)
         {
             var binaryDownloadList = new List<Tuple<string, int?>>();
             //Insert JSON into database
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-
+            var conn = App.ActiveDatabaseConnection;
                 if (projectRoot != null)
                 {
-
                     MessagingCenter.Send(new DataDAO(), "SyncMessage", "Creating project");
                     try
                     {
                         //Test to see if database schema exists
-                        var projTableTest = conn.Table<Project>().Select(g => g).FirstOrDefault();
-                        var projTableTest2 = conn.Table<ReferenceGeometry>().Select(g => g).FirstOrDefault();
+                        var projTableTest = await conn.Table<Project>().FirstOrDefaultAsync();
+                        var projTableTest2 = await conn.Table<ReferenceGeometry>().FirstOrDefaultAsync();
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e);
-                        conn.CreateTable<Project>();
-                        conn.CreateTable<ReferenceGeometry>();
-                        conn.CreateTable<Record>();
-                        conn.CreateTable<TextData>();
-                        conn.CreateTable<NumericData>();
-                        conn.CreateTable<BooleanData>();
-                        conn.CreateTable<BinaryData>();
-                        conn.CreateTable<Layer>();
-                        conn.CreateTable<Form>();
-                        conn.CreateTable<FormField>();
-                        conn.CreateTable<FieldChoice>();
+                        await conn.CreateTableAsync<Project>();
+                    await conn.CreateTableAsync<ReferenceGeometry>();
+                    await conn.CreateTableAsync<Record>();
+                    await conn.CreateTableAsync<TextData>();
+                    await conn.CreateTableAsync<NumericData>();
+                    await conn.CreateTableAsync<BooleanData>();
+                    await conn.CreateTableAsync<BinaryData>();
+                    await conn.CreateTableAsync<Layer>();
+                    await conn.CreateTableAsync<Form>();
+                    await conn.CreateTableAsync<FormField>();
+                    await conn.CreateTableAsync<FieldChoice>();
                     }
 
                     try
                     {
-                        PerformStandardValueMigration(conn);
-                        PerformLayerMigration(conn);
-                        PerformBinaryDataMigration(conn);
+                        await PerformStandardValueMigration(conn);
+                        await PerformLayerMigration(conn);
+                        await PerformBinaryDataMigration(conn);
                     }
                     catch (Exception e)
                     {
@@ -355,14 +354,15 @@ namespace BioDivCollectorXamarin.Models
                         //Add project
                         var projNew = projectRoot as Project;
                         projNew.lastSync = DateTime.Now;
-                        var existingProject = conn.Table<Project>().Where(p => p.projectId == projNew.projectId).FirstOrDefault();
+                        //var existingProject = await conn.Table<Project>().Where(p => p.projectId == projNew.projectId).FirstOrDefaultAsync();
+                        var existingProject = await Project.FetchProject(projNew.projectId);
                         if (existingProject == null)
                         {
-                            conn.Insert(projNew);
+                            await conn.InsertAsync(projNew);
                         }
                         else
                         {
-                            conn.Update(projNew);
+                            await conn.UpdateAsync(projNew);
                         }
                     }
                     catch (Exception e)
@@ -371,37 +371,39 @@ namespace BioDivCollectorXamarin.Models
                     }
                     finally
                     {
-                        var project = Project.FetchProject(projectRoot.projectId);
+                        var project = await Project.FetchProject(projectRoot.projectId);
                         foreach (var geom in projectRoot.geometries)
                         {
                             try
                             {
                                 var existinggeom = geom;
                                 geom.project_fk = project.Id;
-                                var exgeom = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefault();
+                                //var exgeom = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefaultAsync();
+                                var exgeom = await ReferenceGeometry.GetGeometry(geom.geometryId);
 
                                 if (exgeom != null)
                                 {
-                                    existinggeom = conn.GetWithChildren<ReferenceGeometry>(exgeom.Id);
+                                    existinggeom = await conn.GetWithChildrenAsync<ReferenceGeometry>(exgeom.Id);
                                     var id = existinggeom.Id;
                                     existinggeom = geom;
                                     existinggeom.Id = id;
                                     existinggeom.status = geom.status;
-                                    conn.Update(existinggeom);
+                                    await conn.UpdateAsync(existinggeom);
                                 }
                                 else if (geom.status != 3)
                                 {
-                                    conn.Insert(geom);
+                                    await conn.InsertAsync(geom);
                                     existinggeom = geom;
                                 }
-                                existinggeom = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefault();
+                            //existinggeom = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefaultAsync();
                                 //Geometry related records
                                 foreach (var rec in geom.records)
                                 {
                                     try
                                     {
-                                        var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
-                                        var recgeom = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefault();
+                                        //var existingrec = await conn.Table<Record>().Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+                                        var existingrec = await Record.FetchRecord(rec.recordId);
+                                        //var recgeom = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefault();
 
                                         if (existingrec != null)
                                         {
@@ -409,18 +411,18 @@ namespace BioDivCollectorXamarin.Models
                                             existingrec = rec;
                                             existingrec.Id = id;
                                             existingrec.status = rec.status;
-                                            existingrec.geometry_fk = recgeom.Id;
+                                            existingrec.geometry_fk = geom.Id;
                                             existingrec.project_fk = project.Id;
-                                            conn.Update(existingrec);
+                                            await conn.UpdateAsync(existingrec);
                                             
                                         }
                                         else if (rec.status != 3)
                                         {
-                                            rec.geometry_fk = recgeom.Id;
+                                            rec.geometry_fk = geom.Id;
                                             rec.project_fk = project.Id;
-                                            conn.Insert(rec);
+                                            await conn.InsertAsync(rec);
                                         }
-                                        existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+
                                         if (existingrec.status != 3)
                                         {
                                             try
@@ -432,19 +434,19 @@ namespace BioDivCollectorXamarin.Models
                                                     { txt.title = ""; }
                                                     try
                                                     {
-                                                        var existingtxt = conn.Table<TextData>().Select(g => g).Where(TextData => TextData.textId == txt.textId).FirstOrDefault();
+                                                        var existingtxt = await TextData.FetchTextData(txt.textId);
                                                         if (existingtxt != null)
                                                         {
                                                             var id = existingtxt.Id;
                                                             existingtxt = txt;
                                                             existingtxt.Id = id;
                                                             existingtxt.record_fk = existingrec.Id;
-                                                            conn.Update(existingtxt);
+                                                            await conn.UpdateAsync(existingtxt);
                                                         }
                                                         else
                                                         {
                                                             txt.record_fk = existingrec.Id;
-                                                            conn.Insert(txt);
+                                                            await conn.InsertAsync(txt);
                                                         }
                                                     }
                                                     catch (Exception e)
@@ -459,18 +461,19 @@ namespace BioDivCollectorXamarin.Models
                                                     { num.title = ""; }
                                                     try
                                                     {
-                                                        var existingnum = conn.Table<NumericData>().Select(g => g).Where(NumericData => NumericData.numericId == num.numericId).FirstOrDefault();
+                                                        //var existingnum = conn.Table<NumericData>().Select(g => g).Where(NumericData => NumericData.numericId == num.numericId).FirstOrDefault();
+                                                        var existingnum = await NumericData.FetchNumericDataById(num.numericId);
                                                         if (existingnum != null)
                                                         {
                                                             var id = existingnum.Id;
                                                             existingnum = num;
                                                             existingnum.Id = id;
                                                             existingnum.record_fk = existingrec.Id;
-                                                            conn.Update(existingnum);
+                                                            await conn.UpdateAsync(existingnum);
                                                         }
                                                         else
                                                         {
-                                                            conn.Insert(num);
+                                                            await conn.InsertAsync(num);
                                                         }
                                                     }
                                                     catch (Exception e)
@@ -485,19 +488,19 @@ namespace BioDivCollectorXamarin.Models
                                                     { onebool.title = ""; }
                                                     try
                                                     {
-                                                        var existingbool = conn.Table<BooleanData>().Select(g => g).Where(BooleanData => BooleanData.booleanId == onebool.booleanId).FirstOrDefault();
+                                                        var existingbool = await BooleanData.FetchBooleanData(onebool.booleanId);
                                                         if (existingbool != null)
                                                         {
                                                             var id = existingbool.Id;
                                                             existingbool = onebool;
                                                             existingbool.Id = id;
                                                             existingbool.record_fk = existingrec.Id;
-                                                            conn.Update(existingbool);
+                                                            await conn.UpdateAsync(existingbool);
                                                         }
                                                         else
                                                         {
                                                             onebool.record_fk = existingrec.Id;
-                                                            conn.Insert(onebool);
+                                                            await conn.InsertAsync(onebool);
                                                         }
                                                     }
                                                     catch (Exception e)
@@ -510,21 +513,21 @@ namespace BioDivCollectorXamarin.Models
                                                 {
                                                     try
                                                     {
-                                                        var existingbin = conn.Table<BinaryData>().Select(g => g).Where(BinData => BinData.binaryId == bin.binaryId).FirstOrDefault();
+                                                        var existingbin = await BinaryData.FetchBinaryData(bin.binaryId);
                                                         if (existingbin != null)
                                                         {
                                                             var id = existingbin.Id;
                                                             existingbin = bin;
                                                             existingbin.Id = id;
                                                             existingbin.record_fk = existingrec.Id;
-                                                            conn.Update(existingbin);
+                                                            await conn.UpdateAsync(existingbin);
                                                         }
                                                         else
                                                         {
                                                             bin.record_fk = existingrec.Id;
-                                                            conn.Insert(bin);
+                                                            await conn.InsertAsync(bin);
                                                         }
-                                                        conn.InsertOrReplace(bin);
+                                                        await conn.InsertOrReplaceAsync(bin);
                                                         binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
                                                     }
                                                     catch (Exception e)
@@ -539,11 +542,11 @@ namespace BioDivCollectorXamarin.Models
                                             }
                                         }
 
-                                        existingrec.texts = conn.Table<TextData>().Where(g => g.record_fk == existingrec.Id).ToList();
-                                        existingrec.numerics = conn.Table<NumericData>().Where(g => g.record_fk == existingrec.Id).ToList();
-                                        existingrec.booleans = conn.Table<BooleanData>().Where(g => g.record_fk == existingrec.Id).ToList();
-                                        existingrec.binaries = conn.Table<BinaryData>().Where(g => g.record_fk == existingrec.Id).ToList();
-                                        conn.UpdateWithChildren(existingrec);
+                                        existingrec.texts = await TextData.FetchTextData(existingrec.Id);
+                                        existingrec.numerics = await NumericData.FetchNumericDataByRecordId(existingrec.Id);
+                                        existingrec.booleans = await BooleanData.FetchBooleanData(existingrec.Id);
+                                        existingrec.binaries = await BinaryData.FetchBinaryData(existingrec.Id);
+                                        await conn.UpdateWithChildrenAsync(existingrec);
                                         Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
                                     }
                                     catch (Exception e)
@@ -551,11 +554,11 @@ namespace BioDivCollectorXamarin.Models
                                         Console.WriteLine(e);
                                     }
 
-                                    existinggeom.records = conn.Table<Record>().Select(g => g).Where(Record => Record.geometry_fk == geom.Id).ToList();
-                                    conn.UpdateWithChildren(existinggeom);
+                                    //existinggeom.records = conn.Table<Record>().Select(g => g).Where(Record => Record.geometry_fk == geom.Id).ToList();
+                                    existinggeom.records = await Record.FetchRecordByGeomId(geom.Id);
+                                    await conn.UpdateWithChildrenAsync(existinggeom);
                                     Console.WriteLine("Added record: " + DateTime.Now.ToLongTimeString());
                                 }
-
                             }
                             catch (Exception e)
                             {
@@ -567,22 +570,21 @@ namespace BioDivCollectorXamarin.Models
                         {
                             try
                             {
-                                var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+                                //var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+                                var existingrec = await Record.FetchRecord(rec.recordId);
 
                                 if (existingrec != null)
                                 {
-                                    existingrec = conn.GetWithChildren<Record>(existingrec.recordId);
+                                    existingrec = await conn.GetWithChildrenAsync<Record>(existingrec.recordId);
                                     rec.project_fk = project.Id;
                                     rec.Id = existingrec.Id;
-                                    conn.Update(rec);
+                                    await conn.UpdateAsync(rec);
                                 }
                                 else
                                 {
                                     rec.project_fk = project.Id;
-                                    conn.Insert(rec);
+                                    await conn.InsertAsync(rec);
                                 }
-                                existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
-
 
                                 if (rec.status != 3)
                                 {
@@ -595,19 +597,19 @@ namespace BioDivCollectorXamarin.Models
                                             { txt.title = ""; }
                                             try
                                             {
-                                                var existingtxt = conn.Table<TextData>().Select(g => g).Where(TextData => TextData.textId == txt.textId).FirstOrDefault();
+                                                var existingtxt = await TextData.FetchTextData(txt.textId);
                                                 if (existingtxt != null)
                                                 {
                                                     var id = existingtxt.Id;
                                                     existingtxt = txt;
                                                     existingtxt.Id = id;
                                                     existingtxt.record_fk = existingrec.Id;
-                                                    conn.Update(existingtxt);
+                                                    await conn.UpdateAsync(existingtxt);
                                                 }
                                                 else
                                                 {
                                                     txt.record_fk = existingrec.Id;
-                                                    conn.Insert(txt);
+                                                    await conn.InsertAsync(txt);
                                                 }
                                             }
                                             catch (Exception e)
@@ -622,18 +624,18 @@ namespace BioDivCollectorXamarin.Models
                                             { num.title = ""; }
                                             try
                                             {
-                                                var existingnum = conn.Table<NumericData>().Select(g => g).Where(NumericData => NumericData.numericId == num.numericId).FirstOrDefault();
+                                                var existingnum = await NumericData.FetchNumericDataById(num.numericId);
                                                 if (existingnum != null)
                                                 {
                                                     var id = existingnum.Id;
                                                     existingnum = num;
                                                     existingnum.Id = id;
                                                     existingnum.record_fk = existingrec.Id;
-                                                    conn.Update(existingnum);
+                                                    await conn.UpdateAsync(existingnum);
                                                 }
                                                 else
                                                 {
-                                                    conn.Insert(num);
+                                                    await conn.InsertAsync(num);
                                                 }
                                             }
                                             catch (Exception e)
@@ -648,19 +650,19 @@ namespace BioDivCollectorXamarin.Models
                                             { onebool.title = ""; }
                                             try
                                             {
-                                                var existingbool = conn.Table<BooleanData>().Select(g => g).Where(BooleanData => BooleanData.booleanId == onebool.booleanId).FirstOrDefault();
+                                                var existingbool = await BooleanData.FetchBooleanData(onebool.booleanId);
                                                 if (existingbool != null)
                                                 {
                                                     var id = existingbool.Id;
                                                     existingbool = onebool;
                                                     existingbool.Id = id;
                                                     existingbool.record_fk = existingrec.Id;
-                                                    conn.Update(existingbool);
+                                                    await conn.UpdateAsync(existingbool);
                                                 }
                                                 else
                                                 {
                                                     onebool.record_fk = existingrec.Id;
-                                                    conn.Insert(onebool);
+                                                    await conn.InsertAsync(onebool);
                                                 }
                                             }
                                             catch (Exception e)
@@ -673,21 +675,21 @@ namespace BioDivCollectorXamarin.Models
                                         {
                                             try
                                             {
-                                                var existingbin = conn.Table<BinaryData>().Select(g => g).Where(BinData => BinData.binaryId == bin.binaryId).FirstOrDefault();
+                                                var existingbin = await BinaryData.FetchBinaryData(bin.binaryId);
                                                 if (existingbin != null)
                                                 {
                                                     var id = existingbin.Id;
                                                     existingbin = bin;
                                                     existingbin.Id = id;
                                                     existingbin.record_fk = existingrec.Id;
-                                                    conn.Update(existingbin);
+                                                    await conn.UpdateAsync(existingbin);
                                                 }
                                                 else
                                                 {
                                                     bin.record_fk = existingrec.Id;
-                                                    conn.Insert(bin);
+                                                    await conn.InsertAsync(bin);
                                                 }
-                                                conn.InsertOrReplace(bin);
+                                                await conn.InsertOrReplaceAsync(bin);
                                                 binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
                                             }
                                             catch (Exception e)
@@ -703,11 +705,11 @@ namespace BioDivCollectorXamarin.Models
                                 }
 
                                 var queriedrec = rec;
-                                queriedrec.texts = conn.Table<TextData>().Where(g => g.record_fk == rec.Id).ToList();
-                                queriedrec.numerics = conn.Table<NumericData>().Where(g => g.record_fk == rec.Id).ToList();
-                                queriedrec.booleans = conn.Table<BooleanData>().Where(g => g.record_fk == rec.Id).ToList();
-                                queriedrec.binaries = conn.Table<BinaryData>().Where(g => g.record_fk == rec.Id).ToList();
-                                conn.UpdateWithChildren(queriedrec);
+                                queriedrec.texts = await TextData.FetchTextData(rec.Id);
+                                queriedrec.numerics = await NumericData.FetchNumericDataByRecordId(rec.Id);
+                                queriedrec.booleans = await BooleanData.FetchBooleanData(rec.Id);
+                                queriedrec.binaries = await BinaryData.FetchBinaryData(rec.Id);
+                                await conn.UpdateWithChildrenAsync(queriedrec);
                                 Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
                             }
                             catch (Exception e)
@@ -721,18 +723,19 @@ namespace BioDivCollectorXamarin.Models
                             try
                             {
                                 form.project_fk = project.Id;
-                                var existingform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
+                                //var existingform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
+                                var existingform = await Form.FetchFormByFormAndProjectId(form.formId, project.Id);
                                 if (existingform != null)
                                 {
                                     //Delete the full form and replace it
-                                    var fullForm = conn.GetWithChildren<Form>(existingform.Id,true);
-                                    conn.Delete(fullForm);
+                                    var fullForm = await conn.GetWithChildrenAsync<Form>(existingform.Id,true);
+                                    await conn.DeleteAsync(fullForm);
                                 }
                                 if (form.status < 3)
                                 {
                                     try
                                     {
-                                        conn.Insert(form);
+                                        await conn.InsertAsync(form);
                                     }
                                     catch (Exception e)
                                     {
@@ -741,14 +744,14 @@ namespace BioDivCollectorXamarin.Models
                                             //MIGRATE DB - Add status
                                             try
                                             {
-                                                conn.BeginTransaction();
-                                                conn.Execute("ALTER TABLE Form ADD status int NOT NULL DEFAULT(0);");
-                                                conn.Commit();
-                                                conn.Insert(form);
+                                                //conn.BeginTransaction();
+                                                await conn.ExecuteAsync("ALTER TABLE Form ADD status int NOT NULL DEFAULT(0);");
+                                                //conn.Commit();
+                                                await conn.InsertAsync(form);
                                             }
                                             catch (Exception e2)
                                             {
-                                                App.Current.MainPage.DisplayAlert("Wir sind auf ein Problem gestossen", "Ihr Formular konnte nicht synchronisiert werden. Bitte kontaktieren Sie den Support.", "Ok");
+                                                await App.Current.MainPage.DisplayAlert("Wir sind auf ein Problem gestossen", "Ihr Formular konnte nicht synchronisiert werden. Bitte kontaktieren Sie den Support.", "Ok");
                                             }
                                         }
 
@@ -762,7 +765,7 @@ namespace BioDivCollectorXamarin.Models
                                     try
                                     {
                                         formfield.form_fk = form.Id;
-                                        conn.Insert(formfield);
+                                        await conn.InsertAsync(formfield);
 
                                         //Add field choices
                                         foreach (var fieldChoice in formfield.fieldChoices)
@@ -770,25 +773,27 @@ namespace BioDivCollectorXamarin.Models
                                             try
                                             {
                                                fieldChoice.formField_fk = formfield.Id;
-                                               conn.Insert(fieldChoice);
+                                               await conn.InsertAsync(fieldChoice);
                                             }
                                             catch (Exception e)
                                             {
                                                 Console.WriteLine(e);
                                             }
                                         }
-                                        var queriedfield = conn.Table<FormField>().Select(g => g).Where(FormField => FormField.fieldId == formfield.fieldId).Where(FormField => FormField.form_fk == formfield.form_fk).FirstOrDefault();
+                                        //var queriedfield = conn.Table<FormField>().Select(g => g).Where(FormField => FormField.fieldId == formfield.fieldId).Where(FormField => FormField.form_fk == formfield.form_fk).FirstOrDefault();
+                                        var queriedfield = await FormField.FetchFormFieldByFieldIdAndFormKey(formfield.fieldId, formfield.form_fk);
                                         queriedfield.fieldChoices = formfield.fieldChoices;
-                                        conn.UpdateWithChildren(queriedfield);
+                                        await conn.UpdateWithChildrenAsync(queriedfield);
                                     }
                                     catch (Exception e)
                                     {
                                         Console.WriteLine(e);
                                     }
                                 }
-                                var queriedform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
+                                //var queriedform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
+                                var queriedform = await Form.FetchFormByFormAndProjectId(form.formId, project.Id);
                                 queriedform.formFields = form.formFields;
-                                conn.UpdateWithChildren(queriedform);
+                                await conn.UpdateWithChildrenAsync(queriedform);
                                 Console.WriteLine("Added form: " + DateTime.Now.ToLongTimeString());
                             }
                             catch (Exception e)
@@ -800,10 +805,11 @@ namespace BioDivCollectorXamarin.Models
                         try
                         {
                             //Delete existing layers (need to delete all layers to start, as we are not informed when a layer is removed from the project)
-                            var existingLayers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == project.Id);
+                            //var existingLayers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == project.Id);
+                            var existingLayers = await Layer.FetchLayerListByProjectId(project.Id);
                             foreach (var existingLayer in existingLayers)
                             {
-                                conn.Delete(existingLayer);
+                                await conn.DeleteAsync(existingLayer);
                             }
                         }
                         catch (Exception e)
@@ -817,12 +823,13 @@ namespace BioDivCollectorXamarin.Models
                             try
                             {
                                 layer.project_fk = project.Id;
-                                var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.layerId == layer.layerId).FirstOrDefault();
+                                //var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.layerId == layer.layerId).FirstOrDefault();
+                                var existingLayer = await Layer.FetchLayerByLayerId(layer.layerId);
                                 if (existingLayer != null)
                                 {
-                                    conn.Delete(existingLayer);
+                                    await conn.DeleteAsync(existingLayer);
                                 }
-                                conn.Insert(layer);
+                                await conn.InsertAsync(layer);
                             }
                             catch (Exception e)
                             {
@@ -831,11 +838,11 @@ namespace BioDivCollectorXamarin.Models
                         }
                         try
                         {
-                            project.geometries = conn.Table<ReferenceGeometry>().Select(g => g).Where(g => g.project_fk == project.Id).ToList();
-                            project.records = conn.Table<Record>().Select(g => g).Where(g => g.project_fk == project.Id).Where(g => g.geometry_fk == null || g.geometry_fk == 0).ToList();
-                            project.forms = conn.Table<Form>().Select(g => g).Where(g => g.project_fk == project.Id).ToList();
-                            project.layers = conn.Table<Layer>().Select(g => g).Where(g => g.project_fk == project.Id).ToList();
-                            conn.UpdateWithChildren(project);
+                        project.geometries = await ReferenceGeometry.GetAllGeometriesByProjectId(project.Id);
+                        project.records = await Record.FetchRecordByProjectId(project.Id);
+                            project.forms = await Form.FetchFormsForProject(project.Id);
+                            project.layers = await Layer.FetchLayerListByProjectId(project.Id);
+                            await conn.UpdateWithChildrenAsync(project);
                             Console.WriteLine("Added records geometries and layers: " + DateTime.Now.ToLongTimeString());
                         }
                         catch (Exception e)
@@ -844,11 +851,11 @@ namespace BioDivCollectorXamarin.Models
                         }
                     }
                 }
-            }
+            
 
             foreach (var tuple in binaryDownloadList)
             {
-                Task.Run(async () => await BinaryData.DownloadBinaryData(tuple.Item1, tuple.Item2));
+                await BinaryData.DownloadBinaryData(tuple.Item1, tuple.Item2);
             }
 
             MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
@@ -858,15 +865,15 @@ namespace BioDivCollectorXamarin.Models
         /// Add a standard value column to the form field table if it does not exist
         /// </summary>
         /// <param name="conn"></param>
-        private static void PerformStandardValueMigration(SQLiteConnection conn)
+        private static async Task PerformStandardValueMigration(SQLiteAsyncConnection conn)
         {
             //Check for column and migrate
-            var tableInfo = conn.GetTableInfo("FormField");
+            var tableInfo = await conn.GetTableInfoAsync("FormField");
             var columnExists = tableInfo.Any(x => x.Name.Equals("standardValue"));
             if (!columnExists)
             {
-                var f = conn.CreateCommand("ALTER TABLE [FormField] ADD COLUMN standardValue VARCHAR");
-                var l = f.ExecuteNonQuery();
+                var f = conn.ExecuteAsync("ALTER TABLE [FormField] ADD COLUMN standardValue VARCHAR");
+                //var l = f.ExecuteNonQuery();
             }
         }
 
@@ -874,26 +881,26 @@ namespace BioDivCollectorXamarin.Models
         /// Add changes to the layer table
         /// </summary>
         /// <param name="conn"></param>
-        private static void PerformLayerMigration(SQLiteConnection conn)
+        private static async Task PerformLayerMigration(SQLiteAsyncConnection conn)
         {
             //Check for column and migrate
-            var tableInfo = conn.GetTableInfo("Layer");
+            var tableInfo = await conn.GetTableInfoAsync("Layer");
             var uuidColumnExists = tableInfo.Any(x => x.Name.Equals("uuid"));
             if (!uuidColumnExists)
             {
-                var f = conn.CreateCommand("ALTER TABLE [Layer] ADD COLUMN uuid VARCHAR");
-                var l = f.ExecuteNonQuery();
+                var f = await conn.ExecuteAsync("ALTER TABLE [Layer] ADD COLUMN uuid VARCHAR");
+                //var l = f.ExecuteNonQuery();
             }
             var fileBasedColumnExists = tableInfo.Any(x => x.Name.Equals("fileBased"));
             if (!fileBasedColumnExists)
             {
-                var f = conn.CreateCommand("ALTER TABLE [Layer] ADD COLUMN fileBased INTEGER");
-                var l = f.ExecuteNonQuery();
+                var f = await conn.ExecuteAsync("ALTER TABLE [Layer] ADD COLUMN fileBased INTEGER");
+                //var l = f.ExecuteNonQuery();
             }
-            var binaryTableInfo = conn.GetTableInfo("BinaryData");
+            var binaryTableInfo = await conn.GetTableInfoAsync("BinaryData");
             if (binaryTableInfo.Count == 0)
             {
-                conn.CreateTable<BinaryData>();
+                await conn.CreateTableAsync<BinaryData>();
             }
         }
 
@@ -901,12 +908,12 @@ namespace BioDivCollectorXamarin.Models
         /// Add a binary data table if it doesn't exist
         /// </summary>
         /// <param name="conn"></param>
-        private static void PerformBinaryDataMigration(SQLiteConnection conn)
+        private static async Task PerformBinaryDataMigration(SQLiteAsyncConnection conn)
         {
-            var binaryTableInfo = conn.GetTableInfo("BinaryData");
+            var binaryTableInfo = await conn.GetTableInfoAsync("BinaryData");
             if (binaryTableInfo.Count == 0)
             {
-                conn.CreateTable<BinaryData>();
+                await conn.CreateTableAsync<BinaryData>();
             }
         }
 
@@ -925,14 +932,14 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns>List of shape objects</returns>
-        public static List<Shape> getDataForMap(string projectId)
+        public static async Task<List<Shape>> getDataForMap(string projectId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
                 try
                 {
-                    var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == projectId).FirstOrDefault();
-                    var items = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.project_fk == proj.Id).Where(ReferenceGeometry => ReferenceGeometry.status != 3);
+                    //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == projectId).FirstOrDefault();
+                    var proj = await Project.FetchProject(projectId);
+                    //var items = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.project_fk == proj.Id).Where(ReferenceGeometry => ReferenceGeometry.status != 3);
+                    var items = await ReferenceGeometry.GetAllGeometriesByProjectId(proj.Id);
                     var geoms = new List<Shape>();
                     foreach (ReferenceGeometry geom in items)
                     {
@@ -959,7 +966,6 @@ namespace BioDivCollectorXamarin.Models
                 {
 
                 }
-            }
             return null;
         }
 
@@ -1039,7 +1045,7 @@ namespace BioDivCollectorXamarin.Models
 
             WKTReader reader = new WKTReader();
             NetTopologySuite.Geometries.Geometry geom = reader.Read(wkt);
-            var geojson = DataDAO.Geometry2GeoJSON(geom);
+            var geojson = Geometry2GeoJSON(geom);
             return geojson;
         }
 
@@ -1049,21 +1055,20 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns>List of layers</returns>
-        public static List<Layer> GetLayersForMap(string projectId)
+        public static async Task<List<Layer>> GetLayersForMap(string projectId)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
                 try
                 {
-                    var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == projectId).FirstOrDefault();
-                    var layers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == proj.Id).ToList();
+                    //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == projectId).FirstOrDefault();
+                    var proj = await Project.FetchProject(projectId);
+                    //var layers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == proj.Id).ToList();
+                    var layers = await Layer.FetchLayerListByProjectId(proj.Id);
                     return layers;
                 }
                 catch
                 {
                     return new List<Layer>();
                 }
-            }
         }
 
         /// <summary>
@@ -1071,14 +1076,14 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="lastSync"></param>
         /// <returns>Json object</returns>
-        public static string PrepareJSONForUpload(DateTime lastSync)
+        public static async Task<string> PrepareJSONForUpload(DateTime lastSync)
         {
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+                //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+                var proj = await Project.FetchProject(App.CurrentProjectId);
                 if (proj != null)
                 {
-                    var project = conn.GetWithChildren<Project>(proj.Id, true);
+                    var conn = App.ActiveDatabaseConnection;
+                    var project = await conn.GetWithChildrenAsync<Project>(proj.Id, true);
                     var geoms = project.geometries;
                     foreach (var geometry in geoms)
                     {
@@ -1100,18 +1105,17 @@ namespace BioDivCollectorXamarin.Models
                     return JsonConvert.SerializeObject(project);
                 }
                 return String.Empty;
-            }
         }
 
         public static async Task<string> PrepareBinaryRecordsForUpload(DateTime lastSync)
         {
             var responsetext = string.Empty;
-            using (SQLiteConnection conn = new SQLiteConnection(Preferences.Get("databaseLocation", "")))
-            {
-                var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+            var conn = App.ActiveDatabaseConnection;
+                //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+                var proj = await Project.FetchProject(App.CurrentProjectId);
                 if (proj != null)
                 {
-                    var project = Project.FetchProjectWithChildren(proj.projectId);
+                    var project = await Project.FetchProjectWithChildren(proj.projectId);
 
                     var geomRecs = project.geometries.SelectMany(x => x.records).Where(x => x.status != 1).Where(x => x.timestamp.ToUniversalTime() > lastSync.ToUniversalTime()).ToList();
 
@@ -1162,7 +1166,6 @@ namespace BioDivCollectorXamarin.Models
 
                     }
                 }
-            }
             return responsetext;
         }
 
