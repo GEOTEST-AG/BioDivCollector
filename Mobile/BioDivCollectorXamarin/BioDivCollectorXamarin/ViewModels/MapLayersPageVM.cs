@@ -165,8 +165,8 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="parameter"></param>
         private async void OnDelete(object parameter)
         {
-            await Task.Run(async() =>
-            {
+            //await Task.Run(async() =>
+            //{
                 if (parameter == this)
                 {
                     var baseLayer = Preferences.Get("BaseLayer", String.Empty);
@@ -184,7 +184,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
                 ChangeBaseLayerLabel(); //Trigger the mbtiles file size to be recalculated
                 
-            });
+            //});
         }
 
         /// <summary>
@@ -222,17 +222,17 @@ namespace BioDivCollectorXamarin.ViewModels
         /// Move a layer up the layer stack
         /// </summary>
         /// <param name="parameter"></param>
-        private async void OnMoveLayerUp(object parameter)
+        private void OnMoveLayerUp(object parameter)
         {
-            await Task.Run(() =>
-            {
+            //await Task.Run(() =>
+            //{
                 var layer = (parameter as MapLayer);
                 if (layer != null)
                 {
                     layer.LayerZ = layer.LayerZ - 1;
                     MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
                 }
-            });
+            //});
         }
 
         /// <summary>

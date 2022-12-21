@@ -2,7 +2,7 @@
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.LoginModel;
 using BioDivCollectorXamarin.ViewModels;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -59,6 +59,11 @@ namespace BioDivCollectorXamarin.Views
             {
                 NavigateBack();
             });
+            MessagingCenter.Unsubscribe<Application>(App.Current, "UpdateDataForm");
+            MessagingCenter.Subscribe<Application>(App.Current, "UpdateDataForm", (sender) =>
+            {
+                UpdateFormView();
+            });
         }
 
         /// <summary>
@@ -74,6 +79,8 @@ namespace BioDivCollectorXamarin.Views
             ViewModel = new FormPageVM(recId, formId, geomId, Navigation);
             BindingContext = ViewModel;
             RecId = recId = ViewModel.RecId;
+            UpdateFormView();
+
             MessagingCenter.Subscribe<FormPageVM>(ViewModel, "NavigateBack", (sender) =>
             {
                 NavigateBack();
@@ -89,12 +96,22 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         protected override void OnAppearing()
         {
-            FormElementStack.Children.Clear();
             ViewModel.OnAppearing();
-            foreach (var view in ViewModel.Assets)
+        }
+
+        private void UpdateFormView()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                FormElementStack.Children.Add(view);
-            }
+                if (ViewModel.Assets != null)
+                {
+                    FormElementStack.Children.Clear();
+                    foreach (var view in ViewModel.Assets)
+                    {
+                        FormElementStack.Children.Add(view);
+                    }
+                }
+            });
         }
 
         protected override void OnDisappearing()

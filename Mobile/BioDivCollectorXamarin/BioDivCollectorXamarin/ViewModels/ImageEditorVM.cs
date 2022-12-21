@@ -42,14 +42,11 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        private void ImageEditor_ImageSaving(object sender, ImageSavingEventArgs args)
+        private async void ImageEditor_ImageSaving(object sender, ImageSavingEventArgs args)
         {
-            Task.Run(async () =>
-            {
                 args.Cancel = true;
                 var stream = args.Stream;
                 await SaveStreamToFile(BinaryDataId, stream);
-            });
         }
 
         /// <summary>

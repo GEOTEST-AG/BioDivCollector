@@ -30,7 +30,7 @@ namespace BioDivCollectorXamarin.iOS
 
             try
             {
-                Task.Run(() => {
+                //Task.Run(() => {
                     WebClient webClient = new WebClient();
                     webClient.UseDefaultCredentials = false;
                     var token = Preferences.Get("AccessToken","");
@@ -38,7 +38,7 @@ namespace BioDivCollectorXamarin.iOS
                     webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);
                     string pathToNewFile = Path.Combine(pathToNewFolder, documentName);
                     webClient.DownloadFileAsync(new Uri(url), pathToNewFile);
-                });
+                //});
             }
             catch (Exception ex)
             {

@@ -49,13 +49,18 @@ namespace BioDivCollectorXamarin.ViewModels
         public string Activity
         {
             get { return activity; }
-            set { 
+            set 
+            { 
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     activity = value;
                     OnPropertyChanged("Activity");
                     App.Busy = (activity != String.Empty);
-                    MessagingCenter.Send<Application>(App.Current, "RefreshProjectList");
+                    try
+                    {
+                        MessagingCenter.Send<Application>(App.Current, "RefreshProjectList");
+                    }
+                    catch {}
                 });
             }
         }
@@ -66,11 +71,13 @@ namespace BioDivCollectorXamarin.ViewModels
         private bool activityVisible;
         public bool ActivityVisible
         {
-            get {
+            get 
+            {
                 activityVisible = (activity != "");
                 return activityVisible; 
             }
-            set {
+            set 
+            {
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     activityVisible = value;
@@ -112,16 +119,16 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 return new ObservableCollection<ProjectSimple>(projectList);
             });
-
-            getProjectListTask.Start();
-            var newProjectList = getProjectListTask.Result;
-
-            Projects = newProjectList;                
         
             SyncProjectCommand = new SyncListProjectCommand(this);
             DeleteProjectCommand = new DeleteListProjectCommand(this);
             CopyBDCGUIDCommand = new BDCGUIDListCommand(this);
             
+
+            getProjectListTask.Start();
+            var newProjectList = getProjectListTask.Result;
+
+            Projects = newProjectList;                
             //Projects = new ObservableCollection<ProjectSimple>(projectList);
 
 
@@ -129,7 +136,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Activity = "";
             MessagingCenter.Subscribe<Application, string>(App.Current, "SyncMessage", (sender, arg) =>
             {
-                Activity = arg;
+                    Activity = arg;
             });
 
             MessagingCenter.Subscribe<Application>(App.Current, "RefreshProjectList", (sender) =>
@@ -229,15 +236,14 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public bool CanExecute(object parameter)
         {
-            Task.Run(async () =>
+            if (parameter == null) { return false; }
+            ProjectSimple proj = parameter as ProjectSimple;
+            var task = Task.Run(async () =>
             {
-
-                if (parameter == null) { return false; }
-                ProjectSimple proj = parameter as ProjectSimple;
                 bool existsAlready = await Project.LocalProjectExists(proj.projectId);
                 return existsAlready;
             });
-            return false;
+            return task.Result;
         }
 
         public void Execute(object parameter)
@@ -304,21 +310,24 @@ namespace BioDivCollectorXamarin.ViewModels
             return !App.Busy && (App.IsConnected || task.Result);
         }
 
-        public async void Execute(object parameter)
+        public void Execute(object parameter)
         {
-            ProjectSimple proj = parameter as ProjectSimple;
-            bool existsAlready = await Project.LocalProjectExists(proj.projectId);
-            if (existsAlready == true)
+            Task.Run(async () =>
             {
-                App.SetProject(proj.projectId);
-                MessagingCenter.Send<SyncListProjectCommand, ProjectSimple>(this, "ProjectSelected", proj);
-            }
-            else
-            {
-                Debug.WriteLine("Syncing: ");
-                await Project.DownloadProjectData(proj.projectId);
-            }
-            App.ZoomMapOut = true;
+                ProjectSimple proj = parameter as ProjectSimple;
+                bool existsAlready = await Project.LocalProjectExists(proj.projectId);
+                if (existsAlready == true)
+                {
+                    App.SetProject(proj.projectId);
+                    MessagingCenter.Send<SyncListProjectCommand, ProjectSimple>(this, "ProjectSelected", proj);
+                }
+                else
+                {
+                    Debug.WriteLine("Syncing: ");
+                    await Project.DownloadProjectData(proj.projectId);
+                }
+                App.ZoomMapOut = true;
+            });
         }
     }
 

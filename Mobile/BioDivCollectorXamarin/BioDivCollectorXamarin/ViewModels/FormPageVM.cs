@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -22,7 +23,29 @@ namespace BioDivCollectorXamarin.ViewModels
     {
         public INavigation Navigation { get; set; }
 
-        public List<View> Assets = new List<View>();
+        private List<View> assets;
+        public List<View> Assets
+        {
+            get { return assets; }
+            set 
+            { 
+                assets = value;
+                MessagingCenter.Send<Application>(App.Current, "UpdateDataForm");
+                OnPropertyChanged();
+            }
+        }
+
+        private List<View> tempAssets;
+        public List<View> TempAssets
+        {
+            get { return tempAssets; }
+            set 
+            { 
+                tempAssets = value;
+                OnPropertyChanged();
+            }
+        }
+
         public int RecId;
         public int FormId;
         public int? GeomId;
@@ -57,6 +80,7 @@ namespace BioDivCollectorXamarin.ViewModels
             GUIDCommand = new Command(CopyGUID);
             SaveCommand = new Command(OnSave, ValidateSave);
             CancelCommand = new Command(OnCancel);
+            
         }
 
         public async Task CreateForm(int? recId, int formId, int? geomId)
@@ -64,7 +88,7 @@ namespace BioDivCollectorXamarin.ViewModels
             FormId = formId;
             GeomId = geomId;
             FormId = formId;
-            Assets = new List<View>();
+            TempAssets = new List<View>();
 
             //Get the record and its corresponding variable values
             if (recId != null && recId > 0)
@@ -117,7 +141,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     header.Margin = new Thickness(0, 10, 0, 0);
                     header.TextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];
                     header.FontSize = 24;
-                    Assets.Add(header);
+                    TempAssets.Add(header);
                 }
 
                 else
@@ -141,7 +165,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     label.SetAppThemeColor(Label.TextColorProperty, Color.Black, Color.White);
                     if (formField.typeId != 31) //Add label next to checkbox for boolean
                     {
-                        Assets.Add(label);
+                        TempAssets.Add(label);
                     }
 
                     if (formField.typeId == 11 || formField.typeId == 61)
@@ -185,7 +209,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             {
                                 textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                             }
-                            Assets.Add(textField);
+                            TempAssets.Add(textField);
                         }
                         catch (Exception e)
                         {
@@ -332,7 +356,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             stack.ValueId = text.Id;
                             stack.TypeId = formField.typeId;
 
-                            Assets.Add(stack);
+                            TempAssets.Add(stack);
                         }
                         catch (Exception e)
                         {
@@ -408,7 +432,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             }
                             dropField.Margin = new Thickness(0, 0, 0, 10);
 
-                            Assets.Add(dropField);
+                            TempAssets.Add(dropField);
                         }
                         catch (Exception e)
                         {
@@ -457,7 +481,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 textField.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
                             }
                             textField.TextChanged += NumericFieldChanged;
-                            Assets.Add(textField);
+                            TempAssets.Add(textField);
                         }
                         catch (Exception e)
                         {
@@ -507,7 +531,7 @@ namespace BioDivCollectorXamarin.ViewModels
                                 }
                             };
                             stack.Margin = new Thickness(0, 0, 0, 10);
-                            Assets.Add(stack);
+                            TempAssets.Add(stack);
                         }
                         catch (Exception e)
                         {
@@ -528,7 +552,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         flexview.Wrap = FlexWrap.Wrap;
                         flexview.AlignContent = FlexAlignContent.SpaceBetween;
                         flexview.AlignItems = FlexAlignItems.Start;
-                        var images = GetImages(formField.fieldId).Result;
+                        var images = await GetImages(formField.fieldId);
                         view.HorizontalOptions = LayoutOptions.FillAndExpand;
 
                         foreach (BioDivImage image in images)
@@ -578,7 +602,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         newbutton.RecordId = RecId;
                         newbutton.Clicked += New_Image_Button_Clicked;
                         view.Children.Add(newbutton);
-                        Assets.Add(view);
+                        TempAssets.Add(view);
                     }
                 }
             }
@@ -589,7 +613,7 @@ namespace BioDivCollectorXamarin.ViewModels
             geomlabel.Text = "Zugeordnete Geometrie";
             geomlabel.FontAttributes = FontAttributes.Bold;
             geomlabel.Margin = new Thickness(0, 10, 0, 0);
-            Assets.Add(geomlabel);
+            TempAssets.Add(geomlabel);
 
             AssociatedGeometry = new CustomAutoComplete();
             var geomList = await ReferenceGeometry.GetAllGeometries();
@@ -634,7 +658,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             if (queriedrec.geometry_fk != null)
             {
-                var geom = ReferenceGeometry.GetGeometry((int)queriedrec.geometry_fk);
+                var geom = await ReferenceGeometry.GetGeometry((int)queriedrec.geometry_fk);
                 var selectedGeomIndex = Geoms.FindIndex(a => a.Id == geom.Id);
                 AssociatedGeometry.SelectedIndex = selectedGeomIndex++;
             }
@@ -654,7 +678,7 @@ namespace BioDivCollectorXamarin.ViewModels
             }
             AssociatedGeometry.SelectionChanged += DidSelectNewGeometry;
 
-            Assets.Add(AssociatedGeometry);
+            TempAssets.Add(AssociatedGeometry);
 
 
             var DeleteButton = new Button();
@@ -688,7 +712,7 @@ namespace BioDivCollectorXamarin.ViewModels
             buttonLayout.JustifyContent = FlexJustify.SpaceAround;
             buttonLayout.HorizontalOptions = LayoutOptions.FillAndExpand;
             buttonLayout.AlignContent = FlexAlignContent.SpaceAround;
-            Assets.Add(buttonLayout);
+            TempAssets.Add(buttonLayout);
 
 
             this.PropertyChanged +=
@@ -703,7 +727,14 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             if (FormId != 0)
             {
-                CreateForm(RecId, FormId, GeomId);
+            var createFormTask = CreateForm(RecId, FormId, GeomId);
+
+            Device.BeginInvokeOnMainThread(async () =>
+            {
+                await createFormTask;
+                var temp = TempAssets;
+                Assets = temp;
+            });
             }
         }
 

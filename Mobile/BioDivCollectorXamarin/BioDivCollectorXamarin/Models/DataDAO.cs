@@ -75,7 +75,7 @@ namespace BioDivCollectorXamarin.Models
                         }
 
                         string success = "false";
-                        
+
                         if (json.ToLower() == "error downloading data")
                         {
                             MessagingCenter.Send(new Project(), "DataDownloadError", json);
@@ -83,15 +83,14 @@ namespace BioDivCollectorXamarin.Models
 
                         if (json.ToLower() != "error downloading data" && json.ToLower() != "error parsing data")
                         {
-                            
                             success = await GetProjectDataFromJSON(json);
                             App.CurrentProjectId = projectId;
-                            App.SetProject(projectId);
+                            await App.SetProject(projectId);
                             ShowSyncCompleteMessage(success);
                             MessagingCenter.Send(new Project(), "DataDownloadSuccess", success);
                         }
 
-                        MessagingCenter.Send(Application.Current, "DownloadComplete",json);
+                        MessagingCenter.Send(Application.Current, "DownloadComplete", json);
                     }
                     catch (Exception e)
                     {
@@ -102,7 +101,7 @@ namespace BioDivCollectorXamarin.Models
                             MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
                         }
                     }
-                    
+
                 }
                 else
                 {
@@ -187,57 +186,57 @@ namespace BioDivCollectorXamarin.Models
                                 await ProcessJSON(returnedObject.projectUpdate); //Update database with downloaded data
 
                                 var conn = App.ActiveDatabaseConnection;
-                                    project.lastSync = DateTime.Now;
-                                    await conn.UpdateAsync(project);
+                                project.lastSync = DateTime.Now;
+                                await conn.UpdateAsync(project);
 
-                                    var error = returnedObject.error;
-                                    var deletedRecords = returnedObject.records.deleted;
-                                    var deletedRecords2 = returnedObject.geometries.geometryRecords.deleted;
-                                    var deletedRecordsTotal = deletedRecords.Concat(deletedRecords2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                                    var skippedRecords = returnedObject.records.skipped;
-                                    var skippedRecords2 = returnedObject.geometries.geometryRecords.skipped;
-                                    var skippedRecordsTotal = skippedRecords.Concat(skippedRecords2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                                    var deletedGeometries = returnedObject.geometries.deleted;
-                                    var skippedGeometries = returnedObject.geometries.skipped;
+                                var error = returnedObject.error;
+                                var deletedRecords = returnedObject.records.deleted;
+                                var deletedRecords2 = returnedObject.geometries.geometryRecords.deleted;
+                                var deletedRecordsTotal = deletedRecords.Concat(deletedRecords2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                                var skippedRecords = returnedObject.records.skipped;
+                                var skippedRecords2 = returnedObject.geometries.geometryRecords.skipped;
+                                var skippedRecordsTotal = skippedRecords.Concat(skippedRecords2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                                var deletedGeometries = returnedObject.geometries.deleted;
+                                var skippedGeometries = returnedObject.geometries.skipped;
 
-                                    if (error == null || error == String.Empty)
-                                    {
-                                        error = "Data successfully downloaded";
-                                    }
+                                if (error == null || error == String.Empty)
+                                {
+                                    error = "Data successfully downloaded";
+                                }
 
-                                    foreach (var deletedRecord in deletedRecordsTotal)
-                                    {
-                                        //Delete records from device which have been confirmed by the connector as 'deleted' in the central db
-                                        var uid = deletedRecord.Key.ToString();
-                                        //var queriedRec = await conn.Table<Record>().Where(r => r.recordId == uid).FirstOrDefaultAsync();
-                                        var queriedRec = await Record.FetchRecord(uid);
-                                        await conn.DeleteAsync(queriedRec);
-                                    }
-                                    foreach (var deletedGeometry in deletedGeometries)
-                                    {
-                                        //Delete geometries from device which have been confirmed by the connector as 'deleted' in the central db
-                                        var uid = deletedGeometry.Key.ToString();
-                                        //var queriedGeom = conn.Table<ReferenceGeometry>().Where(g => g.geometryId == uid).FirstOrDefault();
-                                        var queriedGeom = await ReferenceGeometry.GetGeometry(uid);
-                                        await conn.DeleteAsync(queriedGeom);
-                                    }
+                                foreach (var deletedRecord in deletedRecordsTotal)
+                                {
+                                    //Delete records from device which have been confirmed by the connector as 'deleted' in the central db
+                                    var uid = deletedRecord.Key.ToString();
+                                    //var queriedRec = await conn.Table<Record>().Where(r => r.recordId == uid).FirstOrDefaultAsync();
+                                    var queriedRec = await Record.FetchRecord(uid);
+                                    await conn.DeleteAsync(queriedRec);
+                                }
+                                foreach (var deletedGeometry in deletedGeometries)
+                                {
+                                    //Delete geometries from device which have been confirmed by the connector as 'deleted' in the central db
+                                    var uid = deletedGeometry.Key.ToString();
+                                    //var queriedGeom = conn.Table<ReferenceGeometry>().Where(g => g.geometryId == uid).FirstOrDefault();
+                                    var queriedGeom = await ReferenceGeometry.GetGeometry(uid);
+                                    await conn.DeleteAsync(queriedGeom);
+                                }
 
-                                    foreach (var skippedGeom in skippedGeometries)
-                                    {
-                                        if (!skippedGeom.Value.Contains("Changes were made to the associated records"))
-                                        {
-                                            error = error + System.Environment.NewLine;
-                                            error = error + skippedGeom.Key.ToString() + ", " + skippedGeom.Value;
-                                        }
-                                    }
-
-                                    foreach (var skippedRec in skippedRecordsTotal)
+                                foreach (var skippedGeom in skippedGeometries)
+                                {
+                                    if (!skippedGeom.Value.Contains("Changes were made to the associated records"))
                                     {
                                         error = error + System.Environment.NewLine;
-                                        error = error + skippedRec.Key.ToString() + ", " + skippedRec.Value;
+                                        error = error + skippedGeom.Key.ToString() + ", " + skippedGeom.Value;
                                     }
+                                }
 
-                                    ShowSyncCompleteMessage(error); //Show any errors in the sync confirmation message
+                                foreach (var skippedRec in skippedRecordsTotal)
+                                {
+                                    error = error + System.Environment.NewLine;
+                                    error = error + skippedRec.Key.ToString() + ", " + skippedRec.Value;
+                                }
+
+                                ShowSyncCompleteMessage(error); //Show any errors in the sync confirmation message
                             }
                             else
                             {
@@ -313,19 +312,19 @@ namespace BioDivCollectorXamarin.Models
             var binaryDownloadList = new List<Tuple<string, int?>>();
             //Insert JSON into database
             var conn = App.ActiveDatabaseConnection;
-                if (projectRoot != null)
+            if (projectRoot != null)
+            {
+                MessagingCenter.Send(new DataDAO(), "SyncMessage", "Creating project");
+                try
                 {
-                    MessagingCenter.Send(new DataDAO(), "SyncMessage", "Creating project");
-                    try
-                    {
-                        //Test to see if database schema exists
-                        var projTableTest = await conn.Table<Project>().FirstOrDefaultAsync();
-                        var projTableTest2 = await conn.Table<ReferenceGeometry>().FirstOrDefaultAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                        await conn.CreateTableAsync<Project>();
+                    //Test to see if database schema exists
+                    var projTableTest = await conn.Table<Project>().FirstOrDefaultAsync();
+                    var projTableTest2 = await conn.Table<ReferenceGeometry>().FirstOrDefaultAsync();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    await conn.CreateTableAsync<Project>();
                     await conn.CreateTableAsync<ReferenceGeometry>();
                     await conn.CreateTableAsync<Record>();
                     await conn.CreateTableAsync<TextData>();
@@ -336,522 +335,532 @@ namespace BioDivCollectorXamarin.Models
                     await conn.CreateTableAsync<Form>();
                     await conn.CreateTableAsync<FormField>();
                     await conn.CreateTableAsync<FieldChoice>();
-                    }
+                }
 
-                    try
+                try
+                {
+                    await PerformStandardValueMigration(conn);
+                    await PerformLayerMigration(conn);
+                    await PerformBinaryDataMigration(conn);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
+                try
+                {
+                    //Add project
+                    var projNew = projectRoot as Project;
+                    projNew.lastSync = DateTime.Now;
+                    //var existingProject = await conn.Table<Project>().Where(p => p.projectId == projNew.projectId).FirstOrDefaultAsync();
+                    var existingProject = await Project.FetchProject(projNew.projectId);
+                    if (existingProject == null)
                     {
-                        await PerformStandardValueMigration(conn);
-                        await PerformLayerMigration(conn);
-                        await PerformBinaryDataMigration(conn);
+                        await conn.InsertAsync(projNew);
                     }
-                    catch (Exception e)
+                    else
                     {
-                        Console.WriteLine(e);
+                        await conn.UpdateAsync(projNew);
                     }
-
-                    try
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+                finally
+                {
+                    var project = await Project.FetchProject(projectRoot.projectId);
+                    foreach (var geom in projectRoot.geometries)
                     {
-                        //Add project
-                        var projNew = projectRoot as Project;
-                        projNew.lastSync = DateTime.Now;
-                        //var existingProject = await conn.Table<Project>().Where(p => p.projectId == projNew.projectId).FirstOrDefaultAsync();
-                        var existingProject = await Project.FetchProject(projNew.projectId);
-                        if (existingProject == null)
-                        {
-                            await conn.InsertAsync(projNew);
-                        }
-                        else
-                        {
-                            await conn.UpdateAsync(projNew);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                    finally
-                    {
-                        var project = await Project.FetchProject(projectRoot.projectId);
-                        foreach (var geom in projectRoot.geometries)
-                        {
-                            try
-                            {
-                                var existinggeom = geom;
-                                geom.project_fk = project.Id;
-                                //var exgeom = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefaultAsync();
-                                var exgeom = await ReferenceGeometry.GetGeometry(geom.geometryId);
-
-                                if (exgeom != null)
-                                {
-                                    existinggeom = await conn.GetWithChildrenAsync<ReferenceGeometry>(exgeom.Id);
-                                    var id = existinggeom.Id;
-                                    existinggeom = geom;
-                                    existinggeom.Id = id;
-                                    existinggeom.status = geom.status;
-                                    await conn.UpdateAsync(existinggeom);
-                                }
-                                else if (geom.status != 3)
-                                {
-                                    await conn.InsertAsync(geom);
-                                    existinggeom = geom;
-                                }
-                            //existinggeom = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefaultAsync();
-                                //Geometry related records
-                                foreach (var rec in geom.records)
-                                {
-                                    try
-                                    {
-                                        //var existingrec = await conn.Table<Record>().Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
-                                        var existingrec = await Record.FetchRecord(rec.recordId);
-                                        //var recgeom = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefault();
-
-                                        if (existingrec != null)
-                                        {
-                                            var id = existingrec.Id;
-                                            existingrec = rec;
-                                            existingrec.Id = id;
-                                            existingrec.status = rec.status;
-                                            existingrec.geometry_fk = geom.Id;
-                                            existingrec.project_fk = project.Id;
-                                            await conn.UpdateAsync(existingrec);
-                                            
-                                        }
-                                        else if (rec.status != 3)
-                                        {
-                                            rec.geometry_fk = geom.Id;
-                                            rec.project_fk = project.Id;
-                                            await conn.InsertAsync(rec);
-                                        }
-
-                                        if (existingrec.status != 3)
-                                        {
-                                            try
-                                            {
-                                                //Add text records
-                                                foreach (var txt in rec.texts)
-                                                {
-                                                    if (txt.title == null)
-                                                    { txt.title = ""; }
-                                                    try
-                                                    {
-                                                        var existingtxt = await TextData.FetchTextData(txt.textId);
-                                                        if (existingtxt != null)
-                                                        {
-                                                            var id = existingtxt.Id;
-                                                            existingtxt = txt;
-                                                            existingtxt.Id = id;
-                                                            existingtxt.record_fk = existingrec.Id;
-                                                            await conn.UpdateAsync(existingtxt);
-                                                        }
-                                                        else
-                                                        {
-                                                            txt.record_fk = existingrec.Id;
-                                                            await conn.InsertAsync(txt);
-                                                        }
-                                                    }
-                                                    catch (Exception e)
-                                                    {
-                                                        Console.WriteLine(e);
-                                                    }
-                                                }
-                                                //Add numeric records
-                                                foreach (var num in rec.numerics)
-                                                {
-                                                    if (num.title == null)
-                                                    { num.title = ""; }
-                                                    try
-                                                    {
-                                                        //var existingnum = conn.Table<NumericData>().Select(g => g).Where(NumericData => NumericData.numericId == num.numericId).FirstOrDefault();
-                                                        var existingnum = await NumericData.FetchNumericDataById(num.numericId);
-                                                        if (existingnum != null)
-                                                        {
-                                                            var id = existingnum.Id;
-                                                            existingnum = num;
-                                                            existingnum.Id = id;
-                                                            existingnum.record_fk = existingrec.Id;
-                                                            await conn.UpdateAsync(existingnum);
-                                                        }
-                                                        else
-                                                        {
-                                                            await conn.InsertAsync(num);
-                                                        }
-                                                    }
-                                                    catch (Exception e)
-                                                    {
-                                                        Console.WriteLine(e);
-                                                    }
-                                                }
-                                                //Add boolean records
-                                                foreach (var onebool in rec.booleans)
-                                                {
-                                                    if (onebool.title == null)
-                                                    { onebool.title = ""; }
-                                                    try
-                                                    {
-                                                        var existingbool = await BooleanData.FetchBooleanData(onebool.booleanId);
-                                                        if (existingbool != null)
-                                                        {
-                                                            var id = existingbool.Id;
-                                                            existingbool = onebool;
-                                                            existingbool.Id = id;
-                                                            existingbool.record_fk = existingrec.Id;
-                                                            await conn.UpdateAsync(existingbool);
-                                                        }
-                                                        else
-                                                        {
-                                                            onebool.record_fk = existingrec.Id;
-                                                            await conn.InsertAsync(onebool);
-                                                        }
-                                                    }
-                                                    catch (Exception e)
-                                                    {
-                                                        Console.WriteLine(e);
-                                                    }
-                                                }
-                                                //Add binary records
-                                                foreach (var bin in rec.binaries)
-                                                {
-                                                    try
-                                                    {
-                                                        var existingbin = await BinaryData.FetchBinaryData(bin.binaryId);
-                                                        if (existingbin != null)
-                                                        {
-                                                            var id = existingbin.Id;
-                                                            existingbin = bin;
-                                                            existingbin.Id = id;
-                                                            existingbin.record_fk = existingrec.Id;
-                                                            await conn.UpdateAsync(existingbin);
-                                                        }
-                                                        else
-                                                        {
-                                                            bin.record_fk = existingrec.Id;
-                                                            await conn.InsertAsync(bin);
-                                                        }
-                                                        await conn.InsertOrReplaceAsync(bin);
-                                                        binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
-                                                    }
-                                                    catch (Exception e)
-                                                    {
-                                                        Console.WriteLine(e);
-                                                    }
-                                                }
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Console.WriteLine(e);
-                                            }
-                                        }
-
-                                        existingrec.texts = await TextData.FetchTextData(existingrec.Id);
-                                        existingrec.numerics = await NumericData.FetchNumericDataByRecordId(existingrec.Id);
-                                        existingrec.booleans = await BooleanData.FetchBooleanData(existingrec.Id);
-                                        existingrec.binaries = await BinaryData.FetchBinaryData(existingrec.Id);
-                                        await conn.UpdateWithChildrenAsync(existingrec);
-                                        Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Console.WriteLine(e);
-                                    }
-
-                                    //existinggeom.records = conn.Table<Record>().Select(g => g).Where(Record => Record.geometry_fk == geom.Id).ToList();
-                                    existinggeom.records = await Record.FetchRecordByGeomId(geom.Id);
-                                    await conn.UpdateWithChildrenAsync(existinggeom);
-                                    Console.WriteLine("Added record: " + DateTime.Now.ToLongTimeString());
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                            }
-                        }
-                        // Add project related records
-                        foreach (var rec in projectRoot.records)
-                        {
-                            try
-                            {
-                                //var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
-                                var existingrec = await Record.FetchRecord(rec.recordId);
-
-                                if (existingrec != null)
-                                {
-                                    existingrec = await conn.GetWithChildrenAsync<Record>(existingrec.recordId);
-                                    rec.project_fk = project.Id;
-                                    rec.Id = existingrec.Id;
-                                    await conn.UpdateAsync(rec);
-                                }
-                                else
-                                {
-                                    rec.project_fk = project.Id;
-                                    await conn.InsertAsync(rec);
-                                }
-
-                                if (rec.status != 3)
-                                {
-                                    try
-                                    {
-                                        //Add text records
-                                        foreach (var txt in rec.texts)
-                                        {
-                                            if (txt.title == null)
-                                            { txt.title = ""; }
-                                            try
-                                            {
-                                                var existingtxt = await TextData.FetchTextData(txt.textId);
-                                                if (existingtxt != null)
-                                                {
-                                                    var id = existingtxt.Id;
-                                                    existingtxt = txt;
-                                                    existingtxt.Id = id;
-                                                    existingtxt.record_fk = existingrec.Id;
-                                                    await conn.UpdateAsync(existingtxt);
-                                                }
-                                                else
-                                                {
-                                                    txt.record_fk = existingrec.Id;
-                                                    await conn.InsertAsync(txt);
-                                                }
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Console.WriteLine(e);
-                                            }
-                                        }
-                                        //Add numeric records
-                                        foreach (var num in rec.numerics)
-                                        {
-                                            if (num.title == null)
-                                            { num.title = ""; }
-                                            try
-                                            {
-                                                var existingnum = await NumericData.FetchNumericDataById(num.numericId);
-                                                if (existingnum != null)
-                                                {
-                                                    var id = existingnum.Id;
-                                                    existingnum = num;
-                                                    existingnum.Id = id;
-                                                    existingnum.record_fk = existingrec.Id;
-                                                    await conn.UpdateAsync(existingnum);
-                                                }
-                                                else
-                                                {
-                                                    await conn.InsertAsync(num);
-                                                }
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Console.WriteLine(e);
-                                            }
-                                        }
-                                        //Add boolean records
-                                        foreach (var onebool in rec.booleans)
-                                        {
-                                            if (onebool.title == null)
-                                            { onebool.title = ""; }
-                                            try
-                                            {
-                                                var existingbool = await BooleanData.FetchBooleanData(onebool.booleanId);
-                                                if (existingbool != null)
-                                                {
-                                                    var id = existingbool.Id;
-                                                    existingbool = onebool;
-                                                    existingbool.Id = id;
-                                                    existingbool.record_fk = existingrec.Id;
-                                                    await conn.UpdateAsync(existingbool);
-                                                }
-                                                else
-                                                {
-                                                    onebool.record_fk = existingrec.Id;
-                                                    await conn.InsertAsync(onebool);
-                                                }
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Console.WriteLine(e);
-                                            }
-                                        }
-                                        //Add binary records
-                                        foreach (var bin in rec.binaries)
-                                        {
-                                            try
-                                            {
-                                                var existingbin = await BinaryData.FetchBinaryData(bin.binaryId);
-                                                if (existingbin != null)
-                                                {
-                                                    var id = existingbin.Id;
-                                                    existingbin = bin;
-                                                    existingbin.Id = id;
-                                                    existingbin.record_fk = existingrec.Id;
-                                                    await conn.UpdateAsync(existingbin);
-                                                }
-                                                else
-                                                {
-                                                    bin.record_fk = existingrec.Id;
-                                                    await conn.InsertAsync(bin);
-                                                }
-                                                await conn.InsertOrReplaceAsync(bin);
-                                                binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Console.WriteLine(e);
-                                            }
-                                        }
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Console.WriteLine(e);
-                                    }
-                                }
-
-                                var queriedrec = rec;
-                                queriedrec.texts = await TextData.FetchTextData(rec.Id);
-                                queriedrec.numerics = await NumericData.FetchNumericDataByRecordId(rec.Id);
-                                queriedrec.booleans = await BooleanData.FetchBooleanData(rec.Id);
-                                queriedrec.binaries = await BinaryData.FetchBinaryData(rec.Id);
-                                await conn.UpdateWithChildrenAsync(queriedrec);
-                                Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                            }
-                        }
-                        // Add project related forms
-                        foreach (var form in projectRoot.forms)
-                        {
-                            try
-                            {
-                                form.project_fk = project.Id;
-                                //var existingform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
-                                var existingform = await Form.FetchFormByFormAndProjectId(form.formId, project.Id);
-                                if (existingform != null)
-                                {
-                                    //Delete the full form and replace it
-                                    var fullForm = await conn.GetWithChildrenAsync<Form>(existingform.Id,true);
-                                    await conn.DeleteAsync(fullForm);
-                                }
-                                if (form.status < 3)
-                                {
-                                    try
-                                    {
-                                        await conn.InsertAsync(form);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        if (e.Message == "table Form has no column named status")
-                                        {
-                                            //MIGRATE DB - Add status
-                                            try
-                                            {
-                                                //conn.BeginTransaction();
-                                                await conn.ExecuteAsync("ALTER TABLE Form ADD status int NOT NULL DEFAULT(0);");
-                                                //conn.Commit();
-                                                await conn.InsertAsync(form);
-                                            }
-                                            catch (Exception e2)
-                                            {
-                                                await App.Current.MainPage.DisplayAlert("Wir sind auf ein Problem gestossen", "Ihr Formular konnte nicht synchronisiert werden. Bitte kontaktieren Sie den Support.", "Ok");
-                                            }
-                                        }
-
-                                    }
-                                }
-
-                                //Add form fields
-
-                                foreach (var formfield in form.formFields)
-                                {
-                                    try
-                                    {
-                                        formfield.form_fk = form.Id;
-                                        await conn.InsertAsync(formfield);
-
-                                        //Add field choices
-                                        foreach (var fieldChoice in formfield.fieldChoices)
-                                        {
-                                            try
-                                            {
-                                               fieldChoice.formField_fk = formfield.Id;
-                                               await conn.InsertAsync(fieldChoice);
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Console.WriteLine(e);
-                                            }
-                                        }
-                                        //var queriedfield = conn.Table<FormField>().Select(g => g).Where(FormField => FormField.fieldId == formfield.fieldId).Where(FormField => FormField.form_fk == formfield.form_fk).FirstOrDefault();
-                                        var queriedfield = await FormField.FetchFormFieldByFieldIdAndFormKey(formfield.fieldId, formfield.form_fk);
-                                        queriedfield.fieldChoices = formfield.fieldChoices;
-                                        await conn.UpdateWithChildrenAsync(queriedfield);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Console.WriteLine(e);
-                                    }
-                                }
-                                //var queriedform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
-                                var queriedform = await Form.FetchFormByFormAndProjectId(form.formId, project.Id);
-                                queriedform.formFields = form.formFields;
-                                await conn.UpdateWithChildrenAsync(queriedform);
-                                Console.WriteLine("Added form: " + DateTime.Now.ToLongTimeString());
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                            }
-                        }
-                        //Add project related layers
                         try
                         {
-                            //Delete existing layers (need to delete all layers to start, as we are not informed when a layer is removed from the project)
-                            //var existingLayers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == project.Id);
-                            var existingLayers = await Layer.FetchLayerListByProjectId(project.Id);
-                            foreach (var existingLayer in existingLayers)
+                            var existinggeom = geom;
+                            geom.project_fk = project.Id;
+                            //var exgeom = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefaultAsync();
+                            var exgeom = await ReferenceGeometry.GetGeometry(geom.geometryId);
+
+                            if (exgeom != null)
+                            {
+                                existinggeom = await conn.GetWithChildrenAsync<ReferenceGeometry>(exgeom.Id);
+                                var id = existinggeom.Id;
+                                existinggeom = geom;
+                                existinggeom.Id = id;
+                                existinggeom.status = geom.status;
+                                await conn.UpdateAsync(existinggeom);
+                            }
+                            else if (geom.status != 3)
+                            {
+                                await conn.InsertAsync(geom);
+                                existinggeom = geom;
+                            }
+                            //existinggeom = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefaultAsync();
+                            existinggeom = await ReferenceGeometry.GetGeometry(geom.geometryId);
+                            //Geometry related records
+                            foreach (var rec in geom.records)
+                            {
+                                try
+                                {
+                                    //var existingrec = await conn.Table<Record>().Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+                                    var existingrec = await Record.FetchRecord(rec.recordId);
+                                    //var recgeom = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefault();
+                                    var recgeom = await ReferenceGeometry.GetGeometry(geom.geometryId);
+
+                                    if (existingrec != null)
+                                    {
+                                        var id = existingrec.Id;
+                                        existingrec = rec;
+                                        existingrec.Id = id;
+                                        existingrec.status = rec.status;
+                                        existingrec.geometry_fk = recgeom.Id;
+                                        existingrec.project_fk = project.Id;
+                                        await conn.UpdateAsync(existingrec);
+                                    }
+                                    else if (rec.status != 3)
+                                    {
+                                        rec.geometry_fk = recgeom.Id;
+                                        rec.project_fk = project.Id;
+                                        await conn.InsertAsync(rec);
+                                    }
+
+                                    existingrec = await Record.FetchRecord(rec.recordId);
+                                    if (existingrec.status != 3)
+                                    {
+                                        try
+                                        {
+                                            //Add text records
+                                            foreach (var txt in rec.texts)
+                                            {
+                                                if (txt.title == null)
+                                                { txt.title = ""; }
+                                                try
+                                                {
+                                                    var existingtxt = await TextData.FetchTextData(txt.textId);
+                                                    if (existingtxt != null)
+                                                    {
+                                                        var id = existingtxt.Id;
+                                                        existingtxt = txt;
+                                                        existingtxt.Id = id;
+                                                        existingtxt.record_fk = existingrec.Id;
+                                                        await conn.UpdateAsync(existingtxt);
+                                                    }
+                                                    else
+                                                    {
+                                                        txt.record_fk = existingrec.Id;
+                                                        await conn.InsertAsync(txt);
+                                                    }
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Console.WriteLine(e);
+                                                }
+                                            }
+                                            //Add numeric records
+                                            foreach (var num in rec.numerics)
+                                            {
+                                                if (num.title == null)
+                                                { num.title = ""; }
+                                                try
+                                                {
+                                                    //var existingnum = conn.Table<NumericData>().Select(g => g).Where(NumericData => NumericData.numericId == num.numericId).FirstOrDefault();
+                                                    var existingnum = await NumericData.FetchNumericDataById(num.numericId);
+                                                    if (existingnum != null)
+                                                    {
+                                                        var id = existingnum.Id;
+                                                        existingnum = num;
+                                                        existingnum.Id = id;
+                                                        existingnum.record_fk = existingrec.Id;
+                                                        await conn.UpdateAsync(existingnum);
+                                                    }
+                                                    else
+                                                    {
+                                                        await conn.InsertAsync(num);
+                                                    }
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Console.WriteLine(e);
+                                                }
+                                            }
+                                            //Add boolean records
+                                            foreach (var onebool in rec.booleans)
+                                            {
+                                                if (onebool.title == null)
+                                                { onebool.title = ""; }
+                                                try
+                                                {
+                                                    var existingbool = await BooleanData.FetchBooleanData(onebool.booleanId);
+                                                    if (existingbool != null)
+                                                    {
+                                                        var id = existingbool.Id;
+                                                        existingbool = onebool;
+                                                        existingbool.Id = id;
+                                                        existingbool.record_fk = existingrec.Id;
+                                                        await conn.UpdateAsync(existingbool);
+                                                    }
+                                                    else
+                                                    {
+                                                        onebool.record_fk = existingrec.Id;
+                                                        await conn.InsertAsync(onebool);
+                                                    }
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Console.WriteLine(e);
+                                                }
+                                            }
+                                            //Add binary records
+                                            foreach (var bin in rec.binaries)
+                                            {
+                                                try
+                                                {
+                                                    var existingbin = await BinaryData.FetchBinaryData(bin.binaryId);
+                                                    if (existingbin != null)
+                                                    {
+                                                        var id = existingbin.Id;
+                                                        existingbin = bin;
+                                                        existingbin.Id = id;
+                                                        existingbin.record_fk = existingrec.Id;
+                                                        await conn.UpdateAsync(existingbin);
+                                                    }
+                                                    else
+                                                    {
+                                                        bin.record_fk = existingrec.Id;
+                                                        await conn.InsertAsync(bin);
+                                                    }
+                                                    //await conn.InsertOrReplaceAsync(bin);
+                                                    binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Console.WriteLine(e);
+                                                }
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine(e);
+                                        }
+                                    }
+
+                                    existingrec.texts = await TextData.FetchTextData(existingrec.Id);
+                                    existingrec.numerics = await NumericData.FetchNumericDataByRecordId(existingrec.Id);
+                                    existingrec.booleans = await BooleanData.FetchBooleanData(existingrec.Id);
+                                    existingrec.binaries = await BinaryData.FetchBinaryData(existingrec.Id);
+                                    await conn.UpdateWithChildrenAsync(existingrec);
+                                    Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e);
+                                }
+
+                                //existinggeom.records = conn.Table<Record>().Select(g => g).Where(Record => Record.geometry_fk == geom.Id).ToList();
+                                existinggeom.records = await Record.FetchRecordByGeomId(geom.Id);
+                                await conn.UpdateWithChildrenAsync(existinggeom);
+                                Console.WriteLine("Added record: " + DateTime.Now.ToLongTimeString());
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                    }
+                    // Add project related records
+                    foreach (var rec in projectRoot.records)
+                    {
+                        try
+                        {
+                            //var existingrec = conn.Table<Record>().Select(g => g).Where(Record => Record.recordId == rec.recordId).FirstOrDefault();
+                            var existingrec = await Record.FetchRecord(rec.recordId);
+
+                            if (existingrec != null)
+                            {
+                                existingrec = await conn.GetWithChildrenAsync<Record>(existingrec.recordId);
+                                rec.project_fk = project.Id;
+                                rec.Id = existingrec.Id;
+                                await conn.UpdateAsync(rec);
+                            }
+                            else
+                            {
+                                rec.project_fk = project.Id;
+                                await conn.InsertAsync(rec);
+                            }
+
+                            existingrec = await Record.FetchRecord(rec.recordId);
+
+                            if (rec.status != 3)
+                            {
+                                try
+                                {
+                                    //Add text records
+                                    foreach (var txt in rec.texts)
+                                    {
+                                        if (txt.title == null)
+                                        { txt.title = ""; }
+                                        try
+                                        {
+                                            var existingtxt = await TextData.FetchTextData(txt.textId);
+                                            if (existingtxt != null)
+                                            {
+                                                var id = existingtxt.Id;
+                                                existingtxt = txt;
+                                                existingtxt.Id = id;
+                                                existingtxt.record_fk = existingrec.Id;
+                                                await conn.UpdateAsync(existingtxt);
+                                            }
+                                            else
+                                            {
+                                                txt.record_fk = existingrec.Id;
+                                                await conn.InsertAsync(txt);
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine(e);
+                                        }
+                                    }
+                                    //Add numeric records
+                                    foreach (var num in rec.numerics)
+                                    {
+                                        if (num.title == null)
+                                        { num.title = ""; }
+                                        try
+                                        {
+                                            var existingnum = await NumericData.FetchNumericDataById(num.numericId);
+                                            if (existingnum != null)
+                                            {
+                                                var id = existingnum.Id;
+                                                existingnum = num;
+                                                existingnum.Id = id;
+                                                existingnum.record_fk = existingrec.Id;
+                                                await conn.UpdateAsync(existingnum);
+                                            }
+                                            else
+                                            {
+                                                num.record_fk = existingrec.Id;
+                                                await conn.InsertAsync(num);
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine(e);
+                                        }
+                                    }
+                                    //Add boolean records
+                                    foreach (var onebool in rec.booleans)
+                                    {
+                                        if (onebool.title == null)
+                                        { onebool.title = ""; }
+                                        try
+                                        {
+                                            var existingbool = await BooleanData.FetchBooleanData(onebool.booleanId);
+                                            if (existingbool != null)
+                                            {
+                                                var id = existingbool.Id;
+                                                existingbool = onebool;
+                                                existingbool.Id = id;
+                                                existingbool.record_fk = existingrec.Id;
+                                                await conn.UpdateAsync(existingbool);
+                                            }
+                                            else
+                                            {
+                                                onebool.record_fk = existingrec.Id;
+                                                await conn.InsertAsync(onebool);
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine(e);
+                                        }
+                                    }
+                                    //Add binary records
+                                    foreach (var bin in rec.binaries)
+                                    {
+                                        try
+                                        {
+                                            var existingbin = await BinaryData.FetchBinaryData(bin.binaryId);
+                                            if (existingbin != null)
+                                            {
+                                                var id = existingbin.Id;
+                                                existingbin = bin;
+                                                existingbin.Id = id;
+                                                existingbin.record_fk = existingrec.Id;
+                                                await conn.UpdateAsync(existingbin);
+                                            }
+                                            else
+                                            {
+                                                bin.record_fk = existingrec.Id;
+                                                await conn.InsertAsync(bin);
+                                            }
+                                            //await conn.InsertOrReplaceAsync(bin);
+                                            binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine(e);
+                                        }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e);
+                                }
+                            }
+
+                            var queriedrec = rec;
+                            queriedrec.texts = await TextData.FetchTextData(rec.Id);
+                            queriedrec.numerics = await NumericData.FetchNumericDataByRecordId(rec.Id);
+                            queriedrec.booleans = await BooleanData.FetchBooleanData(rec.Id);
+                            queriedrec.binaries = await BinaryData.FetchBinaryData(rec.Id);
+                            await conn.UpdateWithChildrenAsync(queriedrec);
+                            Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                    }
+                    // Add project related forms
+                    foreach (var form in projectRoot.forms)
+                    {
+                        try
+                        {
+                            form.project_fk = project.Id;
+
+                            var existingform = await Form.FetchFormByFormAndProjectId(form.formId, project.Id);
+                            //var existingform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
+                            if (existingform != null)
+                            {
+                                form.Id = existingform.Id;
+                                var fullForm = await conn.GetWithChildrenAsync<Form>(existingform.Id, true);
+                                await conn.DeleteAsync(fullForm);
+                            }
+
+                            if (form.status != 3)
+                            {
+                                try
+                                {
+                                    await conn.InsertAsync(form);
+                                }
+                                catch (Exception e)
+                                {
+                                    if (e.Message == "table Form has no column named status")
+                                    {
+                                        //MIGRATE DB - Add status
+                                        try
+                                        {
+                                            //conn.BeginTransaction();
+                                            await conn.ExecuteAsync("ALTER TABLE Form ADD status int NOT NULL DEFAULT(0);");
+                                            //conn.Commit();
+                                            await conn.InsertAsync(form);
+                                        }
+                                        catch (Exception e2)
+                                        {
+                                            await App.Current.MainPage.DisplayAlert("Wir sind auf ein Problem gestossen", "Ihr Formular konnte nicht synchronisiert werden. Bitte kontaktieren Sie den Support.", "Ok");
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            existingform = await Form.FetchFormByFormAndProjectId(form.formId, project.Id);
+                            //Add form fields
+
+                            foreach (var formfield in form.formFields)
+                            {
+                                try
+                                {
+                                    formfield.form_fk = existingform.Id;
+                                    await conn.InsertAsync(formfield);
+
+                                    var existingFormField = await FormField.FetchFormFieldByFieldIdAndFormKey(formfield.fieldId, formfield.form_fk);
+
+                                    //Add field choices
+                                    foreach (var fieldChoice in formfield.fieldChoices)
+                                    {
+                                        try
+                                        {
+                                            fieldChoice.formField_fk = existingFormField.Id;
+                                            await conn.InsertAsync(fieldChoice);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine(e);
+                                        }
+                                    }
+                                    //var queriedfield = conn.Table<FormField>().Select(g => g).Where(FormField => FormField.fieldId == formfield.fieldId).Where(FormField => FormField.form_fk == formfield.form_fk).FirstOrDefault();
+                                    var queriedfield = await FormField.FetchFormFieldByFieldIdAndFormKey(formfield.fieldId, formfield.form_fk);
+                                    queriedfield.fieldChoices = formfield.fieldChoices;
+                                    await conn.UpdateWithChildrenAsync(queriedfield);
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e);
+                                }
+                            }
+                            //var queriedform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
+                            var queriedform = await Form.FetchFormByFormAndProjectId(form.formId, project.Id);
+                            queriedform.formFields = form.formFields;
+                            await conn.UpdateWithChildrenAsync(queriedform);
+                            Console.WriteLine("Added form: " + DateTime.Now.ToLongTimeString());
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                    }
+                    //Add project related layers
+                    try
+                    {
+                        //Delete existing layers (need to delete all layers to start, as we are not informed when a layer is removed from the project)
+                        //var existingLayers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == project.Id);
+                        var existingLayers = await Layer.FetchLayerListByProjectId(project.Id);
+                        foreach (var existingLayer in existingLayers)
+                        {
+                            await conn.DeleteAsync(existingLayer);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+
+                    //add new layers
+                    foreach (var layer in projectRoot.layers)
+                    {
+                        try
+                        {
+                            layer.project_fk = project.Id;
+                            //var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.layerId == layer.layerId).FirstOrDefault();
+                            var existingLayer = await Layer.FetchLayerByLayerId(layer.layerId);
+                            if (existingLayer != null)
                             {
                                 await conn.DeleteAsync(existingLayer);
                             }
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
-
-                        //add new layers
-                        foreach (var layer in projectRoot.layers)
-                        {
-                            try
-                            {
-                                layer.project_fk = project.Id;
-                                //var existingLayer = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.layerId == layer.layerId).FirstOrDefault();
-                                var existingLayer = await Layer.FetchLayerByLayerId(layer.layerId);
-                                if (existingLayer != null)
-                                {
-                                    await conn.DeleteAsync(existingLayer);
-                                }
-                                await conn.InsertAsync(layer);
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                            }
-                        }
-                        try
-                        {
-                        project.geometries = await ReferenceGeometry.GetAllGeometriesByProjectId(project.Id);
-                        project.records = await Record.FetchRecordByProjectId(project.Id);
-                            project.forms = await Form.FetchFormsForProject(project.Id);
-                            project.layers = await Layer.FetchLayerListByProjectId(project.Id);
-                            await conn.UpdateWithChildrenAsync(project);
-                            Console.WriteLine("Added records geometries and layers: " + DateTime.Now.ToLongTimeString());
+                            await conn.InsertAsync(layer);
                         }
                         catch (Exception e)
                         {
                             Console.WriteLine(e);
                         }
                     }
+                    try
+                    {
+                        project.geometries = await ReferenceGeometry.GetAllGeometriesByProjectId(project.Id);
+                        project.records = await Record.FetchRecordByProjectId(project.Id);
+                        project.forms = await Form.FetchFormsForProject(project.Id);
+                        project.layers = await Layer.FetchLayerListByProjectId(project.Id);
+                        await conn.UpdateWithChildrenAsync(project);
+                        Console.WriteLine("Added records geometries and layers: " + DateTime.Now.ToLongTimeString());
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
                 }
-            
+            }
+
 
             foreach (var tuple in binaryDownloadList)
             {
@@ -934,38 +943,38 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>List of shape objects</returns>
         public static async Task<List<Shape>> getDataForMap(string projectId)
         {
-                try
+            try
+            {
+                //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == projectId).FirstOrDefault();
+                var proj = await Project.FetchProject(projectId);
+                //var items = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.project_fk == proj.Id).Where(ReferenceGeometry => ReferenceGeometry.status != 3);
+                var items = await ReferenceGeometry.GetAllGeometriesByProjectId(proj.Id);
+                var geoms = new List<Shape>();
+                foreach (ReferenceGeometry geom in items)
                 {
-                    //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == projectId).FirstOrDefault();
-                    var proj = await Project.FetchProject(projectId);
-                    //var items = conn.Table<ReferenceGeometry>().Select(g => g).Where(ReferenceGeometry => ReferenceGeometry.project_fk == proj.Id).Where(ReferenceGeometry => ReferenceGeometry.status != 3);
-                    var items = await ReferenceGeometry.GetAllGeometriesByProjectId(proj.Id);
-                    var geoms = new List<Shape>();
-                    foreach (ReferenceGeometry geom in items)
+                    var geometry = GeoJSON2Geometry(geom.geometry);
+                    if (geometry.IsValid)
                     {
-                        var geometry = GeoJSON2Geometry(geom.geometry);
-                        if (geometry.IsValid)
+                        var shape = new Shape
                         {
-                            var shape = new Shape
-                            {
-                                title = geom.geometryName,
-                                geomId = geom.Id,
-                                shapeGeom = geometry
-                            };
-                            geoms.Add(shape);
-                        }
-
+                            title = geom.geometryName,
+                            geomId = geom.Id,
+                            shapeGeom = geometry
+                        };
+                        geoms.Add(shape);
                     }
-                    return geoms;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-                finally
-                {
 
                 }
+                return geoms;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            finally
+            {
+
+            }
             return null;
         }
 
@@ -1057,18 +1066,18 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>List of layers</returns>
         public static async Task<List<Layer>> GetLayersForMap(string projectId)
         {
-                try
-                {
-                    //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == projectId).FirstOrDefault();
-                    var proj = await Project.FetchProject(projectId);
-                    //var layers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == proj.Id).ToList();
-                    var layers = await Layer.FetchLayerListByProjectId(proj.Id);
-                    return layers;
-                }
-                catch
-                {
-                    return new List<Layer>();
-                }
+            try
+            {
+                //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == projectId).FirstOrDefault();
+                var proj = await Project.FetchProject(projectId);
+                //var layers = conn.Table<Layer>().Select(g => g).Where(Layer => Layer.project_fk == proj.Id).ToList();
+                var layers = await Layer.FetchLayerListByProjectId(proj.Id);
+                return layers;
+            }
+            catch
+            {
+                return new List<Layer>();
+            }
         }
 
         /// <summary>
@@ -1078,94 +1087,94 @@ namespace BioDivCollectorXamarin.Models
         /// <returns>Json object</returns>
         public static async Task<string> PrepareJSONForUpload(DateTime lastSync)
         {
-                //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
-                var proj = await Project.FetchProject(App.CurrentProjectId);
-                if (proj != null)
+            //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+            var proj = await Project.FetchProject(App.CurrentProjectId);
+            if (proj != null)
+            {
+                var conn = App.ActiveDatabaseConnection;
+                var project = await conn.GetWithChildrenAsync<Project>(proj.Id, true);
+                var geoms = project.geometries;
+                foreach (var geometry in geoms)
                 {
-                    var conn = App.ActiveDatabaseConnection;
-                    var project = await conn.GetWithChildrenAsync<Project>(proj.Id, true);
-                    var geoms = project.geometries;
-                    foreach (var geometry in geoms)
-                    {
-                        var records = geometry.records.Where(x => x.status != 1).Where(x => x.timestamp.ToUniversalTime() > lastSync.ToUniversalTime()).ToList();
-                        geometry.records = records;
-                    }
-
-                    var geometries = (from g in geoms
-                                      where (g.status != 1 || g.records.Count > 0)
-                                      select g).ToList();
-                    project.geometries = geometries;
-
-                    var recs = project.records.Where(x => x.status != 1).Where(x => x.geometry_fk == null).ToList();
-                    project.records = recs;
-
-                    project.forms = null;
-                    project.layers = null;
-
-                    return JsonConvert.SerializeObject(project);
+                    var records = geometry.records.Where(x => x.status != 1).Where(x => x.timestamp.ToUniversalTime() > lastSync.ToUniversalTime()).ToList();
+                    geometry.records = records;
                 }
-                return String.Empty;
+
+                var geometries = (from g in geoms
+                                  where (g.status != 1 || g.records.Count > 0)
+                                  select g).ToList();
+                project.geometries = geometries;
+
+                var recs = project.records.Where(x => x.status != 1).Where(x => x.geometry_fk == null).ToList();
+                project.records = recs;
+
+                project.forms = null;
+                project.layers = null;
+
+                return JsonConvert.SerializeObject(project);
+            }
+            return String.Empty;
         }
 
         public static async Task<string> PrepareBinaryRecordsForUpload(DateTime lastSync)
         {
             var responsetext = string.Empty;
             var conn = App.ActiveDatabaseConnection;
-                //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
-                var proj = await Project.FetchProject(App.CurrentProjectId);
-                if (proj != null)
+            //var proj = conn.Table<Project>().Select(g => g).Where(Project => Project.projectId == App.CurrentProjectId).FirstOrDefault();
+            var proj = await Project.FetchProject(App.CurrentProjectId);
+            if (proj != null)
+            {
+                var project = await Project.FetchProjectWithChildren(proj.projectId);
+
+                var geomRecs = project.geometries.SelectMany(x => x.records).Where(x => x.status != 1).Where(x => x.timestamp.ToUniversalTime() > lastSync.ToUniversalTime()).ToList();
+
+                var projrecs = project.records.Where(x => x.status != 1).Where(x => x.geometry_fk == null).ToList();
+                var allrecs = geomRecs.Concat(projrecs);
+
+                var bins = allrecs.SelectMany(x => x.binaries).ToList();
+                var binIds = bins.Select(x => x.binaryId).ToList();
+                foreach (var binId in binIds)
                 {
-                    var project = await Project.FetchProjectWithChildren(proj.projectId);
-
-                    var geomRecs = project.geometries.SelectMany(x => x.records).Where(x => x.status != 1).Where(x => x.timestamp.ToUniversalTime() > lastSync.ToUniversalTime()).ToList();
-
-                    var projrecs = project.records.Where(x => x.status != 1).Where(x => x.geometry_fk == null).ToList();
-                    var allrecs = geomRecs.Concat(projrecs);
-
-                    var bins = allrecs.SelectMany(x => x.binaries).ToList();
-                    var binIds = bins.Select(x => x.binaryId).ToList();
-                    foreach (var binId in binIds)
+                    try
                     {
-                        try
+                        var directory = DependencyService.Get<FileInterface>().GetImagePath();
+                        string filepath = Path.Combine(directory, binId + ".jpg");
+                        var binData = File.ReadAllBytes(filepath);
+
+                        string url = App.ServerURL + "/api/Binary/" + binId;
+
+                        using (HttpClient client = new HttpClient())
                         {
-                            var directory = DependencyService.Get<FileInterface>().GetImagePath();
-                            string filepath = Path.Combine(directory, binId + ".jpg");
-                            var binData = File.ReadAllBytes(filepath);
+                            client.Timeout = TimeSpan.FromSeconds(6000); // 10 minutes
+                            var token = Preferences.Get("AccessToken", "");
+                            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                            string url = App.ServerURL + "/api/Binary/" + binId;
+                            MessagingCenter.Send(new DataDAO(), "SyncMessage", "Uploading Photos");
 
-                            using (HttpClient client = new HttpClient())
+
+                            using (var multipartFormContent = new MultipartFormDataContent())
                             {
-                                client.Timeout = TimeSpan.FromSeconds(6000); // 10 minutes
-                                var token = Preferences.Get("AccessToken", "");
-                                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                                //Load the file and set the file's Content-Type header
+                                var fileStreamContent = new StreamContent(File.OpenRead(filepath));
+                                fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpg");
 
-                                MessagingCenter.Send(new DataDAO(), "SyncMessage", "Uploading Photos");
+                                //Add the file
+                                multipartFormContent.Add(fileStreamContent, name: "file", fileName: binId + ".jpg");
 
-
-                                using (var multipartFormContent = new MultipartFormDataContent())
-                                {
-                                    //Load the file and set the file's Content-Type header
-                                    var fileStreamContent = new StreamContent(File.OpenRead(filepath));
-                                    fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpg");
-
-                                    //Add the file
-                                    multipartFormContent.Add(fileStreamContent, name: "file", fileName: binId + ".jpg");
-
-                                    //Send it
-                                    var response = await client.PostAsync(url, multipartFormContent);
-                                    response.EnsureSuccessStatusCode();
-                                    responsetext = await response.Content.ReadAsStringAsync();
-                                }
+                                //Send it
+                                var response = await client.PostAsync(url, multipartFormContent);
+                                response.EnsureSuccessStatusCode();
+                                responsetext = await response.Content.ReadAsStringAsync();
                             }
                         }
-                        catch
-                        {
-
-                        }
+                    }
+                    catch
+                    {
 
                     }
+
                 }
+            }
             return responsetext;
         }
 
@@ -1242,5 +1251,5 @@ namespace BioDivCollectorXamarin.Models
 
     }
 
-    
+
 }

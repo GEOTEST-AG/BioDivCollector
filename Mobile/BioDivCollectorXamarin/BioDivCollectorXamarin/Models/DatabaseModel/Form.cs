@@ -44,7 +44,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var conn = App.ActiveDatabaseConnection;
                 try
                 {
-                    var proj = Project.FetchCurrentProject();
+                    var proj = await Project.FetchCurrentProject();
                     var forms = await conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).ToListAsync();
                     return forms;
                 }
@@ -486,6 +486,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var conn = App.ActiveDatabaseConnection;
             return await conn.Table<FormField>().Where(FormField => FormField.fieldId == fieldId).Where(FormField => FormField.form_fk == form_fk).FirstOrDefaultAsync();
         }
+
+       
     }
 
 

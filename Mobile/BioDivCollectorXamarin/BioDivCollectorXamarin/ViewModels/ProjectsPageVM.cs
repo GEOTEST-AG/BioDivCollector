@@ -62,8 +62,11 @@ namespace BioDivCollectorXamarin.ViewModels
             get { return activity; }
             set
             {
-                activity = value;
-                OnPropertyChanged("Activity");
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    activity = value;
+                    OnPropertyChanged("Activity");
+                });
             }
         }
 
@@ -116,7 +119,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Activity = "";
             MessagingCenter.Subscribe<Application, string>(App.Current, "SyncMessage", (sender, arg) =>
             {
-                Activity = arg;
+                    Activity = arg;
             });
         }
 

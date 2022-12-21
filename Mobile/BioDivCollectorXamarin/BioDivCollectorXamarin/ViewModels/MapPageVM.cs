@@ -509,23 +509,23 @@ namespace BioDivCollectorXamarin.ViewModels
         public void OnAppearing()
         {
             InitialiseGPS();
-            Task.Run(() =>
-            {
+            //Task.Run(() =>
+            //{
                 ReCentreMap();
                 if (Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
-                    {
-                        IsNotConnected = false;
-                    }
-                    else
-                    {
-                        IsNotConnected = true;
-                    }
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        RefreshAllLayers();
-                    });
+                {
+                    IsNotConnected = false;
+                }
+                else
+                {
+                    IsNotConnected = true;
+                }
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    RefreshAllLayers();
+                });
 
-                
+
 
                 MessagingCenter.Subscribe<MapLayer, Dictionary<string, int>>(this, "LayerOrderChanged", (sender, arg) =>
                 {
@@ -548,7 +548,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     Task.Delay(100).ContinueWith(t => ZoomMapOut());
                 }
-            });
+            //});
 
         }
 

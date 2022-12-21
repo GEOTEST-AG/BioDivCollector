@@ -332,16 +332,13 @@ namespace BioDivCollectorXamarin
         /// Register the current project
         /// </summary>
         /// <param name="projectGUID"></param>
-        public static void SetProject(string projectGUID)
+        public static async Task SetProject(string projectGUID)
         {
-            Task.Run(() =>
-            {
                 var projectId = projectGUID.ToString();
                 App.CurrentProjectId = projectId;
                 Preferences.Set("currentProject", projectId);
                 AppShell.ClearNavigationStacks();
                 MessagingCenter.Send(App.Current, "SetProject");
-            });
         }
 
         /// <summary>

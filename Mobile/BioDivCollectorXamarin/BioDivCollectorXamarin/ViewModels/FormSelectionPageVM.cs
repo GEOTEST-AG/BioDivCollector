@@ -10,9 +10,18 @@ using Xamarin.Essentials;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
-    public class FormSelectionPageVM
+    public class FormSelectionPageVM:BaseViewModel
     {
-        public List<Form> Forms { get; set; }
+        private ObservableCollection<Form> forms;
+        public ObservableCollection<Form> Forms
+        {
+            get { return forms; }
+            set
+            {
+                forms = value;
+                OnPropertyChanged();
+            }
+        }
         public int? Object_pk;
 
         /// <summary>
@@ -22,10 +31,10 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                Forms = new List<Form>();
                 try
                 {
-                    Forms = await Form.FetchFormsForProject(); 
+                    var formsList = await Form.FetchFormsForProject();
+                    Forms = new ObservableCollection<Form>(formsList);
                 }
                 catch (Exception e)
                 {

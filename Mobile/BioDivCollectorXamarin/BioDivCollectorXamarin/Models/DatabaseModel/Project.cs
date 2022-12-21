@@ -273,10 +273,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <param name="projectId"></param>
         public static async Task DownloadProjectData(string projectId)
         {
-            await Task.Run(async () =>
-            {
                 MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "Synchronisiert ...");
-                Project proj = await Project.FetchProject(projectId);
+                //Project proj = await Project.FetchProject(projectId);
 
 #if __IOS__
 // iOS-specific code
@@ -285,7 +283,6 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 // Android-specific code
                 await DataDAO.GetJsonStringForProject(projectId, null);
 #endif
-            });
 
         }
 
@@ -296,7 +293,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public static async Task SynchroniseProjectData(string projectId)
         {
             MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "Synchronisiert ...");
-            Project proj = await Project.FetchProject(projectId);
+            //Project proj = await Project.FetchProject(projectId);
             await DataDAO.SynchroniseDataForProject(projectId);
         }
 

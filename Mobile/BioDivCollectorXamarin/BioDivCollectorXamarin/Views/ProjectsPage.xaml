@@ -20,8 +20,8 @@
     <ContentPage.Content>
         <StackLayout BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource BioDivGrey}}" VerticalOptions="Fill" HorizontalOptions="Fill"  Margin="0,0,0,0" Spacing="0">
             <Grid BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource BioDivGrey}}" VerticalOptions="Fill" HeightRequest="160" MinimumHeightRequest="160" >
+                           <!--OutlineColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"-->
                     <Frame BorderColor="{StaticResource BioDivGrey}"
-                           OutlineColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
                            BackgroundColor="{AppThemeBinding Light=Color.White, Dark={StaticResource BioDivGrey}}"
                            Opacity="1"
                            CornerRadius="20"
