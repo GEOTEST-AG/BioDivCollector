@@ -311,7 +311,8 @@ namespace BioDivCollectorXamarin.Views
 
             if (i == 1)
             {
-                Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
+                //Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
+                Shell.Current.GoToAsync($"Form?recid=&formid={formList.First().formId}&geomid={(int?)geomId}", true);
             }
             else
             {
@@ -346,7 +347,8 @@ namespace BioDivCollectorXamarin.Views
 
                 if (formid != null)
                 {
-                    Navigation.PushAsync(new FormPage(null, formid, geomId2), true);
+                    //Navigation.PushAsync(new FormPage(null, formid, geomId2), true);
+                    Shell.Current.GoToAsync($"Form?recid=&formid={formid}&geomid={geomId2}", true);
                 }
             }
             else

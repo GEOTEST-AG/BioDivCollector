@@ -55,7 +55,9 @@ namespace BioDivCollectorXamarin.Views
             //var rec = Record.CreateRecord(form.formId, (int?)ViewModel.Object_pk);
             //if (rec != null)
             //{
-                Navigation.PushAsync(new FormPage(null, form.formId, (int?)ViewModel.Object_pk),true);
+            //Navigation.PushAsync(new FormPage(null, form.formId, (int?)ViewModel.Object_pk),true);
+            Shell.Current.GoToAsync($"Form?formid={form.formId}&geomid={(int?)ViewModel.Object_pk}&recid=", true);
+
             //}
         }
     }
