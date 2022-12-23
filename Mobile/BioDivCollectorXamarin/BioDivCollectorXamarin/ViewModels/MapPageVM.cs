@@ -1700,7 +1700,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             Task.Run(async () =>
             {
-                MainThread.BeginInvokeOnMainThread(() =>
+                Device.BeginInvokeOnMainThread(() =>
                 {
                     SaveCountText = "Berechnet welche Kacheln zu speichern sind";
                 });

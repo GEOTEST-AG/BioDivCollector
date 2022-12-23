@@ -66,6 +66,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     activity = value;
                     OnPropertyChanged("Activity");
+                    App.Busy = (activity != String.Empty);
                 });
             }
         }
@@ -88,16 +89,6 @@ namespace BioDivCollectorXamarin.ViewModels
             LogoutCommand = new LogoutCommand(this);
             CurrentAppVersion = VersionTracking.CurrentVersion.ToString() + "(" + VersionTracking.CurrentBuild.ToString() + ")";
 
-            MessagingCenter.Subscribe<Application>(App.Current, "RefreshRecords", async (sender) =>
-            {
-                ChangesMessageVisible = await Project.ProjectHasUnsavedChanges(App.CurrentProjectId);
-            });
-
-            MessagingCenter.Subscribe<Application>(App.Current, "RefreshGeometries", async (sender) =>
-            {
-                ChangesMessageVisible = await Project.ProjectHasUnsavedChanges(App.CurrentProjectId);
-            });
-
             //Get user or log new one in
             if (App.CurrentUser != null)
             {
@@ -108,6 +99,17 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 App.Current.MainPage.Navigation.PushAsync(new MainPage(),true);
             }
+            Activity = String.Empty;
+
+            MessagingCenter.Subscribe<Application>(App.Current, "RefreshRecords", async (sender) =>
+            {
+                ChangesMessageVisible = await Project.ProjectHasUnsavedChanges(App.CurrentProjectId);
+            });
+
+            MessagingCenter.Subscribe<Application>(App.Current, "RefreshGeometries", async (sender) =>
+            {
+                ChangesMessageVisible = await Project.ProjectHasUnsavedChanges(App.CurrentProjectId);
+            });
 
             //Subscribe to messages
             MessagingCenter.Subscribe<Application>(App.Current, "SetProject", async (sender) =>
@@ -192,7 +194,13 @@ namespace BioDivCollectorXamarin.ViewModels
             CurrentProject = await Project.FetchProject(projectGUID);
             ChangesMessageVisible = await Project.ProjectHasUnsavedChanges(projectGUID);
             Preferences.Set("FilterGeometry", String.Empty);
-            SyncCommand.RaiseCanExecuteChanged();
+            try
+            {
+                SyncCommand.RaiseCanExecuteChanged();
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -241,10 +249,13 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public void Execute(object parameter)
         {
-            if (App.CurrentProjectId != null)
+            Task.Run(async () =>
             {
-                Project.SynchroniseProjectData(App.CurrentProjectId);
-            }
+                if (App.CurrentProjectId != null)
+                {
+                    await Project.SynchroniseProjectData(App.CurrentProjectId);
+                }
+            });
         }
     }
 
@@ -282,22 +293,25 @@ namespace BioDivCollectorXamarin.ViewModels
             }
         }
 
-        public async void Execute(object parameter)
+        public void Execute(object parameter)
         {
-            var response = await App.Current.MainPage.DisplayActionSheet("Möchten Sie dieses Projekt vom Gerät entfernen?", "Abbrechen", "Entfernen");
-            if (response == "Entfernen")
+            Task.Run(async () =>
             {
-                if (App.CurrentProjectId != null)
+                var response = await App.Current.MainPage.DisplayActionSheet("Möchten Sie dieses Projekt vom Gerät entfernen?", "Abbrechen", "Entfernen");
+                if (response == "Entfernen")
                 {
-                    Debug.WriteLine("Deleting ");
-                    bool success = await Project.DeleteProject(App.CurrentProjectId);
-                    if (success)
+                    if (App.CurrentProjectId != null)
                     {
-                        App.SetProject(String.Empty);
+                        Debug.WriteLine("Deleting ");
+                        bool success = await Project.DeleteProject(App.CurrentProjectId);
+                        if (success)
+                        {
+                            App.SetProject(String.Empty);
+                        }
                     }
+                    Preferences.Set("FilterGeometry", String.Empty);
                 }
-                Preferences.Set("FilterGeometry", String.Empty);
-            }
+            });
         }
     }
 

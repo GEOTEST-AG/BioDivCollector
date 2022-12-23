@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
+using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
@@ -29,7 +30,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public FormSelectionPageVM()
         {
-            MainThread.BeginInvokeOnMainThread(async () =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
                 try
                 {

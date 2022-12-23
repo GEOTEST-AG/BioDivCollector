@@ -56,11 +56,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     activity = value;
                     OnPropertyChanged("Activity");
                     App.Busy = (activity != String.Empty);
-                    try
-                    {
-                        MessagingCenter.Send<Application>(App.Current, "RefreshProjectList");
-                    }
-                    catch {}
+                    MessagingCenter.Send<Application>(App.Current, "RefreshProjectList");
                 });
             }
         }
@@ -133,7 +129,8 @@ namespace BioDivCollectorXamarin.ViewModels
 
 
             Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
-            Activity = "";
+            Activity = String.Empty;
+
             MessagingCenter.Subscribe<Application, string>(App.Current, "SyncMessage", (sender, arg) =>
             {
                     Activity = arg;
@@ -141,10 +138,14 @@ namespace BioDivCollectorXamarin.ViewModels
 
             MessagingCenter.Subscribe<Application>(App.Current, "RefreshProjectList", (sender) =>
             {
-                User messageUser = User.RetrieveUser();
-                List<ProjectSimple> messageProjectList = messageUser.projects;
-                Projects = new ObservableCollection<ProjectSimple>(new List<ProjectSimple>()); //Force list update by setting it to a cleared list, then setting it back again
-                Projects = new ObservableCollection<ProjectSimple>(messageProjectList);
+                RefreshProjectList();
+                //Task.Run(() =>
+                //{
+                //    User messageUser = User.RetrieveUser();
+                //    List<ProjectSimple> messageProjectList = messageUser.projects;
+                //    Projects = new ObservableCollection<ProjectSimple>(new List<ProjectSimple>()); //Force list update by setting it to a cleared list, then setting it back again
+                //    Projects = new ObservableCollection<ProjectSimple>(messageProjectList);
+                //});
             });
         }
 
@@ -169,6 +170,17 @@ namespace BioDivCollectorXamarin.ViewModels
                 }
             }
             return true;
+        }
+
+        public void RefreshProjectList()
+        {
+            Task.Run(() =>
+                {
+                    User messageUser = User.RetrieveUser();
+                    List<ProjectSimple> messageProjectList = messageUser.projects;
+                    Projects = new ObservableCollection<ProjectSimple>(new List<ProjectSimple>()); //Force list update by setting it to a cleared list, then setting it back again
+                    Projects = new ObservableCollection<ProjectSimple>(messageProjectList);
+                });
         }
 
         /// <summary>
@@ -260,8 +272,9 @@ namespace BioDivCollectorXamarin.ViewModels
                     
                     if (App.CurrentProjectId == proj.projectId)
                     {
-                        App.SetProject(String.Empty);
+                        await App.SetProject(String.Empty);
                         Preferences.Set("FilterGeometry", String.Empty);
+                        App.CurrentProject = null;
                     }
 
                     MessagingCenter.Send<Application>(App.Current, "RefreshProjectList");

@@ -384,11 +384,10 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
         public async static Task<bool> DownloadBinaryData(string recordId, int? formFieldId)
         {
-            Record rec;
             try
             {
                 var conn = App.ActiveDatabaseConnection;
-                rec = await conn.Table<Record>().Where(rec => rec.recordId == recordId).FirstOrDefaultAsync();
+                Record rec = await conn.Table<Record>().Where(rec => rec.recordId == recordId).FirstOrDefaultAsync();
                 var binaryIds = await GetBinaryDataIds(rec.Id, formFieldId);
 
                 foreach (var binaryId in binaryIds)
@@ -474,7 +473,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         }
 
 
-        public static async void SaveData(byte[] jsonbytes, string binaryId)
+        public static void SaveData(byte[] jsonbytes, string binaryId)
         {
             //Save the data
             try
@@ -483,7 +482,10 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             }
             catch
             {
-                await App.Current.MainPage.DisplayAlert("Das Foto konnte nicht als Datei gespeichert werden", String.Empty, "OK");
+                Device.BeginInvokeOnMainThread(async () =>
+                {
+                    await App.Current.MainPage.DisplayAlert("Das Foto konnte nicht als Datei gespeichert werden", String.Empty, "OK");
+                });
             }
         }
 

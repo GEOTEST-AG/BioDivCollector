@@ -9,7 +9,7 @@ namespace FeldAppX.Models.DatabaseModel
 {
     public static class Constants
     {
-        public const string DatabaseFilename = "feldapp_database.sqlite";
+        public const string DatabaseFilename = "biodivcollector_database.sqlite";
 
         public const SQLite.SQLiteOpenFlags Flags =
             // open the database in read/write mode

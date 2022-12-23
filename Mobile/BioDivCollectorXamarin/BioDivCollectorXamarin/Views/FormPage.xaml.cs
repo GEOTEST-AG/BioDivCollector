@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections;
+using System.ComponentModel;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.LoginModel;
 using BioDivCollectorXamarin.ViewModels;
@@ -79,7 +80,7 @@ namespace BioDivCollectorXamarin.Views
             ViewModel = new FormPageVM(recId, formId, geomId, Navigation);
             BindingContext = ViewModel;
             RecId = recId = ViewModel.RecId;
-            UpdateFormView();
+            //UpdateFormView();
 
             MessagingCenter.Subscribe<FormPageVM>(ViewModel, "NavigateBack", (sender) =>
             {
@@ -101,11 +102,12 @@ namespace BioDivCollectorXamarin.Views
 
         private void UpdateFormView()
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            Device.BeginInvokeOnMainThread(() =>
             {
                 if (ViewModel.Assets != null)
                 {
                     FormElementStack.Children.Clear();
+
                     foreach (var view in ViewModel.Assets)
                     {
                         FormElementStack.Children.Add(view);

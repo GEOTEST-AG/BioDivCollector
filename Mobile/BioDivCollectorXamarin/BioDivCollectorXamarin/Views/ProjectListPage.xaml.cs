@@ -28,7 +28,7 @@ namespace BioDivCollectorXamarin.Views
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        Navigation.PopAsync();
+                        Shell.Current.Navigation.PopAsync();
                     });
                 }
             });

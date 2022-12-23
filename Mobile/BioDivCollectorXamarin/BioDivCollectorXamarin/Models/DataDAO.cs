@@ -83,11 +83,22 @@ namespace BioDivCollectorXamarin.Models
 
                         if (json.ToLower() != "error downloading data" && json.ToLower() != "error parsing data")
                         {
-                            success = await GetProjectDataFromJSON(json);
-                            App.CurrentProjectId = projectId;
-                            await App.SetProject(projectId);
-                            ShowSyncCompleteMessage(success);
-                            MessagingCenter.Send(new Project(), "DataDownloadSuccess", success);
+                            try
+                            {
+                                success = await GetProjectDataFromJSON(json);
+                                App.CurrentProjectId = projectId;
+                                await App.SetProject(projectId);
+                                ShowSyncCompleteMessage(success);
+                                MessagingCenter.Send(new Project(), "DataDownloadSuccess", success);
+                            }
+                            catch
+                            {
+                                if (through == false)
+                                {
+                                    MessagingCenter.Send(Application.Current, "DownloadComplete", "Error Downloading Data");
+                                    MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
+                                }
+                            }
                         }
 
                         MessagingCenter.Send(Application.Current, "DownloadComplete", json);
@@ -244,7 +255,7 @@ namespace BioDivCollectorXamarin.Models
                             }
                         }
                         MessagingCenter.Send(new Project(), "DataDownloadError", "Data successfully synchronised");
-                        App.SetProject(projectId);
+                        await App.SetProject(projectId);
                         MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
                     }
                     catch (Exception e)
@@ -693,7 +704,7 @@ namespace BioDivCollectorXamarin.Models
                                                 bin.record_fk = existingrec.Id;
                                                 await conn.InsertAsync(bin);
                                             }
-                                            //await conn.InsertOrReplaceAsync(bin);
+                                            await conn.InsertOrReplaceAsync(bin);
                                             binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
                                         }
                                         catch (Exception e)
@@ -732,12 +743,11 @@ namespace BioDivCollectorXamarin.Models
                             //var existingform = conn.Table<Form>().Select(g => g).Where(Form => Form.formId == form.formId).Where(Form => Form.project_fk == project.Id).FirstOrDefault();
                             if (existingform != null)
                             {
-                                form.Id = existingform.Id;
                                 var fullForm = await conn.GetWithChildrenAsync<Form>(existingform.Id, true);
                                 await conn.DeleteAsync(fullForm);
                             }
 
-                            if (form.status != 3)
+                            if (form.status < 3)
                             {
                                 try
                                 {
@@ -764,24 +774,24 @@ namespace BioDivCollectorXamarin.Models
                                 }
                             }
 
-                            existingform = await Form.FetchFormByFormAndProjectId(form.formId, project.Id);
+                            //existingform = await Form.FetchFormByFormAndProjectId(form.formId, project.Id);
                             //Add form fields
 
                             foreach (var formfield in form.formFields)
                             {
                                 try
                                 {
-                                    formfield.form_fk = existingform.Id;
+                                    formfield.form_fk = form.Id;
                                     await conn.InsertAsync(formfield);
 
-                                    var existingFormField = await FormField.FetchFormFieldByFieldIdAndFormKey(formfield.fieldId, formfield.form_fk);
+                                    //var existingFormField = await FormField.FetchFormFieldByFieldIdAndFormKey(formfield.fieldId, formfield.form_fk);
 
                                     //Add field choices
                                     foreach (var fieldChoice in formfield.fieldChoices)
                                     {
                                         try
                                         {
-                                            fieldChoice.formField_fk = existingFormField.Id;
+                                            fieldChoice.formField_fk = formfield.Id;
                                             await conn.InsertAsync(fieldChoice);
                                         }
                                         catch (Exception e)
@@ -861,9 +871,10 @@ namespace BioDivCollectorXamarin.Models
                 }
             }
 
-
+            int i = 1;
             foreach (var tuple in binaryDownloadList)
             {
+                MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Foto {i++} von {binaryDownloadList.Count} wird heruntergeladen");
                 await BinaryData.DownloadBinaryData(tuple.Item1, tuple.Item2);
             }
 

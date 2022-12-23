@@ -83,7 +83,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var conn = App.ActiveDatabaseConnection;
             try
                 {
-                    var proj = Project.FetchCurrentProject();
+                    var proj = await Project.FetchCurrentProject();
                     var forms = await conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).ToListAsync();
                     var formNames = new List<string>();
                     foreach (var form in forms)
@@ -109,7 +109,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var conn = App.ActiveDatabaseConnection;
                 try
                 {
-                    var proj = Project.FetchCurrentProject();
+                    var proj = await Project.FetchCurrentProject();
                     var form = await conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).Where(Form => Form.title == formName).FirstOrDefaultAsync();
                     return form;
                 }
@@ -130,11 +130,19 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var conn = App.ActiveDatabaseConnection;
                 try
                 {
-                    var projekt = Project.FetchCurrentProject();
+                    var projekt = await Project.FetchCurrentProject();
                     var formTemp = await conn.Table<Form>().Where(Form => Form.formId == formId).Where(Form => Form.project_fk == projekt.Id).FirstOrDefaultAsync();
-                    var formType = await conn.GetWithChildrenAsync<Form>(formTemp.Id);
+                if (formTemp!= null)
+                {
+
+                var formType = await conn.GetWithChildrenAsync<Form>(formTemp.Id);
                     var formFields = formType.formFields.Where(FormField => FormField.useInRecordTitle == true).ToList();
                     return formFields;
+                }
+                else
+                {
+                    return null;
+                }
                 }
                 catch (Exception e)
                 {

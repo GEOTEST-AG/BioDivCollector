@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:BioDivCollectorXamarin.ViewModels" x:DataType="viewmodels:FormPageVM"
              x:Class="BioDivCollectorXamarin.Views.FormPage"
              BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}"
              x:Name="Form"
@@ -10,10 +11,8 @@
 
     <ContentPage.Content>
         <StackLayout Spacing="0">
-            <ScrollView VerticalOptions="FillAndExpand" BackgroundColor="Transparent" Padding="15,15,15,15">
-                <StackLayout x:Name="FormElementStack" Spacing="3" BackgroundColor="Transparent">
-                <!--Elements here added in code-->
-                </StackLayout>
+            <ScrollView VerticalOptions="FillAndExpand" HorizontalOptions="Fill" BackgroundColor="Transparent" Padding="15,15,15,15">
+                <StackLayout x:Name="FormElementStack" Spacing="3" BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="FillAndExpand"/>
             </ScrollView>
 
             <FlexLayout Direction="Row" WidthRequest="500" AlignContent="SpaceAround" HorizontalOptions="FillAndExpand" VerticalOptions="End" Padding="0" Margin="0" BackgroundColor="{StaticResource BioDivGrey}" MinimumHeightRequest="57">
