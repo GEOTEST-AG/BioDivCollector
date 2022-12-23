@@ -23,18 +23,8 @@ namespace BioDivCollectorXamarin.ViewModels
     {
         public INavigation Navigation { get; set; }
 
-        private List<View> assets;
-        public List<View> Assets
-        {
-            get { return assets; }
-            set 
-            { 
-                assets = value;
-                //MessagingCenter.Send<Application>(App.Current, "UpdateDataForm");
-                //OnPropertyChanged();
-            }
-        }
-
+        public List<View> Assets { get; set; }
+        
         private bool dataFormFinished;
         public bool DataFormFinished
         {
@@ -47,18 +37,7 @@ namespace BioDivCollectorXamarin.ViewModels
             }
         }
 
-        private List<View> tempAssets;
-        public List<View> TempAssets
-        {
-            get { return tempAssets; }
-            set 
-            { 
-                tempAssets = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int RecId;
+        public string RecId;
         public int FormId;
         public int? GeomId;
         private bool NewRecord;
@@ -81,21 +60,36 @@ namespace BioDivCollectorXamarin.ViewModels
         /// The relevant data is then extracted from the database for the specific field, and added as the initial value for that field.
         /// </summary>
         /// <param name="recId">recordID</param>
-        public FormPageVM(int? recId, int formId, int? geomId, INavigation navigation)
+        public FormPageVM(string recId, int formId, int? geomId, INavigation navigation)
         {
             FormId = formId;
             GeomId = geomId;
-            if (recId != null) { RecId = (int)recId; }
+            if (recId != null) 
+            { 
+                RecId = recId; 
+            }
             Navigation = navigation;
-            FormId = formId;
+            Assets = new List<View>();
+
             DeleteCommand = new Command(OnDelete, ValidateDelete);
             GUIDCommand = new Command(CopyGUID);
             SaveCommand = new Command(OnSave, ValidateSave);
             CancelCommand = new Command(OnCancel);
-            
+
+            if (FormId != 0)
+            {
+                Task.Run(async () =>
+                {
+                    await CreateForm(RecId, FormId, GeomId);
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        DataFormFinished = true;
+                    });
+                });
+            }
         }
 
-        public async Task CreateForm(int? recId, int formId, int? geomId)
+        public async Task CreateForm(string recId, int formId, int? geomId)
         {
             FormId = formId;
             GeomId = geomId;
@@ -103,16 +97,16 @@ namespace BioDivCollectorXamarin.ViewModels
             //TempAssets = new List<View>();
 
             //Get the record and its corresponding variable values
-            if (recId != null && recId > 0)
+            if (recId != null && recId != String.Empty)
             {
-                    queriedrec = await Record.FetchRecord((int)recId);
+                    queriedrec = await Record.FetchRecord(recId);
                 ReadOnly = queriedrec.readOnly;
-                RecId = (int)recId;
+                RecId = recId;
             }
             else
             {
                 queriedrec = await Record.CreateRecord(formId, geomId);
-                RecId = queriedrec.Id;
+                RecId = queriedrec.recordId;
                 NewRecord = true;
             }
 
@@ -121,9 +115,9 @@ namespace BioDivCollectorXamarin.ViewModels
             var txts = new List<TextData>();
             var nums = new List<NumericData>();
             var bools = new List<BooleanData>();
-                txts = await TextData.FetchTextData((int)recId);
-                nums = await NumericData.FetchNumericDataByRecordId((int)recId);
-                bools = await BooleanData.FetchBooleanData((int)recId);
+                txts = await TextData.FetchTextDataByRecordId(recId);
+                nums = await NumericData.FetchNumericDataByRecordId(recId);
+                bools = await BooleanData.FetchBooleanDataByRecordId(recId);
             //Compile the GUID
             BDCGUIDtext = "<<BDC><" + queriedrec.recordId + ">>";
 
@@ -188,7 +182,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            var textList = await TextData.FetchTextData((int)recId);
+                            var textList = await TextData.FetchTextDataByRecordId(recId);
                                 var text = textList.Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
                             var textField = new CustomEntry();
 
@@ -237,7 +231,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            var textList = await TextData.FetchTextData((int)recId);
+                            var textList = await TextData.FetchTextDataByRecordId(recId);
                             var text = textList.Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var dateField = new CustomDatePicker();
                             var timeField = new CustomTimePicker();
@@ -384,7 +378,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            var textList = await TextData.FetchTextData(RecId);
+                            var textList = await TextData.FetchTextDataByRecordId(RecId);
                             var text = textList.Where(TextData => TextData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var dropField = new CustomAutoComplete();
                             if (text == null)
@@ -509,7 +503,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     {
                         try
                         {
-                            var boolList = await BooleanData.FetchBooleanData(RecId);
+                            var boolList = await BooleanData.FetchBooleanDataByRecordId(RecId);
                             var boolValue = boolList.Where(BooleanData => BooleanData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var checkBox = new CustomCheckBox();
                             if (boolValue == null)
@@ -734,7 +728,6 @@ namespace BioDivCollectorXamarin.ViewModels
             this.PropertyChanged +=
                 (_, __) => SaveCommand.ChangeCanExecute();
 
-            DataFormFinished = true;
         }
 
         /// <summary>
@@ -805,7 +798,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 Record.DeleteRecord(RecId); //Delete any temporary record
             }
             // This will pop the current page off the navigation stack
-            MessagingCenter.Send<FormPageVM>(this, "NavigateBack");
+            MessagingCenter.Send<Application>(App.Current, "NavigateBack");
         }
 
         /// <summary>
@@ -832,7 +825,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (response == "Entfernen")
                 {
                     var rec = await conn.GetWithChildrenAsync<Record>(RecId);
-                    await Record.DeleteRecord(rec.Id);
+                    await Record.DeleteRecord(rec.recordId);
                     await Shell.Current.GoToAsync("//Records",true);
                 }
         }
@@ -1090,7 +1083,7 @@ namespace BioDivCollectorXamarin.ViewModels
         private async Task<List<Image>> GetImages(int fieldId)
         {
             var rec = await Record.FetchRecord(RecId);
-            var binaryIds = await BinaryData.GetBinaryDataIds(rec.Id, fieldId);
+            var binaryIds = await BinaryData.GetBinaryDataIds(rec.recordId, fieldId);
             if (binaryIds == null || binaryIds.Count == 0)
             { binaryIds = new List<string>() { Guid.NewGuid().ToString() }; }
             var images = new List<Image>();
@@ -1156,7 +1149,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     await layout.FadeTo(0, 250, null);
                     await BinaryData.DeleteBinary(button.BinaryId);
                     await Record.UpdateRecord(button.RecordId);
-                    MessagingCenter.Send<FormPageVM>(this, "PhotoDeleted");
+                    MessagingCenter.Send<Application>(App.Current, "PhotoDeleted");
                 }
             });
         }
@@ -1178,7 +1171,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
     public class CameraButton : Button
     {
-        public int RecordId;
+        public string RecordId;
         public int FormFieldId;
         public string BinaryId;
     }

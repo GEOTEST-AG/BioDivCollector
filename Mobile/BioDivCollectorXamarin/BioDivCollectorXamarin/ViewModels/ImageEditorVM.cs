@@ -16,7 +16,7 @@ namespace BioDivCollectorXamarin.ViewModels
     {
         public SfImageEditor Editor { get; set; }
         public string Filename;
-        public int RecordId { get; set; }
+        public string RecordId { get; set; }
         public string BinaryDataId { get; set; }
         public int FormFieldId { get; set; }
 

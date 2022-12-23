@@ -730,7 +730,17 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 if (allShapesLayer != null)
                 {
-                    VMMapView.Navigator.NavigateTo(allShapesLayer.Envelope, Mapsui.Utilities.ScaleMethod.Fit);
+                    //VMMapView.Navigator.NavigateTo(allShapesLayer.Envelope, Mapsui.Utilities.ScaleMethod.Fit);
+                    if (allShapesLayer.Envelope.Width > 400 || allShapesLayer.Envelope.Height > 400)
+                    {
+                        VMMapView.Navigator.NavigateTo(GetBoundingBoxWithBuffer(allShapesLayer), Mapsui.Utilities.ScaleMethod.Fit);
+                    }
+                    else
+                    {
+                        //Make sure it doesn't zoom in too far if e.g. there is only one point
+                        var bb = new BoundingBox(allShapesLayer.Envelope.Centroid.X - 200, allShapesLayer.Envelope.Centroid.Y - 200, allShapesLayer.Envelope.Centroid.X + 200, allShapesLayer.Envelope.Centroid.Y + 200);
+                        VMMapView.Navigator.NavigateTo(bb, Mapsui.Utilities.ScaleMethod.Fit);
+                    }
                 }
             }
             await ConfigureGeometryForEditing();
@@ -755,7 +765,17 @@ namespace BioDivCollectorXamarin.ViewModels
             shapeLayers.TryGetValue("all", out allShapesLayer);
             if (allShapesLayer != null)
             {
-                VMMapView.Navigator.NavigateTo(allShapesLayer.Envelope, Mapsui.Utilities.ScaleMethod.Fit);
+                //VMMapView.Navigator.NavigateTo(allShapesLayer.Envelope, Mapsui.Utilities.ScaleMethod.Fit);
+                if (allShapesLayer.Envelope.Width > 400 || allShapesLayer.Envelope.Height > 400)
+                {
+                    VMMapView.Navigator.NavigateTo(GetBoundingBoxWithBuffer(allShapesLayer), Mapsui.Utilities.ScaleMethod.Fit, 2);
+                }
+                else
+                {
+                    //Make sure it doesn't zoom in too far if e.g. there is only one point
+                    var bb = new BoundingBox(allShapesLayer.Envelope.Centroid.X - 200, allShapesLayer.Envelope.Centroid.Y - 200, allShapesLayer.Envelope.Centroid.X + 200, allShapesLayer.Envelope.Centroid.Y + 200);
+                    VMMapView.Navigator.NavigateTo(bb, Mapsui.Utilities.ScaleMethod.Fit);
+                }
             }
             else
             {
@@ -766,6 +786,14 @@ namespace BioDivCollectorXamarin.ViewModels
                 VMMapView.Navigator.NavigateTo(new BoundingBox(sphericalMercatorCoordinateLL, sphericalMercatorCoordinateUR), Mapsui.Utilities.ScaleMethod.Fit);
             }
 
+        }
+
+        private BoundingBox GetBoundingBoxWithBuffer(ILayer layer)
+        {
+            var width = (layer.Envelope.Width / 2) * 1.2;
+            var height = (layer.Envelope.Height / 2) * 1.2;
+            var bb = new BoundingBox(layer.Envelope.Centroid.X - width, layer.Envelope.Centroid.Y - height, layer.Envelope.Centroid.X + width, layer.Envelope.Centroid.Y + height);
+            return bb;
         }
 
         /// <summary>

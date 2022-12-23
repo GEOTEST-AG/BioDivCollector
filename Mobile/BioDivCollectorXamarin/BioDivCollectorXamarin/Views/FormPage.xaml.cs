@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.LoginModel;
 using BioDivCollectorXamarin.ViewModels;
@@ -20,9 +22,10 @@ namespace BioDivCollectorXamarin.Views
         {
             set
             {
-                int.TryParse(value, out int parsedValue);
-                RecId = parsedValue;
-                if (ViewModel != null) { ViewModel.RecId = parsedValue; }
+                //int.TryParse(value, out int parsedValue);
+                RecId = value;
+                Initialise();
+                if (ViewModel != null) { ViewModel.RecId = value; }
             }
         }
         public string FormIdString
@@ -31,6 +34,7 @@ namespace BioDivCollectorXamarin.Views
             {
                 int.TryParse(value, out int parsedValue);
                 FormId = parsedValue;
+                Initialise();
                 if (ViewModel != null) { ViewModel.FormId = parsedValue; }
             }
         }
@@ -40,10 +44,11 @@ namespace BioDivCollectorXamarin.Views
             {
                 int.TryParse(value, out int parsedValue);
                 GeomId = parsedValue;
+                Initialise();
                 if (ViewModel != null) { ViewModel.GeomId = parsedValue; }
             }
         }
-        public int? RecId { get; set; }
+        public string RecId { get; set; }
         public int FormId { get; set; }
         public int? GeomId { get; set; }
 
@@ -53,10 +58,10 @@ namespace BioDivCollectorXamarin.Views
         public FormPage()
         {
             InitializeComponent();
-            ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
-            BindingContext = ViewModel;
-            RecId = ViewModel.RecId;
-            MessagingCenter.Subscribe<FormPageVM>(this, "NavigateBack", (sender) =>
+            //ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
+            //BindingContext = ViewModel;
+            //RecId = ViewModel.RecId;
+            MessagingCenter.Subscribe<Application>(App.Current, "NavigateBack", (sender) =>
             {
                 NavigateBack();
             });
@@ -67,29 +72,56 @@ namespace BioDivCollectorXamarin.Views
             });
         }
 
+
+
         /// <summary>
         /// Initialise the form for a specific record
         /// </summary>
         /// <param name="recId"></param>
-        public FormPage(int? recId, int formId, int? geomId)
+        public FormPage(string recId, int formId, int? geomId)
         {
             InitializeComponent();
             RecId = recId;
             FormId = formId;
             GeomId = geomId;
-            ViewModel = new FormPageVM(recId, formId, geomId, Navigation);
-            BindingContext = ViewModel;
-            RecId = recId = ViewModel.RecId;
+            //ViewModel = new FormPageVM(recId, formId, geomId, Navigation);
+            //BindingContext = ViewModel;
+            //RecId = recId = ViewModel.RecId;
             //UpdateFormView();
 
-            MessagingCenter.Subscribe<FormPageVM>(ViewModel, "NavigateBack", (sender) =>
+            MessagingCenter.Subscribe<Application>(App.Current, "NavigateBack", (sender) =>
             {
                 NavigateBack();
             });
-            MessagingCenter.Subscribe<FormPageVM>(ViewModel, "PhotoDeleted", (sender) =>
+            MessagingCenter.Subscribe<Application>(App.Current, "PhotoDeleted", (sender) =>
             {
                 OnAppearing();
             });
+        }
+
+        private async void Initialise()
+        {
+            if (FormId != 0 && RecId != null && GeomId != null && FormId != null)
+            {
+                //var form = await Form.FetchFormOfType(FormId);
+                //if (form != null)
+                //{
+                    var makeFormTask = Task.Run(() =>
+                    {
+                        ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
+                        BindingContext = ViewModel;
+                    });
+
+                    await makeFormTask;
+
+
+                //}
+
+                if (RecId == String.Empty)
+                {
+                    RecId = ViewModel.RecId; //Take RecId from viewmodel - this is then created in viewmodel if it started off empty.
+                }
+            }
         }
 
         /// <summary>
@@ -97,14 +129,14 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         protected override void OnAppearing()
         {
-            ViewModel.OnAppearing();
+            //ViewModel.OnAppearing();
         }
 
         private void UpdateFormView()
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                if (ViewModel.Assets != null)
+                if (ViewModel != null)
                 {
                     FormElementStack.Children.Clear();
 

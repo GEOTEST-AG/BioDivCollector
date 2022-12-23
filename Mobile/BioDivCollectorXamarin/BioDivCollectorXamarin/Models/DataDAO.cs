@@ -419,9 +419,9 @@ namespace BioDivCollectorXamarin.Models
 
                                     if (existingrec != null)
                                     {
-                                        var id = existingrec.Id;
+                                        var id = existingrec.recordId;
                                         existingrec = rec;
-                                        existingrec.Id = id;
+                                        existingrec.recordId = id;
                                         existingrec.status = rec.status;
                                         existingrec.geometry_fk = recgeom.Id;
                                         existingrec.project_fk = project.Id;
@@ -452,12 +452,12 @@ namespace BioDivCollectorXamarin.Models
                                                         var id = existingtxt.Id;
                                                         existingtxt = txt;
                                                         existingtxt.Id = id;
-                                                        existingtxt.record_fk = existingrec.Id;
+                                                        existingtxt.record_fk = existingrec.recordId;
                                                         await conn.UpdateAsync(existingtxt);
                                                     }
                                                     else
                                                     {
-                                                        txt.record_fk = existingrec.Id;
+                                                        txt.record_fk = existingrec.recordId;
                                                         await conn.InsertAsync(txt);
                                                     }
                                                 }
@@ -480,7 +480,7 @@ namespace BioDivCollectorXamarin.Models
                                                         var id = existingnum.Id;
                                                         existingnum = num;
                                                         existingnum.Id = id;
-                                                        existingnum.record_fk = existingrec.Id;
+                                                        existingnum.record_fk = existingrec.recordId;
                                                         await conn.UpdateAsync(existingnum);
                                                     }
                                                     else
@@ -506,12 +506,12 @@ namespace BioDivCollectorXamarin.Models
                                                         var id = existingbool.Id;
                                                         existingbool = onebool;
                                                         existingbool.Id = id;
-                                                        existingbool.record_fk = existingrec.Id;
+                                                        existingbool.record_fk = existingrec.recordId;
                                                         await conn.UpdateAsync(existingbool);
                                                     }
                                                     else
                                                     {
-                                                        onebool.record_fk = existingrec.Id;
+                                                        onebool.record_fk = existingrec.recordId;
                                                         await conn.InsertAsync(onebool);
                                                     }
                                                 }
@@ -531,12 +531,12 @@ namespace BioDivCollectorXamarin.Models
                                                         var id = existingbin.Id;
                                                         existingbin = bin;
                                                         existingbin.Id = id;
-                                                        existingbin.record_fk = existingrec.Id;
+                                                        existingbin.record_fk = existingrec.recordId;
                                                         await conn.UpdateAsync(existingbin);
                                                     }
                                                     else
                                                     {
-                                                        bin.record_fk = existingrec.Id;
+                                                        bin.record_fk = existingrec.recordId;
                                                         await conn.InsertAsync(bin);
                                                     }
                                                     //await conn.InsertOrReplaceAsync(bin);
@@ -554,10 +554,10 @@ namespace BioDivCollectorXamarin.Models
                                         }
                                     }
 
-                                    existingrec.texts = await TextData.FetchTextData(existingrec.Id);
-                                    existingrec.numerics = await NumericData.FetchNumericDataByRecordId(existingrec.Id);
-                                    existingrec.booleans = await BooleanData.FetchBooleanData(existingrec.Id);
-                                    existingrec.binaries = await BinaryData.FetchBinaryData(existingrec.Id);
+                                    existingrec.texts = await TextData.FetchTextDataByRecordId(existingrec.recordId);
+                                    existingrec.numerics = await NumericData.FetchNumericDataByRecordId(existingrec.recordId);
+                                    existingrec.booleans = await BooleanData.FetchBooleanDataByRecordId(existingrec.recordId);
+                                    existingrec.binaries = await BinaryData.FetchBinaryDataByRecordId(existingrec.recordId);
                                     await conn.UpdateWithChildrenAsync(existingrec);
                                     Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
                                 }
@@ -589,7 +589,7 @@ namespace BioDivCollectorXamarin.Models
                             {
                                 existingrec = await conn.GetWithChildrenAsync<Record>(existingrec.recordId);
                                 rec.project_fk = project.Id;
-                                rec.Id = existingrec.Id;
+                                rec.recordId = existingrec.recordId;
                                 await conn.UpdateAsync(rec);
                             }
                             else
@@ -617,12 +617,12 @@ namespace BioDivCollectorXamarin.Models
                                                 var id = existingtxt.Id;
                                                 existingtxt = txt;
                                                 existingtxt.Id = id;
-                                                existingtxt.record_fk = existingrec.Id;
+                                                existingtxt.record_fk = existingrec.recordId;
                                                 await conn.UpdateAsync(existingtxt);
                                             }
                                             else
                                             {
-                                                txt.record_fk = existingrec.Id;
+                                                txt.record_fk = existingrec.recordId;
                                                 await conn.InsertAsync(txt);
                                             }
                                         }
@@ -644,12 +644,12 @@ namespace BioDivCollectorXamarin.Models
                                                 var id = existingnum.Id;
                                                 existingnum = num;
                                                 existingnum.Id = id;
-                                                existingnum.record_fk = existingrec.Id;
+                                                existingnum.record_fk = existingrec.recordId;
                                                 await conn.UpdateAsync(existingnum);
                                             }
                                             else
                                             {
-                                                num.record_fk = existingrec.Id;
+                                                num.record_fk = existingrec.recordId;
                                                 await conn.InsertAsync(num);
                                             }
                                         }
@@ -671,12 +671,12 @@ namespace BioDivCollectorXamarin.Models
                                                 var id = existingbool.Id;
                                                 existingbool = onebool;
                                                 existingbool.Id = id;
-                                                existingbool.record_fk = existingrec.Id;
+                                                existingbool.record_fk = existingrec.recordId;
                                                 await conn.UpdateAsync(existingbool);
                                             }
                                             else
                                             {
-                                                onebool.record_fk = existingrec.Id;
+                                                onebool.record_fk = existingrec.recordId;
                                                 await conn.InsertAsync(onebool);
                                             }
                                         }
@@ -696,12 +696,12 @@ namespace BioDivCollectorXamarin.Models
                                                 var id = existingbin.Id;
                                                 existingbin = bin;
                                                 existingbin.Id = id;
-                                                existingbin.record_fk = existingrec.Id;
+                                                existingbin.record_fk = existingrec.recordId;
                                                 await conn.UpdateAsync(existingbin);
                                             }
                                             else
                                             {
-                                                bin.record_fk = existingrec.Id;
+                                                bin.record_fk = existingrec.recordId;
                                                 await conn.InsertAsync(bin);
                                             }
                                             await conn.InsertOrReplaceAsync(bin);
@@ -720,10 +720,10 @@ namespace BioDivCollectorXamarin.Models
                             }
 
                             var queriedrec = rec;
-                            queriedrec.texts = await TextData.FetchTextData(rec.Id);
-                            queriedrec.numerics = await NumericData.FetchNumericDataByRecordId(rec.Id);
-                            queriedrec.booleans = await BooleanData.FetchBooleanData(rec.Id);
-                            queriedrec.binaries = await BinaryData.FetchBinaryData(rec.Id);
+                            queriedrec.texts = await TextData.FetchTextDataByRecordId(rec.recordId);
+                            queriedrec.numerics = await NumericData.FetchNumericDataByRecordId(rec.recordId);
+                            queriedrec.booleans = await BooleanData.FetchBooleanDataByRecordId(rec.recordId);
+                            queriedrec.binaries = await BinaryData.FetchBinaryDataByRecordId(rec.recordId);
                             await conn.UpdateWithChildrenAsync(queriedrec);
                             Console.WriteLine("Added record children: " + DateTime.Now.ToLongTimeString());
                         }

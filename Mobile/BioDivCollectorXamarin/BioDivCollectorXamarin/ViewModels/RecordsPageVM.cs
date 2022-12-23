@@ -381,7 +381,7 @@ namespace BioDivCollectorXamarin.ViewModels
             MessagingCenter.Subscribe<RecordDeleteCommand,FormRec>(this,"DeleteRecord", async (sender,rec) =>
             {
                 await Task.Delay(500);
-                await Record.DeleteRecord(rec.RecId);
+                await Record.DeleteRecord((string)rec.RecId);
             });
         }
 

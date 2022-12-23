@@ -12,7 +12,7 @@ namespace BioDivCollectorXamarin.Models
         public string String1 { get; set; }
         public string String2 { get; set; }
         public int FormId { get; set; }
-        public int RecId { get; set; }
+        public string RecId { get; set; }
         public int GeomId { get; set; }
     }
 }

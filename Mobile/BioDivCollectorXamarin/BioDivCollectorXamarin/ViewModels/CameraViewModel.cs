@@ -32,7 +32,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                var ie = new SfImageEditorPage(FormFieldId, BinaryDataId, Rec.Id);
+                var ie = new SfImageEditorPage(FormFieldId, BinaryDataId, Rec.recordId);
                 Shell.Current.Navigation.PushAsync(ie);
             });
         }
@@ -173,18 +173,18 @@ namespace BioDivCollectorXamarin.ViewModels
             try
             {
                     //Rec.binaries = conn.Table<BinaryData>().Where(x => x.record_fk == Rec.Id).ToList();
-                    Rec.binaries = await BinaryData.FetchBinaryData(Rec.Id);
+                    Rec.binaries = await BinaryData.FetchBinaryDataByRecordId(Rec.recordId);
                     //Rec.texts = conn.Table<TextData>().Where(x => x.record_fk == Rec.Id).ToList();
-                    Rec.texts = await TextData.FetchTextData(Rec.Id);
+                    Rec.texts = await TextData.FetchTextDataByRecordId(Rec.recordId);
                     //Rec.booleans = conn.Table<BooleanData>().Where(x => x.record_fk == Rec.Id).ToList();
-                    Rec.booleans = await BooleanData.FetchBooleanData(Rec.Id);
+                    Rec.booleans = await BooleanData.FetchBooleanDataByRecordId(Rec.recordId);
                     //Rec.numerics = conn.Table<NumericData>().Where(x => x.record_fk == Rec.Id).ToList();
-                    Rec.numerics = await NumericData.FetchNumericDataByRecordId(Rec.Id);
+                    Rec.numerics = await NumericData.FetchNumericDataByRecordId(Rec.recordId);
                     var conn = App.ActiveDatabaseConnection;
                     if (BinaryDataId == null)
                     {
                         BinaryData binDat = new BinaryData();
-                        binDat.record_fk = Rec.Id;
+                        binDat.record_fk = Rec.recordId;
                         binDat.formFieldId = FormFieldId;
                         await conn.InsertOrReplaceAsync(binDat);
                         BinaryDataId = binDat.binaryId;

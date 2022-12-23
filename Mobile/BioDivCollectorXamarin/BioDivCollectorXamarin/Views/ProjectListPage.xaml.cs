@@ -94,7 +94,7 @@ namespace BioDivCollectorXamarin.Views
         /// <returns></returns>
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            var s = value as int? ?? 0;
+            var s = value as string;
             var empty = Record.FetchIfRecordHasOnlyEmptyChildren(s);
             return empty;
         }

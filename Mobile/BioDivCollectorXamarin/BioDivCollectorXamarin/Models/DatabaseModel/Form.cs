@@ -216,7 +216,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="Assets"></param>
         /// <param name="RecId"></param>
-        public static async Task SaveValuesFromFormFields(List<View> Assets, int RecId)
+        public static async Task SaveValuesFromFormFields(List<View> Assets, string RecId)
         {
             var conn = App.ActiveDatabaseConnection;
                 foreach (var field in Assets)

@@ -12,6 +12,7 @@ using BioDivCollectorXamarin.ViewModels;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using System.Globalization;
 using Xamarin.Essentials;
+using NetTopologySuite.Index.HPRtree;
 
 namespace BioDivCollectorXamarin.Views
 {
@@ -123,10 +124,11 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void RecordListView_ItemTapped(object sender, ItemTappedEventArgs e)
+        private async void RecordListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
             var rec = e.Item as FormRec;
-            Navigation.PushAsync(new FormPage(rec.RecId, rec.FormId, rec.GeomId),true);
+            //Navigation.PushAsync(new FormPage(rec.RecId, rec.FormId, rec.GeomId),true);
+            Shell.Current.GoToAsync($"Form?recid={rec.RecId}&formid={rec.FormId}&geomid={rec.GeomId}", true); ;
         }
 
         /// <summary>
@@ -309,7 +311,7 @@ namespace BioDivCollectorXamarin.Views
 
             if (i == 1)
             {
-                await Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
+                Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
             }
             else
             {

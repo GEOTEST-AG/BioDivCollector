@@ -27,8 +27,9 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <summary>
         /// Record database definition
         /// </summary>
-        [PrimaryKey, AutoIncrement]
-        public int Id { get; set; }
+        //[PrimaryKey, AutoIncrement]
+        //public int Id { get; set; }
+        [PrimaryKey]
         public string recordId { get; set; }
 
         [ForeignKey(typeof(Form))]
@@ -105,21 +106,21 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="recordId"></param>
         /// <returns></returns>
-        public static async Task<Record> FetchRecord(int recordId)
-        {
-            try
-            {
-                var record = new Record();
-                var conn = App.ActiveDatabaseConnection;
-                record = await conn.Table<Record>().Where(Record => Record.Id == recordId).FirstOrDefaultAsync();
-                return record;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Could not save data");
-            }
-            return null;
-        }
+        //public static async Task<Record> FetchRecord(string recordId)
+        //{
+        //    try
+        //    {
+        //        var record = new Record();
+        //        var conn = App.ActiveDatabaseConnection;
+        //        record = await conn.Table<Record>().Where(Record => Record.recordId == recordId).FirstOrDefaultAsync();
+        //        return record;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Console.WriteLine("Could not save data");
+        //    }
+        //    return null;
+        //}
 
         /// <summary>
         /// Get record by guID record id
@@ -128,10 +129,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <returns></returns>
         public static async Task<Record> FetchRecord(string recordId)
         {
-            var record = new Record();
             var conn = App.ActiveDatabaseConnection;
-            record = await conn.Table<Record>().Where(r => r.recordId == recordId).FirstOrDefaultAsync();
-            return record;
+            return await conn.Table<Record>().Where(r => r.recordId == recordId).FirstOrDefaultAsync();
         }
 
         /// <summary>
@@ -165,14 +164,14 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="recordId"></param>
         /// <returns></returns>
-        public static async Task<bool> FetchIfRecordHasOnlyEmptyChildren(int recordId)
+        public static async Task<bool> FetchIfRecordHasOnlyEmptyChildren(string recordId)
         {
             try
             {
                 var record = new Record();
                 int t = 0;
                 var conn = App.ActiveDatabaseConnection;
-                record = await conn.Table<Record>().Where(Record => Record.Id == recordId).FirstOrDefaultAsync();
+                //record = await conn.Table<Record>().Where(Record => Record.recordId == recordId).FirstOrDefaultAsync();
                 t += await conn.Table<TextData>().Where(TextData => TextData.record_fk == recordId).Where(TextData => TextData.value != "").CountAsync();
                 t += await conn.Table<NumericData>().Where(NumericData => NumericData.record_fk == recordId).Where(NumericData => NumericData.value != 0).CountAsync();
                 t += await conn.Table<BinaryData>().Where(BinaryData => BinaryData.record_fk == recordId).CountAsync();
@@ -190,12 +189,12 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Delete a record from the database given its database id
         /// </summary>
         /// <param name="recordId"></param>
-        public static async Task DeleteRecord(int recordId)
+        public static async Task DeleteRecord(string recordId)
         {
             try
             {
                 var conn = App.ActiveDatabaseConnection;
-                var record = await conn.Table<Record>().Where(Record => Record.Id == recordId).FirstOrDefaultAsync();
+                var record = await conn.Table<Record>().Where(Record => Record.recordId == recordId).FirstOrDefaultAsync();
                 if (record.status > -1)
                 {
                     record.status = 3;
@@ -218,17 +217,17 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Update the latest change time in a record given its database id
         /// </summary>
         /// <param name="recId"></param>
-        public static async Task UpdateRecord(int recId)
+        public static async Task UpdateRecord(string recId)
         {
             var conn = App.ActiveDatabaseConnection;
-            var rec = await Record.FetchRecord(recId);
-            var binaries = await conn.Table<BinaryData>().Where(r => r.record_fk == rec.Id).ToListAsync();
+            var rec = await FetchRecord(recId);
+            var binaries = await conn.Table<BinaryData>().Where(r => r.record_fk == rec.recordId).ToListAsync();
             rec.binaries = binaries;
-            var texts = await conn.Table<TextData>().Where(r => r.record_fk == rec.Id).ToListAsync();
+            var texts = await conn.Table<TextData>().Where(r => r.record_fk == rec.recordId).ToListAsync();
             rec.texts = texts;
-            var numerics = await conn.Table<NumericData>().Where(r => r.record_fk == rec.Id).ToListAsync();
+            var numerics = await conn.Table<NumericData>().Where(r => r.record_fk == rec.recordId).ToListAsync();
             rec.numerics = numerics;
-            var booleans = await conn.Table<BooleanData>().Where(r => r.record_fk == rec.Id).ToListAsync();
+            var booleans = await conn.Table<BooleanData>().Where(r => r.record_fk == rec.recordId).ToListAsync();
             rec.booleans = booleans;
             rec.timestamp = DateTime.Now;
             rec.fullUserName = App.CurrentUser.firstName + " " + App.CurrentUser.name;
@@ -258,7 +257,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public int? fieldChoiceId { get; set; }
 
         [ForeignKey(typeof(Record))]
-        public int record_fk { get; set; }
+        //public int record_fk { get; set; }
+        public string record_fk { get; set; }
 
         public static async Task<TextData> FetchTextData(string textId)
         {
@@ -266,7 +266,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             return await conn.Table<TextData>().Where(TextData => TextData.textId == textId).FirstOrDefaultAsync();
         }
 
-        public static async Task<List<TextData>> FetchTextData(int recordId)
+        public static async Task<List<TextData>> FetchTextDataByRecordId(string recordId)
         {
             var conn = App.ActiveDatabaseConnection;
             return await conn.Table<TextData>().Where(TextData => TextData.record_fk == recordId).ToListAsync();
@@ -294,7 +294,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public int? formFieldId { get; set; }
 
         [ForeignKey(typeof(Record))]
-        public int record_fk { get; set; }
+        //public int record_fk { get; set; }
+        public string record_fk { get; set; }
 
         public static async Task<NumericData> FetchNumericDataById(string numericId)
         {
@@ -302,7 +303,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             return await conn.Table<NumericData>().Where(NumericData => NumericData.numericId == numericId).FirstOrDefaultAsync();
         }
 
-        public static async Task<List<NumericData>> FetchNumericDataByRecordId(int recordId)
+        public static async Task<List<NumericData>> FetchNumericDataByRecordId(string recordId)
         {
             var conn = App.ActiveDatabaseConnection;
             return await conn.Table<NumericData>().Where(NumericData => NumericData.record_fk == recordId).ToListAsync();
@@ -324,7 +325,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public int? formFieldId { get; set; }
 
         [ForeignKey(typeof(Record))]
-        public int record_fk { get; set; }
+        //public int record_fk { get; set; }
+        public string record_fk { get; set; }
 
         public static async Task<BooleanData> FetchBooleanData(string booleanId)
         {
@@ -332,7 +334,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             return await conn.Table<BooleanData>().Where(BooleanData => BooleanData.booleanId == booleanId).FirstOrDefaultAsync();
         }
 
-        public static async Task<List<BooleanData>> FetchBooleanData(int recordId)
+        public static async Task<List<BooleanData>> FetchBooleanDataByRecordId(string recordId)
         {
             var conn = App.ActiveDatabaseConnection;
             return await conn.Table<BooleanData>().Where(BooleanData => BooleanData.record_fk == recordId).ToListAsync();
@@ -351,7 +353,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public int? formFieldId { get; set; }
 
         [ForeignKey(typeof(Record))]
-        public int record_fk { get; set; }
+        //public int record_fk { get; set; }
+        public string record_fk { get; set; }
 
         public BinaryData()
         {
@@ -369,7 +372,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 return binDatAsync;
         }
 
-        public async static Task<List<BinaryData>> FetchBinaryData(int recordId)
+        public async static Task<List<BinaryData>> FetchBinaryDataByRecordId(string recordId)
         {
             var conn = App.ActiveDatabaseConnection;
             return await conn.Table<BinaryData>().Where(bin => bin.record_fk == recordId).ToListAsync();
@@ -388,7 +391,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             {
                 var conn = App.ActiveDatabaseConnection;
                 Record rec = await conn.Table<Record>().Where(rec => rec.recordId == recordId).FirstOrDefaultAsync();
-                var binaryIds = await GetBinaryDataIds(rec.Id, formFieldId);
+                var binaryIds = await GetBinaryDataIds(rec.recordId, formFieldId);
 
                 foreach (var binaryId in binaryIds)
                 {
@@ -438,7 +441,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             return true;
         }
 
-        public static async Task<List<string>> GetBinaryDataIds(int recordId, int? formFieldId)
+        public static async Task<List<string>> GetBinaryDataIds(string recordId, int? formFieldId)
         {
             try
             {

@@ -17,8 +17,8 @@ namespace BioDivCollectorXamarin.Views
             set
             {
                 if (ViewModel == null) { ViewModel = new ImageEditorViewModel(); }
-                int.TryParse(value, out int parsedValue);
-                ViewModel.RecordId = parsedValue;
+                //int.TryParse(value, out int parsedValue);
+                ViewModel.RecordId = value;
             }
         }
         
@@ -51,7 +51,7 @@ namespace BioDivCollectorXamarin.Views
             Content = Editor;
         }
 
-        public SfImageEditorPage(int formFieldId, string binaryId, int recordId)
+        public SfImageEditorPage(int formFieldId, string binaryId, string recordId)
         {
             if (ViewModel == null) { ViewModel = new ImageEditorViewModel(); }
             ViewModel.FormFieldId = formFieldId;
