@@ -364,12 +364,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public async static Task<BinaryData> FetchBinaryData(string binaryId)
         {
             var conn = App.ActiveDatabaseConnection;
-                var binDatAsync = await conn.Table<BinaryData>().Where(bin => bin.binaryId == binaryId).FirstOrDefaultAsync();
-                if (binDatAsync == null)
-                {
-                    return new BinaryData();
-                }
-                return binDatAsync;
+            var binDatAsync = await conn.Table<BinaryData>().Where(bin => bin.binaryId == binaryId).FirstOrDefaultAsync();
+            return binDatAsync;
         }
 
         public async static Task<List<BinaryData>> FetchBinaryDataByRecordId(string recordId)
@@ -387,13 +383,13 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
         public async static Task<bool> DownloadBinaryData(string recordId, int? formFieldId)
         {
-                //var conn = App.ActiveDatabaseConnection;
-                //Record rec = await conn.Table<Record>().Where(rec => rec.recordId == recordId).FirstOrDefaultAsync();
-                var binaryIds = await GetBinaryDataIds(recordId, formFieldId);
+            //var conn = App.ActiveDatabaseConnection;
+            //Record rec = await conn.Table<Record>().Where(rec => rec.recordId == recordId).FirstOrDefaultAsync();
+            var binaryIds = await GetBinaryDataIds(recordId, formFieldId);
 
-                foreach (var binaryId in binaryIds)
-            try
+            foreach (var binaryId in binaryIds)
             {
+                try
                 {
                     string url = App.ServerURL + "/api/Binary/" + binaryId;
 
@@ -433,10 +429,10 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
                     }
                 }
-            }
-            catch
-            {
+                catch
+                {
 
+                }
             }
             return true;
         }

@@ -541,6 +541,7 @@ namespace BioDivCollectorXamarin.Models
                                                         await conn.InsertAsync(bin);
                                                     }
                                                     //await conn.InsertOrReplaceAsync(bin);
+                                                    Console.WriteLine("bin Id is {0}", bin.Id);
                                                     binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
                                                 }
                                                 catch (Exception e)
@@ -705,7 +706,7 @@ namespace BioDivCollectorXamarin.Models
                                                 bin.record_fk = existingrec.recordId;
                                                 await conn.InsertAsync(bin);
                                             }
-                                            await conn.InsertOrReplaceAsync(bin);
+                                            //await conn.InsertOrReplaceAsync(bin);
                                             binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
                                         }
                                         catch (Exception e)
