@@ -140,7 +140,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             geom.creationTime = DateTime.Now;
             geom.status = -1;
             geom.readOnly = false;
-            var proj = Project.FetchCurrentProject();
+            var proj = await Project.FetchCurrentProject();
             geom.project_fk = proj.Id;
 
             var conn = App.ActiveDatabaseConnection;

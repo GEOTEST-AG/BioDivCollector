@@ -676,7 +676,14 @@ namespace BioDivCollectorXamarin.ViewModels
                         Device.BeginInvokeOnMainThread(async() =>
                         {
                             var centre = await MapModel.GetCentreOfGeometry(geomId);
-                            VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
+                            if (centre != null)
+                            {
+                                VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
+                            }
+                            else
+                            {
+                                ReCentreMap();
+                            }
                         });
                     }
                     catch
@@ -1537,7 +1544,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 GeomToEdit = 0;
                 RemoveTempGeometry();
-                RefreshShapes();
+                //RefreshShapes();
             }
         }
 
