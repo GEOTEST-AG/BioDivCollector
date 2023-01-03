@@ -63,7 +63,15 @@ namespace BioDivCollectorXamarin.ViewModels
         public FormPageVM(string recId, int formId, int? geomId, INavigation navigation)
         {
             FormId = formId;
-            GeomId = geomId;
+            if (geomId == 0)
+            {
+                GeomId = null;
+            }
+            else
+            {
+                GeomId = geomId;
+            }
+            
             if (recId != null) 
             { 
                 RecId = recId; 

@@ -84,7 +84,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var success = await conn.InsertAsync(rec);
             if (success == 1)
             {
-                if (rec.geometry_fk == null)
+                if (rec.geometry_fk == null || rec.geometry_fk == 0)
                 {
                     proj.records = await conn.Table<Record>().Where(Record => Record.project_fk == proj.Id).Where(Record => Record.geometry_fk == null).ToListAsync();
                     await conn.UpdateWithChildrenAsync(proj);
