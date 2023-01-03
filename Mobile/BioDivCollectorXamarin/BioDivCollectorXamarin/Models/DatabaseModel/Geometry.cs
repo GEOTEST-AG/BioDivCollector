@@ -66,7 +66,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         {
             ReferenceGeometry queriedGeom;
             var conn = App.ActiveDatabaseConnection;
-            queriedGeom = await conn.GetAsync<ReferenceGeometry>(geomId);
+            //queriedGeom = await conn.GetAsync<ReferenceGeometry>(geomId);
+            queriedGeom = await conn.Table<ReferenceGeometry>().Where(g => g.Id == geomId).FirstOrDefaultAsync();
             return queriedGeom;
         }
 

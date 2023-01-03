@@ -387,13 +387,13 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
         public async static Task<bool> DownloadBinaryData(string recordId, int? formFieldId)
         {
-            try
-            {
-                var conn = App.ActiveDatabaseConnection;
-                Record rec = await conn.Table<Record>().Where(rec => rec.recordId == recordId).FirstOrDefaultAsync();
-                var binaryIds = await GetBinaryDataIds(rec.recordId, formFieldId);
+                //var conn = App.ActiveDatabaseConnection;
+                //Record rec = await conn.Table<Record>().Where(rec => rec.recordId == recordId).FirstOrDefaultAsync();
+                var binaryIds = await GetBinaryDataIds(recordId, formFieldId);
 
                 foreach (var binaryId in binaryIds)
+            try
+            {
                 {
                     string url = App.ServerURL + "/api/Binary/" + binaryId;
 

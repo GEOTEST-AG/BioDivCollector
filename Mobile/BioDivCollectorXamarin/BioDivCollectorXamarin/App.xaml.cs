@@ -179,6 +179,7 @@ namespace BioDivCollectorXamarin
             LoadXMLLicenceData();
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(Preferences.Get("sflicence", ""));
             InitializeComponent();
+            // Record Migration durchführen
         }
 
         /// <summary>

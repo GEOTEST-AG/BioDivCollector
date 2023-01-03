@@ -353,6 +353,7 @@ namespace BioDivCollectorXamarin.Models
                     await PerformStandardValueMigration(conn);
                     await PerformLayerMigration(conn);
                     await PerformBinaryDataMigration(conn);
+                    // Record Migration durchführen
                 }
                 catch (Exception e)
                 {
