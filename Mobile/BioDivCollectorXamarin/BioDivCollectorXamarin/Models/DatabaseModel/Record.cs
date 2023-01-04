@@ -205,11 +205,12 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 {
                     await conn.DeleteAsync(record);
                 }
+
                 MessagingCenter.Send<Xamarin.Forms.Application>(App.Current, "RefreshRecords");
             }
             catch (Exception e)
             {
-                Console.WriteLine("Could not save data");
+                Console.WriteLine("Could not delete record");
             }
         }
 

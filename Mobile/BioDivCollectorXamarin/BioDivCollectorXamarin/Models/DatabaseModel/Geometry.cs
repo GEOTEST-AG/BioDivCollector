@@ -192,27 +192,27 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             {
                 ReferenceGeometry queriedGeom;
                 var conn = App.ActiveDatabaseConnection;
-                    queriedGeom = await conn.GetWithChildrenAsync<ReferenceGeometry>(geomId);
+                queriedGeom = await conn.GetWithChildrenAsync<ReferenceGeometry>(geomId);
 
-                    if (queriedGeom.status > -1)
+                if (queriedGeom.status > -1)
+                {
+                    queriedGeom.status = 3;
+                    queriedGeom.timestamp = DateTime.Now;
+
+                    foreach (var rec in queriedGeom.records)
                     {
-                        queriedGeom.status = 3;
-                        queriedGeom.timestamp = DateTime.Now;
-
-                        foreach (var rec in queriedGeom.records)
-                        {
-                            rec.status = 3;
-                            rec.timestamp = DateTime.Now;
-                            await conn.UpdateAsync(rec);
-                        }
-
-                        await conn.UpdateAsync(queriedGeom);
-                    }
-                    else
-                    {
-                        await conn.DeleteAsync(queriedGeom, true);
+                        rec.status = 3;
+                        rec.timestamp = DateTime.Now;
+                        await conn.UpdateAsync(rec);
                     }
 
+                    await conn.UpdateAsync(queriedGeom);
+                }
+                else
+                {
+                    await conn.DeleteAsync(queriedGeom, true);
+                }
+                MessagingCenter.Send<Xamarin.Forms.Application>(App.Current, "ResetFilter");
             }
             catch (Exception e)
             {

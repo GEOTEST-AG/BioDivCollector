@@ -221,6 +221,12 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 FilterBy = String.Empty;
             });
+            MessagingCenter.Subscribe<Application>(App.Current, "ResetFilter", (sender) =>
+            {
+                FilterBy = String.Empty;
+                SortBy = String.Empty;
+                UpdateRecords();
+            });
         }
 
         /// <summary>
@@ -381,7 +387,7 @@ namespace BioDivCollectorXamarin.ViewModels
             RecordsPageViewModel = recordsPageVM;
             MessagingCenter.Subscribe<RecordDeleteCommand,FormRec>(this,"DeleteRecord", async (sender,rec) =>
             {
-                await Task.Delay(500);
+                //await Task.Delay(500);
                 await Record.DeleteRecord((string)rec.RecId);
             });
         }
