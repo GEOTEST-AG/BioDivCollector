@@ -28,7 +28,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// Record database definition
         /// </summary>
         //[PrimaryKey, AutoIncrement]
-        //public int Id { get; set; }
+        public int Id { get; set; }
         [PrimaryKey]
         public string recordId { get; set; }
 

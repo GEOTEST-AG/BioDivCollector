@@ -8,6 +8,7 @@ using SQLiteNetExtensions.Extensions;
 using SQLiteNetExtensionsAsync.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -19,6 +20,7 @@ using Xamarin.Auth;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using static BioDivCollectorXamarin.Helpers.Interfaces;
+//using static System.Net.Mime.MediaTypeNames;
 
 namespace BioDivCollectorXamarin.Models
 {
@@ -942,11 +944,72 @@ namespace BioDivCollectorXamarin.Models
         {
             var conn = App.ActiveDatabaseConnection;
             var projectRecords = await conn.Table<Record>().ToListAsync();
+            var textData = await conn.Table<TextData>().ToListAsync();
+            var numData = await conn.Table<NumericData>().ToListAsync();
+            var boolData = await conn.Table<BooleanData>().ToListAsync();
+            var binData = await conn.Table<BinaryData>().ToListAsync();
+
+            foreach (var text in textData)
+            {
+                foreach (var record in projectRecords)
+                {
+                    Int32.TryParse(text.record_fk, out var intTextRecId);
+                    if (intTextRecId == record.Id)
+                    {
+                        text.record_fk = record.recordId;
+                    }
+                }
+            }
+            foreach (var num in numData)
+            {
+                foreach (var record in projectRecords)
+                {
+                    Int32.TryParse(num.record_fk, out var intTextRecId);
+                    if (intTextRecId == record.Id)
+                    {
+                        num.record_fk = record.recordId;
+                    }
+                }
+            }
+            foreach (var boole in boolData)
+            {
+                foreach (var record in projectRecords)
+                {
+                    Int32.TryParse(boole.record_fk, out var intTextRecId);
+                    if (intTextRecId == record.Id)
+                    {
+                        boole.record_fk = record.recordId;
+                    }
+                }
+            }
+            foreach (var bin in binData)
+            {
+                foreach (var record in projectRecords)
+                {
+                    Int32.TryParse(bin.record_fk, out var intTextRecId);
+                    if (intTextRecId == record.Id)
+                    {
+                        bin.record_fk = record.recordId;
+                    }
+                }
+            }
 
             await conn.DropTableAsync<Record>();
+            await conn.DropTableAsync<TextData>();
+            await conn.DropTableAsync<NumericData>();
+            await conn.DropTableAsync<BooleanData>();
+            await conn.DropTableAsync<BinaryData>();
             await conn.CreateTableAsync<Record>();
+            await conn.CreateTableAsync<TextData>();
+            await conn.CreateTableAsync<NumericData>();
+            await conn.CreateTableAsync<BooleanData>();
+            await conn.CreateTableAsync<BinaryData>();
 
-            await conn.InsertAllWithChildrenAsync(projectRecords);
+            await conn.InsertAllAsync(projectRecords);
+            await conn.InsertAllAsync(textData);
+            await conn.InsertAllAsync(numData);
+            await conn.InsertAllAsync(boolData);
+            await conn.InsertAllAsync(binData);
         }
 
         /// <summary>

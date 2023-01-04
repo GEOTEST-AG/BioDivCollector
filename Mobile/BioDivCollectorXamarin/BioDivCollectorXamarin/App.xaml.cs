@@ -202,6 +202,7 @@ namespace BioDivCollectorXamarin
             Task.Run(async () =>
             {
                 ActiveDatabaseConnection = await DatabaseConnection.Instance;
+                await DataDAO.PerformRecordMigration();
             });
 
             CurrentUser = User.RetrieveUser();

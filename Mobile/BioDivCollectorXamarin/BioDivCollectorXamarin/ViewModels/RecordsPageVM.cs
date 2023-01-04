@@ -207,6 +207,7 @@ namespace BioDivCollectorXamarin.ViewModels
             RecordDeleteCommand = new RecordDeleteCommand(this);
             GeometryDeleteCommand = new GeometryDeleteCommand(this);
 
+            UpdateRecords();
 
             MessagingCenter.Subscribe<Application>(App.Current, "RefreshRecords", (sender) =>
             {
