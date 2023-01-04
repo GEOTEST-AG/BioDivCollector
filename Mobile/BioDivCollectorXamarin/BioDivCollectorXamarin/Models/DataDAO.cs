@@ -938,6 +938,17 @@ namespace BioDivCollectorXamarin.Models
             }
         }
 
+        public static async Task PerformRecordMigration()
+        {
+            var conn = App.ActiveDatabaseConnection;
+            var projectRecords = await conn.Table<Record>().ToListAsync();
+
+            await conn.DropTableAsync<Record>();
+            await conn.CreateTableAsync<Record>();
+
+            await conn.InsertAllWithChildrenAsync(projectRecords);
+        }
+
         /// <summary>
         /// Shape is a customised Geometry with title and id added so that it can be used in a list
         /// </summary>
