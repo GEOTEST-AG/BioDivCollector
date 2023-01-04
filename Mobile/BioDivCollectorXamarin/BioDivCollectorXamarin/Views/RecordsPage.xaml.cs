@@ -128,7 +128,7 @@ namespace BioDivCollectorXamarin.Views
         {
             var rec = e.Item as FormRec;
             //Navigation.PushAsync(new FormPage(rec.RecId, rec.FormId, rec.GeomId),true);
-            Shell.Current.GoToAsync($"Form?recid={rec.RecId}&formid={rec.FormId}&geomid={rec.GeomId}", true); ;
+            await Shell.Current.GoToAsync($"Form?recid={rec.RecId}&formid={rec.FormId}&geomid={rec.GeomId}", true); 
         }
 
         /// <summary>

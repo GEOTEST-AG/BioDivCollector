@@ -411,6 +411,7 @@ namespace BioDivCollectorXamarin.Models
                             //existinggeom = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefaultAsync();
                             existinggeom = await ReferenceGeometry.GetGeometry(geom.geometryId);
                             //Geometry related records
+                            int k = 1;
                             foreach (var rec in geom.records)
                             {
                                 try
@@ -573,6 +574,7 @@ namespace BioDivCollectorXamarin.Models
                                 existinggeom.records = await Record.FetchRecordByGeomId(geom.Id);
                                 await conn.UpdateWithChildrenAsync(existinggeom);
                                 Console.WriteLine("Added record: " + DateTime.Now.ToLongTimeString());
+                                MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Record {k++} von {geom.records.Count} wird heruntergeladen");
                             }
                         }
                         catch (Exception e)
@@ -840,6 +842,7 @@ namespace BioDivCollectorXamarin.Models
                     }
 
                     //add new layers
+                    int j = 1;
                     foreach (var layer in projectRoot.layers)
                     {
                         try
@@ -866,6 +869,7 @@ namespace BioDivCollectorXamarin.Models
                         project.layers = await Layer.FetchLayerListByProjectId(project.Id);
                         await conn.UpdateWithChildrenAsync(project);
                         Console.WriteLine("Added records geometries and layers: " + DateTime.Now.ToLongTimeString());
+                        MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Layer {j++} von {projectRoot.layers.Count} wird heruntergeladen");
                     }
                     catch (Exception e)
                     {
@@ -1005,11 +1009,11 @@ namespace BioDivCollectorXamarin.Models
             await conn.CreateTableAsync<BooleanData>();
             await conn.CreateTableAsync<BinaryData>();
 
-            await conn.InsertAllAsync(projectRecords);
-            await conn.InsertAllAsync(textData);
-            await conn.InsertAllAsync(numData);
-            await conn.InsertAllAsync(boolData);
-            await conn.InsertAllAsync(binData);
+            await conn.InsertAllWithChildrenAsync(projectRecords);
+            await conn.InsertAllWithChildrenAsync(textData);
+            await conn.InsertAllWithChildrenAsync(numData);
+            await conn.InsertAllWithChildrenAsync(boolData);
+            await conn.InsertAllWithChildrenAsync(binData);
         }
 
         /// <summary>

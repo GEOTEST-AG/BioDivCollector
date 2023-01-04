@@ -89,7 +89,10 @@ namespace BioDivCollectorXamarin.ViewModels
                 Task.Run(async () =>
                 {
                     await CreateForm(RecId, FormId, GeomId);
-                    DataFormFinished = true;
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        DataFormFinished = true; 
+                    });
                 });
             }
         }
