@@ -1534,11 +1534,11 @@ namespace BioDivCollectorXamarin.ViewModels
                 string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie eine Geometriename ein", accept:"Speichern", cancel:"Abbrechen");
                 string geomId = await ReferenceGeometry.SaveGeometry(TempCoordinates, geomName);
 
-                var geom = ReferenceGeometry.GetGeometry(geomId);
+                var geom = await ReferenceGeometry.GetGeometry(geomId);
 
                 if (string.IsNullOrEmpty(geomName) == false)
                 {
-                    Shell.Current.GoToAsync($"//Records?objectId={geom.Id}", true);
+                    await Shell.Current.GoToAsync($"//Records?objectId={geom.Id}", true);
                     MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
                 }
 
