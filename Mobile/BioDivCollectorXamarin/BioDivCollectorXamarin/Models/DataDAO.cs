@@ -953,44 +953,44 @@ namespace BioDivCollectorXamarin.Models
             {
                 foreach (var record in projectRecords)
                 {
-                    Int32.TryParse(text.record_fk, out var intTextRecId);
-                    if (intTextRecId == record.Id)
-                    {
-                        text.record_fk = record.recordId;
-                    }
+                        Int32.TryParse(text.record_fk, out int intTextRecId);
+                        if (intTextRecId != 0 && intTextRecId == record.Id)
+                        {
+                            text.record_fk = record.recordId;
+                        }
                 }
             }
             foreach (var num in numData)
             {
                 foreach (var record in projectRecords)
                 {
-                    Int32.TryParse(num.record_fk, out var intTextRecId);
-                    if (intTextRecId == record.Id)
-                    {
-                        num.record_fk = record.recordId;
-                    }
+                        Int32.TryParse(num.record_fk, out int intTextRecId);
+                        if (intTextRecId != 0 && intTextRecId == record.Id)
+                        {
+                            num.record_fk = record.recordId;
+                        }
                 }
             }
             foreach (var boole in boolData)
             {
                 foreach (var record in projectRecords)
                 {
-                    Int32.TryParse(boole.record_fk, out var intTextRecId);
-                    if (intTextRecId == record.Id)
-                    {
-                        boole.record_fk = record.recordId;
-                    }
+                        Int32.TryParse(boole.record_fk, out int intTextRecId);
+                        if (intTextRecId != 0 && intTextRecId == record.Id)
+                        {
+                            boole.record_fk = record.recordId;
+                        }
                 }
             }
             foreach (var bin in binData)
             {
                 foreach (var record in projectRecords)
                 {
-                    Int32.TryParse(bin.record_fk, out var intTextRecId);
-                    if (intTextRecId == record.Id)
-                    {
-                        bin.record_fk = record.recordId;
-                    }
+                        Int32.TryParse(bin.record_fk, out int intTextRecId);
+                        if (intTextRecId != 0 && intTextRecId == record.Id)
+                        {
+                            bin.record_fk = record.recordId;
+                        }
                 }
             }
 
