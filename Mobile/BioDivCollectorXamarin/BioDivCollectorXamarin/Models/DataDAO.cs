@@ -959,18 +959,6 @@ namespace BioDivCollectorXamarin.Models
             }
             catch
             {
-                var binaryDownloadList = new List<Tuple<string, int?>>();
-                foreach (var rec in projectRecords)
-                {
-                    foreach (var bin in rec.binaries)
-                    {
-                        binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
-                    }
-                }
-                foreach (var tuple in binaryDownloadList)
-                {
-                    await BinaryData.DownloadBinaryData(tuple.Item1, tuple.Item2);
-                }
             }
 
             foreach (var text in textData)
