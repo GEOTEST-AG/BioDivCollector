@@ -209,8 +209,8 @@ namespace BioDivCollectorXamarin
             Task.Run(async () =>
             {
                 ActiveDatabaseConnection = await DatabaseConnection.Instance;
-                //var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
-                var firstLaunchCurrent = true;
+                var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
+                //var firstLaunchCurrent = true;
                 if (firstLaunchCurrent)
                 {
                     await DataDAO.PerformRecordMigration();
