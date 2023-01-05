@@ -74,7 +74,10 @@ namespace BioDivCollectorXamarin.ViewModels
                 bool isnew = (value != object_pk);
                 object_pk = value;
                 Preferences.Set("FilterGeometry", value.ToString());
-                FilterBy = "Geometrie";
+                if (value!= null)
+                {
+                    FilterBy = "Geometrie";
+                }
                 if (isnew) { UpdateRecords(); }
             }
         }

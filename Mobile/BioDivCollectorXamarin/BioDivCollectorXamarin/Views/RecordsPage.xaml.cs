@@ -161,6 +161,7 @@ namespace BioDivCollectorXamarin.Views
             if (action == "kein Filter")
             {
                 ViewModel.Object_pk = null;
+                ObjectId = null;
                 ViewModel.FilterBy = String.Empty;
                 FiltrierenButton.Text = "Filtern nach";
             }

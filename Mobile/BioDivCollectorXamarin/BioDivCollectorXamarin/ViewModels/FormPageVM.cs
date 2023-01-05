@@ -191,14 +191,14 @@ namespace BioDivCollectorXamarin.ViewModels
                         try
                         {
                             var textList = await TextData.FetchTextDataByRecordId(recId);
-                                var text = textList.Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
+                            var text = textList.Where(TextData => TextData.formFieldId == formField.fieldId).FirstOrDefault();
                             var textField = new CustomEntry();
 
                             if (text == null)
                             {
                                 //CreateNew
                                 var txt = new TextData { textId = Guid.NewGuid().ToString(), title = String.Empty, value = null, formFieldId = formField.fieldId, record_fk = RecId };
-                                    await conn.InsertAsync(txt);
+                                await conn.InsertAsync(txt);
                                 txts.Add(txt);
                                 queriedrec.texts = txts;
                                 text = txt;

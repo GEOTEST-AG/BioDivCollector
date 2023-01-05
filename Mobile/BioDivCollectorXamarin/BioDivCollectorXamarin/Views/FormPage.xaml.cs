@@ -122,6 +122,18 @@ namespace BioDivCollectorXamarin.Views
                     RecId = ViewModel.RecId; //Take RecId from viewmodel - this is then created in viewmodel if it started off empty.
                 }
             }
+
+            Shell.SetBackButtonBehavior(this, new BackButtonBehavior
+            {
+                Command = new Command(() =>
+                {
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        App.CurrentRoute = "//Records";
+                        Shell.Current.GoToAsync(App.CurrentRoute, true);
+                    });
+                })
+            });
         }
 
         /// <summary>
