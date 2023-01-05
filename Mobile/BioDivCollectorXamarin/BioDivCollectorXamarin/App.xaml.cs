@@ -179,11 +179,14 @@ namespace BioDivCollectorXamarin
             LoadXMLLicenceData();
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(Preferences.Get("sflicence", ""));
             InitializeComponent();
-            var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
-            if (firstLaunchCurrent)
+            Task.Run(async () =>
             {
-                DataDAO.PerformRecordMigration();
-            }
+                var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
+                if (firstLaunchCurrent)
+                {
+                    await DataDAO.PerformRecordMigration();
+                }
+            });
             // Record Migration durchführen
         }
 
@@ -206,7 +209,8 @@ namespace BioDivCollectorXamarin
             Task.Run(async () =>
             {
                 ActiveDatabaseConnection = await DatabaseConnection.Instance;
-                var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
+                //var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
+                var firstLaunchCurrent = true;
                 if (firstLaunchCurrent)
                 {
                     await DataDAO.PerformRecordMigration();

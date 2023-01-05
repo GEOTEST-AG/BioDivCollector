@@ -1,5 +1,6 @@
 ﻿using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.LoginModel;
+using Mapsui.UI.Forms;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
@@ -951,7 +952,26 @@ namespace BioDivCollectorXamarin.Models
             var textData = await conn.Table<TextData>().ToListAsync();
             var numData = await conn.Table<NumericData>().ToListAsync();
             var boolData = await conn.Table<BooleanData>().ToListAsync();
-            var binData = await conn.Table<BinaryData>().ToListAsync();
+            var binData = new List<BinaryData>();
+            try
+            {
+                binData = await conn.Table<BinaryData>().ToListAsync();
+            }
+            catch
+            {
+                var binaryDownloadList = new List<Tuple<string, int?>>();
+                foreach (var rec in projectRecords)
+                {
+                    foreach (var bin in rec.binaries)
+                    {
+                        binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
+                    }
+                }
+                foreach (var tuple in binaryDownloadList)
+                {
+                    await BinaryData.DownloadBinaryData(tuple.Item1, tuple.Item2);
+                }
+            }
 
             foreach (var text in textData)
             {
