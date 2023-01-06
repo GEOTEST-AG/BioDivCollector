@@ -190,7 +190,7 @@ namespace BioDivCollectorXamarin.ViewModels
             set
             {
                 tempCoordinates = value;
-                (SaveGeomCommand as Command).ChangeCanExecute();
+                //(SaveGeomCommand as Command).ChangeCanExecute();
             }
         }
 
@@ -315,9 +315,16 @@ namespace BioDivCollectorXamarin.ViewModels
                 Map.Layers.Insert(Map.Layers.Count, TempLayer);
             });
 
-            MessagingCenter.Subscribe<Application,int>(App.Current, "EditGeometry", (sender,arg) =>
+            MessagingCenter.Unsubscribe<Application, string>(App.Current, "EditGeometry");
+            MessagingCenter.Subscribe<Application,int>(App.Current, "EditGeometry", async (sender,arg) =>
             {
                 GeomToEdit = arg;
+                //CanAddMapGeometry = true;
+                var tempGeom = await ReferenceGeometry.GetGeometry(GeomToEdit);
+                NetTopologySuite.Geometries.Coordinate[] tempPoints = DataDAO.GeoJSON2Geometry(tempGeom.geometry).Coordinates;
+                List<Mapsui.Geometries.Point> coordList = tempPoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToList();
+                GeometryType = ReferenceGeometry.FindGeometryTypeFromCoordinateList(coordList);
+                TempCoordinates = coordList; //Not initially assigned to tempCoordinates, as we need to first know GeometryType to decide whether the save command can run
             });
 
             DeviceDisplay.MainDisplayInfoChanged += HandleRotationChange;
@@ -1463,7 +1470,6 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             GeomToEdit = 0;
             CancelAddingMapGeometry();
-
         }
 
         /// <summary>
@@ -1556,13 +1562,15 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             if (GeometryType == "Punkt")
             {
+                return true;
                 return TempCoordinates.Count > 0;
             }
             else if (GeometryType == "Linie")
             {
                 return TempCoordinates.Count > 1;
             }
-            else {
+            else
+            {
                 var isValid = MapModel.CheckValidityOfPolygon(TempCoordinates);
                 if (TempCoordinates.Count <= 3) { CurrentPolygonSelfIntersecting = false; }
                 if (TempCoordinates.Count > 3 && isValid)
@@ -1596,8 +1604,8 @@ namespace BioDivCollectorXamarin.ViewModels
                             });
                         }
                     }
-                    
-                    
+
+
                     return false;
                 }
             }
