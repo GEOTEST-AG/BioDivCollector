@@ -1536,7 +1536,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 var geom = await ReferenceGeometry.GetGeometry(geomId);
 
-                if (string.IsNullOrEmpty(geomName) == false)
+                if (geom != null)
                 {
                     await Shell.Current.GoToAsync($"//Records?objectId={geom.Id}", true);
                     MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
