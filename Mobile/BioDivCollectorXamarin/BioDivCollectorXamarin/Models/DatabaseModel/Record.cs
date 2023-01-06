@@ -142,7 +142,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         {
             var recordList = new List<Record>();
             var conn = App.ActiveDatabaseConnection;
-            recordList = await conn.Table<Record>().Where(Record => Record.geometry_fk == geomId).ToListAsync();
+            recordList = await conn.Table<Record>().Where(Record => Record.geometry_fk == geomId).Where(Record => Record.status != 3).ToListAsync();
             return recordList;
         }
 
