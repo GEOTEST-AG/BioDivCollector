@@ -325,7 +325,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public void Execute(object parameter)
         {
-            Task.Run(async () =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
                 ProjectSimple proj = parameter as ProjectSimple;
                 bool existsAlready = await Project.LocalProjectExists(proj.projectId);

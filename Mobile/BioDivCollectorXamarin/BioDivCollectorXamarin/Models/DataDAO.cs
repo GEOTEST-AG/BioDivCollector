@@ -386,6 +386,7 @@ namespace BioDivCollectorXamarin.Models
                 finally
                 {
                     var project = await Project.FetchProject(projectRoot.projectId);
+                    int k = 1;
                     foreach (var geom in projectRoot.geometries)
                     {
                         try
@@ -412,7 +413,6 @@ namespace BioDivCollectorXamarin.Models
                             //existinggeom = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.geometryId == geom.geometryId).FirstOrDefaultAsync();
                             existinggeom = await ReferenceGeometry.GetGeometry(geom.geometryId);
                             //Geometry related records
-                            int k = 1;
                             foreach (var rec in geom.records)
                             {
                                 try
@@ -575,15 +575,16 @@ namespace BioDivCollectorXamarin.Models
                                 existinggeom.records = await Record.FetchRecordByGeomId(geom.Id);
                                 await conn.UpdateWithChildrenAsync(existinggeom);
                                 Console.WriteLine("Added record: " + DateTime.Now.ToLongTimeString());
-                                MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Record {k++} von {geom.records.Count} wird heruntergeladen");
                             }
                         }
                         catch (Exception e)
                         {
                             Console.WriteLine(e);
                         }
+                        MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Geometrie {k++} von {projectRoot.geometries.Count} wird heruntergeladen");
                     }
                     // Add project related records
+                    int h = 1;
                     foreach (var rec in projectRoot.records)
                     {
                         try
@@ -737,8 +738,10 @@ namespace BioDivCollectorXamarin.Models
                         {
                             Console.WriteLine(e);
                         }
+                        MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Record {h++} von {projectRoot.records.Count} wird heruntergeladen");
                     }
                     // Add project related forms
+                    int f = 1;
                     foreach (var form in projectRoot.forms)
                     {
                         try
@@ -825,6 +828,7 @@ namespace BioDivCollectorXamarin.Models
                         {
                             Console.WriteLine(e);
                         }
+                        MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Formular {f++} von {projectRoot.forms.Count} wird heruntergeladen");
                     }
                     //Add project related layers
                     try
