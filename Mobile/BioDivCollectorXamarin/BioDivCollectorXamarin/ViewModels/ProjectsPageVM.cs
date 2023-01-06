@@ -143,7 +143,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     Console.WriteLine("Couldn't set project " + exp);
                 }
-                SyncCommand.RaiseCanExecuteChanged();
+                //SyncCommand.RaiseCanExecuteChanged();
             });
         }
 
@@ -196,7 +196,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Preferences.Set("FilterGeometry", String.Empty);
             try
             {
-                SyncCommand.RaiseCanExecuteChanged();
+                //SyncCommand.RaiseCanExecuteChanged();
             }
             catch
             {
@@ -296,7 +296,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public void Execute(object parameter)
         {
-            Task.Run(async () =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
                 var response = await App.Current.MainPage.DisplayActionSheet("Möchten Sie dieses Projekt vom Gerät entfernen?", "Abbrechen", "Entfernen");
                 if (response == "Entfernen")
