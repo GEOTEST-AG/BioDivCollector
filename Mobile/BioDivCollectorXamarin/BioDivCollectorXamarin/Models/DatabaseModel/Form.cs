@@ -12,6 +12,7 @@ using Xamarin.Essentials;
 using System.Threading.Tasks;
 using SQLiteNetExtensionsAsync.Extensions;
 using System.Drawing.Printing;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {
@@ -276,6 +277,14 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                                         await conn.UpdateAsync(text);
                                         await Record.UpdateRecord(text.record_fk); //Write back to the db
                                     }
+                                }
+                                else
+                                {
+                                    var text = await conn.Table<TextData>().Where(TextData => TextData.record_fk == RecId).Where(TextData => TextData.Id == txtField.ValueId).FirstOrDefaultAsync();
+                                    text.value = null; //update the text from the choice
+                                    text.fieldChoiceId = null; //Update the database entry with the dropdown choice id
+                                    await conn.UpdateAsync(text);
+                                    await Record.UpdateRecord(text.record_fk); //Write back to the db
                                 }
                             }
                             catch (Exception e)

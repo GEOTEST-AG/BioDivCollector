@@ -1555,7 +1555,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 var geom = await ReferenceGeometry.GetGeometry(geomId);
 
-                if (string.IsNullOrEmpty(geomName) == false)
+                if (geom != null)
                 {
                     await Shell.Current.GoToAsync($"//Records?objectId={geom.Id}", true);
                     MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
@@ -1739,14 +1739,17 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void RemoveTempGeometry()
         {
-            TempCoordinates = new List<Mapsui.Geometries.Point>();
-            if (Map.Layers[Map.Layers.Count - 1] == TempLayer)
+            Device.InvokeOnMainThreadAsync(() =>
             {
-                Map.Layers.Remove(TempLayer);
-            }
-            CanAddMapGeometry = false;
-            GeometryType = String.Empty;
-            VMGeomEditButton.BackgroundColor = (Xamarin.Forms.Color)Application.Current.Resources["BioDivGrey"];
+                TempCoordinates = new List<Mapsui.Geometries.Point>();
+                if (Map.Layers[Map.Layers.Count - 1] == TempLayer)
+                {
+                    Map.Layers.Remove(TempLayer);
+                }
+                CanAddMapGeometry = false;
+                GeometryType = String.Empty;
+                VMGeomEditButton.BackgroundColor = (Xamarin.Forms.Color)Application.Current.Resources["BioDivGrey"];
+            });
         }
 
         /// <summary>

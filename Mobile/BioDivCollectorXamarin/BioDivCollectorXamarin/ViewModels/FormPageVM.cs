@@ -1051,6 +1051,9 @@ namespace BioDivCollectorXamarin.ViewModels
             var choice = sender as CustomAutoComplete;
             var conn = App.ActiveDatabaseConnection;
                 var text = await conn.Table<TextData>().Where(TextData => TextData.Id == choice.ValueId).FirstOrDefaultAsync();
+                
+            if (choice.SelectedItem != null)
+            {
                 var choiceString = choice.SelectedItem.ToString();
                 text.value = choiceString;
                 var chosen = await conn.Table<FieldChoice>().Where(mychoice => mychoice.formField_fk == choice.TypeId).Where(mychoice => mychoice.text == choiceString).FirstOrDefaultAsync();
@@ -1058,8 +1061,8 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (chosen != null)
                 {
                     text.fieldChoiceId = chosen.choiceId;
-                    //conn.Update(text);
                 }
+
                 try
                 {
                     if (choice.Mandatory)
@@ -1073,8 +1076,13 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     Console.WriteLine(ex);
                 }
-
-
+            }
+            else
+            {
+                text.fieldChoiceId = null;
+                text.value = null;
+                SaveCommand.ChangeCanExecute();
+            }
         }
 
         /// <summary>
