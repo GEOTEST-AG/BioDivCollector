@@ -30,6 +30,12 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         [ForeignKey(typeof(Project))]
         public int project_fk { get; set; }
 
+        /// <summary>
+        /// Checks if the layer exists
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="projectId"></param>
+        /// <returns>Returns True/False</returns>
         public static async Task<bool> FileLayerExists(string title, int projectId)
         {
             var conn = App.ActiveDatabaseConnection;
@@ -48,24 +54,61 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             return false;
         }
 
+        /// <summary>
+        /// Gets a list of layers by projectId
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns>Returns a List of Layers</returns>
         public static async Task<List<Layer>> FetchLayerListByProjectId(int projectId)
         {
             var conn = App.ActiveDatabaseConnection;
             return await conn.Table<Layer>().Where(Layer => Layer.project_fk == projectId).ToListAsync();
         }
 
+        /// <summary>
+        /// Gets a layer by layerId
+        /// </summary>
+        /// <param name="layerId"></param>
+        /// <returns>Returns a layer</returns>
         public static async Task<Layer> FetchLayerByLayerId(int layerId)
         {
             var conn = App.ActiveDatabaseConnection;
             return await conn.Table<Layer>().Where(Layer => Layer.project_fk == layerId).FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        /// Gets a layer by layerId and opacity
+        /// </summary>
+        /// <param name="layerId"></param>
+        /// <param name="opacity"></param>
+        /// <returns>Returns a Layer</returns>
+        public static async Task<Layer> GetExistingLayer(int layerId, double opacity)
+        {
+            var conn = App.ActiveDatabaseConnection;
+            return await conn.Table<Layer>().Where(Layer => Layer.Id == layerId).Where(Layer => Layer.opacity == opacity).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Gets a list of layer by the title of layer
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>Returns a list of layers</returns>
         public static async Task<List<Layer>> FetchLayerByName(string name)
         {
             var conn = App.ActiveDatabaseConnection;
-            return await conn.Table<Layer>().Where(Layer => Layer.title == name).ToListAsync();
+            var test = await conn.Table<Layer>().Where(Layer => Layer.title == name).ToListAsync();
+            return test;
         }
 
+        /// <summary>
+        /// Adds a new layer to the database
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="filename"></param>
+        /// <param name="filePath"></param>
+        /// <param name="projectId"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
         public static async Task AddFileLayer(string title, string filename, string filePath, int projectId, int order)
         {
             bool layerExists = await FileLayerExists(title, projectId);
@@ -96,6 +139,11 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             }
         }
 
+        /// <summary>
+        /// Removes a layer form the database
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
         public static async Task RemoveFileLayers(int projectId)
         {
             var conn = App.ActiveDatabaseConnection;

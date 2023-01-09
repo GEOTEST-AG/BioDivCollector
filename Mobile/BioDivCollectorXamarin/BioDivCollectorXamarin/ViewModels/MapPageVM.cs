@@ -319,7 +319,6 @@ namespace BioDivCollectorXamarin.ViewModels
             MessagingCenter.Subscribe<Application,int>(App.Current, "EditGeometry", async (sender,arg) =>
             {
                 GeomToEdit = arg;
-                //CanAddMapGeometry = true;
                 var tempGeom = await ReferenceGeometry.GetGeometry(GeomToEdit);
                 NetTopologySuite.Geometries.Coordinate[] tempPoints = DataDAO.GeoJSON2Geometry(tempGeom.geometry).Coordinates;
                 List<Mapsui.Geometries.Point> coordList = tempPoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToList();
@@ -815,12 +814,26 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void AddLayersToMap()
         {
-            
-            Map.Layers.Insert(0, MapModel.GetBaseMap().MapsuiLayer);
 
-            foreach (var layer in MapLayers.Where(layer => layer.Enabled == true).OrderByDescending(layer => layer.LayerZ).ToList())
+            try
             {
-                Map.Layers.Add(layer.MapsuiLayer);
+                Map.Layers.Insert(0, MapModel.GetBaseMap().MapsuiLayer);
+            }
+            catch
+            {
+                //base layer not drawn
+            }
+
+            try
+            {
+                foreach (var layer in MapLayers.OrderByDescending(m => m.LayerZ))
+                {
+                    Map.Layers.Add(layer.MapsuiLayer);
+                }
+            }
+            catch
+            {
+                //layer not drawn
             }
         }
 
@@ -1408,7 +1421,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void ShowLayerList()
         {
-            Navigation.PushAsync(new MapLayersPage(MapLayers),true);
+            Navigation.PushAsync(new MapLayersPage(),true);
         }
 
         /// <summary>

@@ -11,7 +11,6 @@ using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.IEssentials;
 using BioDivCollectorXamarin.Models.LoginModel;
-using FeldAppX.Models.DatabaseModel;
 using SQLite;
 using Xamarin.Essentials;
 using Xamarin.Forms;

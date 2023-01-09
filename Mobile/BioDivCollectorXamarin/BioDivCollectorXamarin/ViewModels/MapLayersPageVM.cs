@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BioDivCollectorXamarin.Models;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Views;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -21,6 +23,7 @@ namespace BioDivCollectorXamarin.ViewModels
             set
             {
                 mapLayers = value;
+                MessagingCenter.Send<Application>(App.Current, "UpdateMapLayers");
                 OnPropertyChanged("MapLayers");
             }
         }
@@ -97,10 +100,8 @@ namespace BioDivCollectorXamarin.ViewModels
         /// Initialise the page with the project specific map layers
         /// </summary>
         /// <param name="mapLayers"></param>
-        public MapLayersPageVM(ObservableCollection<BioDivCollectorXamarin.Models.MapLayer> mapLayers)
+        public MapLayersPageVM()
         {
-            //MoveLayerUpCommand1 = new MoveLayerUpCommand(this);
-            MoveLayerUpCommand = new Command(OnMoveLayerUp, ValidateMove);
             DeleteLayerCommand = new Command(OnDelete, ValidateDelete);
             OSMButtonCommand = new Command(OSMButtonPressed, CanPressOSMButton);
             PixelkarteButtonCommand = new Command(PixelkarteButtonPressed, CanPressPixelkarteButton);
@@ -112,26 +113,15 @@ namespace BioDivCollectorXamarin.ViewModels
             BaseLayerName = "Base";
             ShowLocalOnly = Preferences.Get("ShowLocalOnly", false);
 
-            Task.Run(async () =>
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
-                var newMapLayers = await MapModel.MakeArrayOfLayers();
-                MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
-            });
-
-            MessagingCenter.Subscribe<MapLayer>(this, "RefreshLayerList", (sender) =>
-            {
-                MapLayers = new ObservableCollection<BioDivCollectorXamarin.Models.MapLayer>();
-                foreach (var layer in mapLayers)
-                {
-                    if (layer != null)
-                    { MapLayers.Add(layer); }
-                }
-
+                var allMapLayers = await MapModel.MakeArrayOfLayers();
+                MapLayers = new ObservableCollection<MapLayer>(new List<MapLayer>());
+                MapLayers = new ObservableCollection<MapLayer>(allMapLayers);
             });
 
             MessagingCenter.Subscribe<MapLayersPageVM>(this, "LayerOrderChanged", (sender) =>
             {
-
                 Device.BeginInvokeOnMainThread(async () =>
                 {
                     var model = new MapModel();
@@ -140,7 +130,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     OnPropertyChanged("MapLayers");
                 });
             });
- 
+
             MessagingCenter.Subscribe<Application,string>(App.Current, "DownloadComplete", (sender,json) =>
             {
                 MapLayers = new ObservableCollection<BioDivCollectorXamarin.Models.MapLayer>();
@@ -151,40 +141,47 @@ namespace BioDivCollectorXamarin.ViewModels
                 }
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    //var model = new MapModel();
-                    //MapLayers = MapModel.MakeArrayOfLayers();
                     OnPropertyChanged("MapLayers");
                 });
             });
 
+        }
+        public void UpdateMapLayers()
+        {
+            Device.BeginInvokeOnMainThread(async () =>
+            {
+                var newMapLayers = await MapModel.MakeArrayOfLayers();
+                MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
+                OnPropertyChanged("MapLayers");
+                MessagingCenter.Send<MapLayersPageVM>(this, "ListSourceChanged");
+            });
         }
 
         /// <summary>
         /// Delete the locally stored mbtiles file for the layer
         /// </summary>
         /// <param name="parameter"></param>
-        private async void OnDelete(object parameter)
+        private void OnDelete(object parameter)
         {
-            //await Task.Run(async() =>
-            //{
-                if (parameter == this)
+            if (parameter == this)
+            {
+                var baseLayer = Preferences.Get("BaseLayer", String.Empty);
+                if (baseLayer != String.Empty)
                 {
-                    var baseLayer = Preferences.Get("BaseLayer", String.Empty);
-                    if (baseLayer != String.Empty)
-                    {
-                        await MapModel.DeleteMapLayer(baseLayer);
-                    }
+                    MapModel.DeleteMapLayer(baseLayer);
                 }
-                else
-                {
-                    var layer = (parameter as MapLayer);
-                    await MapModel.DeleteMapLayer(layer.Name);
-                }
+            }
+            else
+            {
+                var layer = (parameter as MapLayer);
+                MapModel.DeleteMapLayer(layer.Name);
+            }
+            Task.Run(async () =>
+            {
                 var newMapLayers = await MapModel.MakeArrayOfLayers();
                 MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
-                ChangeBaseLayerLabel(); //Trigger the mbtiles file size to be recalculated
-                
-            //});
+            });
+            ChangeBaseLayerLabel(); //Trigger the mbtiles file size to be recalculated
         }
 
         /// <summary>
@@ -219,20 +216,122 @@ namespace BioDivCollectorXamarin.ViewModels
         }
 
         /// <summary>
+        /// Sort the layers through drag and drop
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        internal async void LayerList_ItemDragging(System.Object sender, Syncfusion.ListView.XForms.ItemDraggingEventArgs e)
+        {
+            var conn = App.ActiveDatabaseConnection;
+            try
+            {
+                var layer = (e.ItemData as MapLayer);
+                if (layer != null)
+                {
+                    MapLayers.Move(e.OldIndex, e.NewIndex);
+                    int i = 0;
+
+                    foreach (MapLayer templayer in MapLayers)
+                    {
+                        var j = 0;
+                        var successCheck = false;
+                        while (successCheck != true)
+                        {
+                            templayer.LayerZ = i + 1;
+                            Layer dblayer;
+                            try
+                            {
+                                dblayer = await conn.Table<Layer>().Where(l => l.Id == templayer.LayerId).FirstOrDefaultAsync();
+                                dblayer.order = templayer.LayerZ;
+                                await conn.UpdateAsync(dblayer);
+                                successCheck = true;
+                                i++;
+                            }
+                            catch
+                            {
+                                j++;
+                                if (j == 1000)
+                                {
+                                    Device.BeginInvokeOnMainThread(async () =>
+                                    {
+                                        await App.Current.MainPage.DisplayAlert("", "Der Layer konnte nicht verschoben werden. Bitte erneut versuchen", "OK");
+                                    });
+                                    successCheck = true;
+                                }
+                            }
+                        }
+                    }
+                    MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        /// <summary>
         /// Move a layer up the layer stack
         /// </summary>
         /// <param name="parameter"></param>
-        private void OnMoveLayerUp(object parameter)
+        private async void OnMoveLayerUp(object parameter)
         {
-            //await Task.Run(() =>
-            //{
-                var layer = (parameter as MapLayer);
-                if (layer != null)
+            var layer = (parameter as MapLayer);
+            if (layer != null)
+            {
+                layer.LayerZ = layer.LayerZ - 1;
+                MessagingCenter.Subscribe<Application>(App.Current, "layerZFinished", (sender) =>
                 {
-                    layer.LayerZ = layer.LayerZ - 1;
                     MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
-                }
-            //});
+                });
+            }
+
+            //var conn = App.ActiveDatabaseConnection;
+            //try
+            //{
+            //    var layer = (parameter as MapLayer);
+            //    if (layer != null)
+            //    {
+            //        layer.LayerZ = layer.LayerZ - 1;
+            //        int i = 0;
+
+            //        foreach (MapLayer templayer in MapLayers)
+            //        {
+            //            var j = 0;
+            //            var successCheck = false;
+            //            while (successCheck != true)
+            //            {
+            //                templayer.LayerZ = i + 1;
+            //                Layer dblayer;
+            //                try
+            //                {
+            //                    dblayer = await conn.Table<Layer>().Where(l => l.Id == templayer.LayerId).FirstOrDefaultAsync();
+            //                    dblayer.order = templayer.LayerZ;
+            //                    await conn.UpdateAsync(dblayer);
+            //                    successCheck = true;
+            //                    i++;
+            //                }
+            //                catch
+            //                {
+            //                    j++;
+            //                    if (j == 1000)
+            //                    {
+            //                        Device.BeginInvokeOnMainThread(async () =>
+            //                        {
+            //                            await App.Current.MainPage.DisplayAlert("", "Der Layer konnte nicht verschoben werden. Bitte erneut versuchen", "OK");
+            //                        });
+            //                        successCheck = true;
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
+            //    }
+            //}
+            //catch
+            //{
+
+            
         }
 
         /// <summary>
@@ -317,17 +416,6 @@ namespace BioDivCollectorXamarin.ViewModels
         internal void RemoveFileLayers()
         {
             MapModel.RemoveOfflineLayersFromProject();
-        }
-
-        public void UpdateMapLayers()
-        {
-            Device.BeginInvokeOnMainThread(async () =>
-            {
-                var newMapLayers = await MapModel.MakeArrayOfLayers();
-                MapLayers = new ObservableCollection<MapLayer>(newMapLayers); ;
-                OnPropertyChanged("MapLayers");
-                MessagingCenter.Send<MapLayersPageVM>(this, "ListSourceChanged");
-            });
         }
     }
 }

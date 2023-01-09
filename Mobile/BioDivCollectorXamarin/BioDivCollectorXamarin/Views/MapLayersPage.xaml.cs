@@ -17,13 +17,19 @@ namespace BioDivCollectorXamarin.Views
         /// Initialise the layer list for a specific set of layers
         /// </summary>
         /// <param name="layers"></param>
-        public MapLayersPage(ObservableCollection<MapLayer> layers)
+        public MapLayersPage()
         {
             InitializeComponent();
-            ViewModel = new MapLayersPageVM(layers);
+            ViewModel = new MapLayersPageVM();
             BindingContext = ViewModel;
             LayerList.ItemsSource = ViewModel.MapLayers;
             LayerList.HeightRequest = DeviceDisplay.MainDisplayInfo.Height;
+
+            MessagingCenter.Unsubscribe<Xamarin.Forms.Application>(App.Current, "UpdateMapLayers");
+            MessagingCenter.Subscribe<Xamarin.Forms.Application>(App.Current, "UpdateMapLayers", (sender) =>
+            {
+                UpdateLayerList();
+            });
         }
 
         /// <summary>
@@ -101,6 +107,38 @@ namespace BioDivCollectorXamarin.Views
             SwissimageButton.Style = (Style)Application.Current.Resources["PressedButtonStyle"];
         }
 
+        /// <summary>
+        /// Handle the closeButton-Event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void CloseButton_Clicked(System.Object sender, System.EventArgs e)
+        {
+            MessagingCenter.Send<Xamarin.Forms.Application>(App.Current, "SetLayer");
+            Device.BeginInvokeOnMainThread(async () =>
+            {
+                await Shell.Current.GoToAsync("..");
+            });
+        }
+
+        /// <summary>
+        /// Handle what happens on layerList itemDragging
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void LayerList_ItemDragging(System.Object sender, Syncfusion.ListView.XForms.ItemDraggingEventArgs e)
+        {
+            if (e.Action == Syncfusion.ListView.XForms.DragAction.Drop)
+            {
+                ViewModel.LayerList_ItemDragging(sender, e);
+            }
+        }
+
+        /// <summary>
+        /// Handles what happens if a layerCheckbox is checked or unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void CheckBox_CheckedChanged(System.Object sender, Xamarin.Forms.CheckedChangedEventArgs e)
         {
             CheckBox checky = sender as CheckBox;
@@ -114,6 +152,25 @@ namespace BioDivCollectorXamarin.Views
                 ViewModel.RemoveFileLayers();
             }
             ViewModel.UpdateMapLayers();
+        }
+
+        /// <summary>
+        /// Update the layerList
+        /// </summary>
+        private void UpdateLayerList()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (ViewModel.MapLayers.Count > 0)
+                {
+                    LayerList.ItemsSource = null;
+                    LayerList.ItemsSource = ViewModel.MapLayers;
+                }
+                else
+                {
+                    LayerList.ItemsSource = null;
+                }
+            });
         }
     }
 }

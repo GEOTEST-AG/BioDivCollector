@@ -120,11 +120,11 @@ namespace BioDivCollectorXamarin.Models
                         layerWms.Enabled = layer.visible;
                         if (layerWms != null)
                         {
+                            layerWms.Name = layer.title;
                             var WmsLayer = new MapLayer(layer.Id, true, 0, layerWms);
                             WmsLayer.Opacity = layer.opacity;
                             WmsLayer.Enabled = layer.visible;
                             WmsLayer.LayerZ = layer.order;
-                            WmsLayer.Name = layer.title;
 
                             mapLayersTemp.SetValue(WmsLayer, layerNo);
                             if (offlineLayerExists)
@@ -236,7 +236,7 @@ namespace BioDivCollectorXamarin.Models
         /// Deletes the locally stored mbtiles file associated with the layer
         /// </summary>
         /// <param name="layername"></param>
-        public async static Task<bool> DeleteMapLayer(string layername)
+        public static void DeleteMapLayer(string layername)
         {
             var dirPath = App.TileLocation;
 
@@ -254,7 +254,6 @@ namespace BioDivCollectorXamarin.Models
                     }
                 }
             }
-            return true;
         }
 
         /// <summary>

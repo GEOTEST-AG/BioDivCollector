@@ -27,16 +27,23 @@ namespace BioDivCollectorXamarin.Models
                 enabled = value;
                 if (Name != null)
                 {
-                    var existingLayer = Layer.FetchLayerByName(Name).Result;
-                    var existingLayerWithOpacaty = existingLayer.Where(Layer => Layer.opacity == Opacity).FirstOrDefault();
-                    if (existingLayerWithOpacaty != null)
+                    Layer existingLayer = new Layer();
+                    try
                     {
-                        existingLayerWithOpacaty.visible = enabled;
                         Task.Run(async () =>
                         {
-                            var conn = App.ActiveDatabaseConnection;
-                            await conn.UpdateAsync(existingLayerWithOpacaty);
+                            existingLayer = await Layer.GetExistingLayer(LayerId, Opacity);
+                            if (existingLayer != null)
+                            {
+                                existingLayer.visible = enabled;
+                                var conn = App.ActiveDatabaseConnection;
+                                await conn.UpdateAsync(existingLayer);
+                            }
                         });
+                    }
+                    catch
+                    {
+
                     }
                     OnPropertyChanged("Enabled");
                     OnPropertyChanged("MapLayers");
@@ -56,19 +63,18 @@ namespace BioDivCollectorXamarin.Models
                 var prevZ = layerZ;
                 layerZ = value;
 
-                Task.Run(async() =>
+                try
                 {
-
-                    try
+                    var project = App.CurrentProject;
+                    if (prevZ != layerZ && value > 0 && prevZ > 0)
                     {
-                        var project = await Project.FetchCurrentProject();
-                        if (prevZ != layerZ && value > 0 && prevZ > 0)
-                        {
-                            var dic = new Dictionary<string, int>();
-                            dic.Add("oldZ", prevZ);
-                            dic.Add("newZ", value);
+                        var dic = new Dictionary<string, int>();
+                        dic.Add("oldZ", prevZ);
+                        dic.Add("newZ", value);
 
-                            if (Name != null)
+                        if (Name != null)
+                        {
+                            Task.Run(async () =>
                             {
                                 var conn = App.ActiveDatabaseConnection;
 
@@ -84,14 +90,15 @@ namespace BioDivCollectorXamarin.Models
                                             await conn.UpdateAsync(layerInPostionAlready);
                                         }
                                     }
-                            }
+                            });
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }
-                });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+                MessagingCenter.Send<MapLayer>(this, "LayerOrderChanged");
             }
         }
 

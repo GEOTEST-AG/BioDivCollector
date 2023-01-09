@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
-namespace FeldAppX.Models.DatabaseModel
+namespace BioDivCollectorXamarin.Models.DatabaseModel
 {
     public static class Constants
     {
