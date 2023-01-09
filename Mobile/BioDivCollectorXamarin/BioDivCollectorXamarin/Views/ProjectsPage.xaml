@@ -43,9 +43,9 @@
             <ScrollView Margin="0" VerticalOptions="FillAndExpand" IsVisible="{Binding CurrentProject, Converter={StaticResource objectToBool}}">
                 <FlexLayout Direction="Column" JustifyContent="SpaceEvenly" >
                     <Grid  BackgroundColor="Transparent" VerticalOptions="Fill">
-                        <Frame x:Name="CurrentProjectCard" BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
-                           OutlineColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
-                           BackgroundColor="Transparent"
+                        <Frame x:Name="CurrentProjectCard" 
+                               BorderColor="{AppThemeBinding Light={StaticResource DarkBackgroundColor}, Dark={StaticResource LightBackgroundColor}}"
+                               BackgroundColor="Transparent"
                            Opacity="1"
                            CornerRadius="20"
                            Margin="20,15,20,30"

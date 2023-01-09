@@ -6,6 +6,10 @@
     BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">
     <ContentPage.Content>
         <StackLayout Margin="20">
+            <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+                <Button Text="&#xe5cd;" FontFamily="Material" TextColor="{AppThemeBinding Light={StaticResource LightTextColor}, Dark={StaticResource DarkTextColor}}" BackgroundColor="Transparent" Clicked="CloseButton_Clicked" FontSize="35" HorizontalOptions="EndAndExpand" VerticalOptions="Center" Margin="0,0,20,0"/>
+            </StackLayout>
+            
             <Label Text="Hinzufügen von lokalen Ebenen zur App" FontAttributes="Bold" FontSize="Title" Margin="0,10"/>
             <Label Text="Lokale Ebenen können der App hinzugefügt werden, indem eine «.mbtiles»-Datei in das App-Verzeichnis kopiert wird. Mbtiles-Dateien sind kleine Datenbanken mit Kachelbildern, die im GIS erstellt werden können."/>
             <Label Text="Erstellen einer mbtiles-Datei in QGIS:" FontAttributes="Bold" Margin="0,10"/>

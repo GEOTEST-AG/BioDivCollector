@@ -11,6 +11,14 @@ namespace BioDivCollectorXamarin.Views
         {
             InitializeComponent();
         }
+
+        void CloseButton_Clicked(System.Object sender, System.EventArgs e)
+        {
+            Device.BeginInvokeOnMainThread(async () =>
+            {
+                await Shell.Current.GoToAsync("..");
+            });
+        }
     }
 }
 
