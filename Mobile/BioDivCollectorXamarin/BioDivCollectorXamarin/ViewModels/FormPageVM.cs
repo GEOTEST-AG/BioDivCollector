@@ -221,6 +221,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             textField.PlaceholderColor = Color.Gray;
                             textField.SetAppThemeColor(CustomEntry.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
                             textField.SetAppThemeColor(CustomEntry.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+                            
                             var empty = String.IsNullOrEmpty(textField.Text);
                             if (formField.mandatory) { Validation.Add((int)textField.ValueId, !empty); }
                             if (localReadOnly)
@@ -400,7 +401,15 @@ namespace BioDivCollectorXamarin.ViewModels
                             }
                             dropField.SetAppThemeColor(SfAutoComplete.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
                             dropField.SetAppThemeColor(SfAutoComplete.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
-                            dropField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                            dropField.SetAppThemeColor(SfAutoComplete.ClearButtonColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+                            if (Device.RuntimePlatform == Device.Android)
+                            {
+                                dropField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+                            } 
+                            else if (Device.RuntimePlatform == Device.iOS)
+                            {
+                                dropField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+                            }
 
                             List<FieldChoice> fieldChoices = await Form.FetchFormChoicesForDropdown(formField.Id);
 
@@ -417,10 +426,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             dropField.MultiSelectMode = MultiSelectMode.None;
                             dropField.ShowSuggestionsOnFocus = true;
                             dropField.IsSelectedItemsVisibleInDropDown = false;
-                            if (Device.RuntimePlatform == Device.Android)
-                            {
-                                dropField.BorderColor = Color.Black;
-                            }
+                            
                             dropField.TextSize = fontSize;
                             dropField.DropDownBackgroundColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGrey"];
                             dropField.DropDownTextColor = Color.White;
@@ -674,8 +680,15 @@ namespace BioDivCollectorXamarin.ViewModels
             AssociatedGeometry.MaximumDropDownHeight = 150;
             AssociatedGeometry.SetAppThemeColor(SfAutoComplete.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
             AssociatedGeometry.SetAppThemeColor(SfAutoComplete.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
-            AssociatedGeometry.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
-
+            AssociatedGeometry.SetAppThemeColor(SfAutoComplete.ClearButtonColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+            if (Device.RuntimePlatform == Device.Android)
+            {
+                AssociatedGeometry.SetAppThemeColor(SfAutoComplete.BorderColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
+            }
+            else if (Device.RuntimePlatform == Device.iOS)
+            {
+                AssociatedGeometry.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
+            }
 
             if (queriedrec.geometry_fk != null)
             {
@@ -692,10 +705,6 @@ namespace BioDivCollectorXamarin.ViewModels
             if (ReadOnly)
             {
                 AssociatedGeometry.SetAppThemeColor(Label.BackgroundColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
-            }
-            if (Device.RuntimePlatform == Device.Android)
-            {
-                AssociatedGeometry.BorderColor = Color.Black;
             }
             AssociatedGeometry.SelectionChanged += DidSelectNewGeometry;
 

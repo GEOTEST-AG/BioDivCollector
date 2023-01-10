@@ -30,10 +30,10 @@ namespace BioDivCollectorXamarin.Droid
 
             if (Control == null || e.NewElement == null) return;
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
-                Control.BackgroundTintList = ColorStateList.ValueOf(Android.Graphics.Color.Gray);
-            else
-                Control.Background.SetColorFilter(Android.Graphics.Color.Gray, PorterDuff.Mode.SrcAtop);
+            //if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
+            //    Control.BackgroundTintList = ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+            //else
+            //    Control.Background.SetColorFilter(Android.Graphics.Color.Gray, PorterDuff.Mode.SrcAtop);
         }
     }
 

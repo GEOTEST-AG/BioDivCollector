@@ -140,7 +140,7 @@ namespace BioDivCollectorXamarin.Controls
 					UpdateDate();
 				}
 			}
-		}
+        }
 
 
 		public void CleanDate()

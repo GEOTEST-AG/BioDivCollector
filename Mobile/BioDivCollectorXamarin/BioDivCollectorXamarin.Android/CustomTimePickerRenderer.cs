@@ -6,12 +6,12 @@ using BioDivCollectorXamarin.Droid;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 
-[assembly: ExportRenderer(typeof(CustomEntry), typeof(CustomEntryRenderer))]
+[assembly: ExportRenderer(typeof(CustomTimePicker), typeof(CustomTimePickerRenderer))]
 namespace BioDivCollectorXamarin.Droid
 {
-    class CustomEntryRenderer : EntryRenderer
+    class CustomTimePickerRenderer : TimePickerRenderer
     {
-        public CustomEntryRenderer(Context context) : base(context)
+        public CustomTimePickerRenderer(Context context) : base(context)
         {
 
         }
@@ -20,7 +20,7 @@ namespace BioDivCollectorXamarin.Droid
         /// Adjust the background colour of a text entry
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnElementChanged(ElementChangedEventArgs<Entry> e)
+        protected override void OnElementChanged(ElementChangedEventArgs<TimePicker> e)
         {
             base.OnElementChanged(e);
 
@@ -34,7 +34,7 @@ namespace BioDivCollectorXamarin.Droid
                     Control.BackgroundTintList = ColorStateList.ValueOf(Android.Graphics.Color.White);
                 }
                 else
-                { 
+                {
                     Control.BackgroundTintList = ColorStateList.ValueOf(Android.Graphics.Color.Black);
                 }
                 Application.Current.RequestedThemeChanged += (s, a) =>
