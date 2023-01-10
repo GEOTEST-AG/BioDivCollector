@@ -1550,7 +1550,40 @@ namespace BioDivCollectorXamarin.ViewModels
                 var coords = point.ToDoubleArray();
                 var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
 
-                string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie eine Geometriename ein", accept:"Speichern", cancel:"Abbrechen");
+                string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie einen Geometrienamen ein", accept:"Speichern", cancel:"Abbrechen");
+
+                var geomNames = await ReferenceGeometry.GetAllGeometryNames();
+                var geomNameExists = false;
+
+                foreach (var name in geomNames)
+                {
+                    if (name == geomName)
+                    {
+                        geomNameExists = true;
+                    }
+                }
+
+                while (geomNameExists == true)
+                {
+                    geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Der eingegebene Geometriename existiert bereits. Bitte geben Sie einen anderen Geometrienamen ein", accept: "Speichern", cancel: "Abbrechen");
+                    int i = 0;
+                    foreach (var name in geomNames)
+                    {
+                        if (name == geomName)
+                        {
+                            i++;
+                        }
+                    }
+                    if (i == 0)
+                    {
+                        geomNameExists = false;
+                    }
+                    else
+                    {
+                        geomNameExists = true;
+                    }
+                }
+
                 string geomId = await ReferenceGeometry.SaveGeometry(TempCoordinates, geomName);
 
                 var geom = await ReferenceGeometry.GetGeometry(geomId);

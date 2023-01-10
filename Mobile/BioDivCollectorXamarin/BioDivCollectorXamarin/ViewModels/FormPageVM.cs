@@ -107,7 +107,7 @@ namespace BioDivCollectorXamarin.ViewModels
             //Get the record and its corresponding variable values
             if (recId != null && recId != String.Empty)
             {
-                    queriedrec = await Record.FetchRecord(recId);
+                queriedrec = await Record.FetchRecord(recId);
                 ReadOnly = queriedrec.readOnly;
                 RecId = recId;
             }
@@ -643,12 +643,15 @@ namespace BioDivCollectorXamarin.ViewModels
                     gm.geometryName = String.Empty; //Avoid a crash on android from null strings
                 }
             }
-            var general = new ReferenceGeometry() { geometryName = "Allgemeine Beobachtung" };
+            var general = new ReferenceGeometry() 
+            { 
+                geometryName = "Allgemeine Beobachtung" 
+            };
             var refGeoms = Geoms;
             refGeoms.Insert(0, general);
             AssociatedGeometry.AutoCompleteSource = refGeoms.Select(c => c.geometryName).ToList();
             AssociatedGeometry.ItemsSource = refGeoms;
-            AssociatedGeometry.SelectedItem = new Binding("geometryName");
+            AssociatedGeometry.SelectedItem = new Binding("geometryId");
             AssociatedGeometry.TypeId = -999;
 
             AssociatedGeometry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
@@ -678,7 +681,7 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 var geom = await ReferenceGeometry.GetGeometry((int)queriedrec.geometry_fk);
                 var selectedGeomIndex = Geoms.FindIndex(a => a.Id == geom.Id);
-                AssociatedGeometry.SelectedIndex = selectedGeomIndex++;
+                AssociatedGeometry.SelectedIndex = selectedGeomIndex;
             }
             else
             {
@@ -697,6 +700,7 @@ namespace BioDivCollectorXamarin.ViewModels
             AssociatedGeometry.SelectionChanged += DidSelectNewGeometry;
 
             Assets.Add(AssociatedGeometry);
+
 
 
             var DeleteButton = new Button();
@@ -815,7 +819,7 @@ namespace BioDivCollectorXamarin.ViewModels
         private async void OnSave()
         {
             NewRecord = false;
-            UpdateAssociatedGeometry(AssociatedGeometry);
+            await UpdateAssociatedGeometry(AssociatedGeometry);
             await Form.SaveValuesFromFormFields(Assets, RecId);
 
             MessagingCenter.Send<Xamarin.Forms.Application>(App.Current, "RefreshGeometries");
@@ -842,7 +846,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// Update the geometry associated with the record with that selected from the picker
         /// </summary>
         /// <param name="choice"></param>
-        private async void UpdateAssociatedGeometry(SfAutoComplete choice)
+        private async Task UpdateAssociatedGeometry(SfAutoComplete choice)
         {
             var proj = await Project.FetchCurrentProject();
             if (choice.SelectedIndex > 0)
@@ -850,13 +854,13 @@ namespace BioDivCollectorXamarin.ViewModels
                 var source = (List<ReferenceGeometry>)choice.ItemsSource;
                 var geom = source[(int)choice.SelectedIndex] as ReferenceGeometry;
                 queriedrec.geometry_fk = geom.Id;
-                    queriedrec.project_fk = proj.Id;
-                    if (queriedrec.status != -1)
-                    {
-                        queriedrec.status = 2;
-                    }
+                queriedrec.project_fk = proj.Id;
+                if (queriedrec.status != -1)
+                {
+                    queriedrec.status = 2;
+                }
                 var conn = App.ActiveDatabaseConnection;
-                    await conn.UpdateAsync(queriedrec);
+                await conn.UpdateAsync(queriedrec);
             }
             else
             {
@@ -1175,7 +1179,12 @@ namespace BioDivCollectorXamarin.ViewModels
             NewRecord = false;
             var button = sender as CameraButton;
             var rec = await Record.FetchRecord(RecId);
-            if (rec == null) { rec = await Record.CreateRecord(FormId, GeomId); }
+
+            if (rec == null) 
+            { 
+                rec = await Record.CreateRecord(FormId, GeomId); 
+            }
+
             Device.BeginInvokeOnMainThread(async () =>
             {
                 await Shell.Current.Navigation.PushAsync(new SfImageEditorPage(button.FormFieldId, null, RecId), true);
