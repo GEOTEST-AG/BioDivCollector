@@ -25,6 +25,14 @@ namespace BioDivCollectorXamarin.Views
             LayerList.ItemsSource = ViewModel.MapLayers;
             LayerList.HeightRequest = DeviceDisplay.MainDisplayInfo.Height;
 
+            MessagingCenter.Subscribe<MapLayersPageVM>(this, "ListSourceChanged", (sender) =>
+            {
+                //Remake map layer list
+                LayerList.ItemsSource = null;
+                LayerList.ItemsSource = ViewModel.MapLayers;
+                LayerList.ScrollTo(0, false);
+            });
+
             MessagingCenter.Unsubscribe<Xamarin.Forms.Application>(App.Current, "UpdateMapLayers");
             MessagingCenter.Subscribe<Xamarin.Forms.Application>(App.Current, "UpdateMapLayers", (sender) =>
             {

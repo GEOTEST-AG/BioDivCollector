@@ -8,7 +8,7 @@
              xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
              xmlns:syncfusion="clr-namespace:Syncfusion.ListView.XForms;assembly=Syncfusion.SfListView.XForms" 
              x:DataType="viewModel:MapLayersPageVM"
-             ios:Page.UseSafeArea="False"
+             ios:Page.UseSafeArea="True"
              Title="Kartenebenen"
              Shell.PresentationMode="ModalAnimated"
              BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">

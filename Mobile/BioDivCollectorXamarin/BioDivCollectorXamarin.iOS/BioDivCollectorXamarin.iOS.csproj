@@ -51,12 +51,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchArch>ARM64</MtouchArch>
-    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
+    <CodesignKey>iPhone Developer</CodesignKey>
     <MtouchDebug>true</MtouchDebug>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <MtouchLink>None</MtouchLink>
     <MtouchInterpreter>-all</MtouchInterpreter>
-    <CodesignProvision>Wildcard</CodesignProvision>
+    <CodesignProvision>
+    </CodesignProvision>
     <IOSDebugOverWiFi>true</IOSDebugOverWiFi>
     <MtouchProfiling>true</MtouchProfiling>
   </PropertyGroup>

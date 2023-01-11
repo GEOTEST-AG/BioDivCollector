@@ -24,7 +24,7 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 mapLayers = value;
                 MessagingCenter.Send<Application>(App.Current, "UpdateMapLayers");
-                OnPropertyChanged("MapLayers");
+                OnPropertyChanged();
             }
         }
 
@@ -269,82 +269,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             }
         }
-
-        /// <summary>
-        /// Move a layer up the layer stack
-        /// </summary>
-        /// <param name="parameter"></param>
-        private async void OnMoveLayerUp(object parameter)
-        {
-            var layer = (parameter as MapLayer);
-            if (layer != null)
-            {
-                layer.LayerZ = layer.LayerZ - 1;
-                MessagingCenter.Subscribe<Application>(App.Current, "layerZFinished", (sender) =>
-                {
-                    MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
-                });
-            }
-
-            //var conn = App.ActiveDatabaseConnection;
-            //try
-            //{
-            //    var layer = (parameter as MapLayer);
-            //    if (layer != null)
-            //    {
-            //        layer.LayerZ = layer.LayerZ - 1;
-            //        int i = 0;
-
-            //        foreach (MapLayer templayer in MapLayers)
-            //        {
-            //            var j = 0;
-            //            var successCheck = false;
-            //            while (successCheck != true)
-            //            {
-            //                templayer.LayerZ = i + 1;
-            //                Layer dblayer;
-            //                try
-            //                {
-            //                    dblayer = await conn.Table<Layer>().Where(l => l.Id == templayer.LayerId).FirstOrDefaultAsync();
-            //                    dblayer.order = templayer.LayerZ;
-            //                    await conn.UpdateAsync(dblayer);
-            //                    successCheck = true;
-            //                    i++;
-            //                }
-            //                catch
-            //                {
-            //                    j++;
-            //                    if (j == 1000)
-            //                    {
-            //                        Device.BeginInvokeOnMainThread(async () =>
-            //                        {
-            //                            await App.Current.MainPage.DisplayAlert("", "Der Layer konnte nicht verschoben werden. Bitte erneut versuchen", "OK");
-            //                        });
-            //                        successCheck = true;
-            //                    }
-            //                }
-            //            }
-            //        }
-            //        MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
-            //    }
-            //}
-            //catch
-            //{
-
-            
-        }
-
-        /// <summary>
-        /// Check if the layers can be moved up the layer stack
-        /// </summary>
-        /// <param name="parameter"></param>
-        private bool ValidateMove(object parameter)
-        {
-            var layer = (parameter as MapLayer);
-            if (layer != null && layer.LayerZ == 1) { return false; }
-            return true;
-        }
-
+        
         /// <summary>
         /// Set the base layer to OSM if the OSM button is pressed
         /// </summary>
@@ -407,7 +332,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         internal void AddFileLayers()
         {
-            MapModel.AddOfflineLayersToProject();
+            Task.Run(async () =>
+            {
+                await MapModel.AddOfflineLayersToProject();
+            });
         }
 
         /// <summary>
@@ -415,7 +343,10 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         internal void RemoveFileLayers()
         {
-            MapModel.RemoveOfflineLayersFromProject();
+            Task.Run(async () =>
+            {
+                await MapModel.RemoveOfflineLayersFromProject();
+            });
         }
     }
 }

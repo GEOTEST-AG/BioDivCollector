@@ -28,6 +28,7 @@ namespace BioDivCollectorXamarin.iOS
             NativeMedia.Platform.Init(GetTopViewController);
             new Syncfusion.SfAutoComplete.XForms.iOS.SfAutoCompleteRenderer();
             Syncfusion.SfImageEditor.XForms.iOS.SfImageEditorRenderer.Init();
+            Syncfusion.ListView.XForms.iOS.SfListViewRenderer.Init();
             string dbName = "biodivcollector_database.sqlite";
             string folderPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "..", "Library");
             string fullPath = Path.Combine(folderPath, dbName);

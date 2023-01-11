@@ -3,7 +3,9 @@
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="BioDivCollectorXamarin.Views.LayersInfoPage"
-    BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">
+    BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}"
+    xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
+    ios:Page.UseSafeArea="True">
     <ContentPage.Content>
         <StackLayout Margin="20">
             <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
