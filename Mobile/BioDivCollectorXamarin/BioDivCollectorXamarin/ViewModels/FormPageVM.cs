@@ -86,13 +86,13 @@ namespace BioDivCollectorXamarin.ViewModels
 
             if (FormId != 0)
             {
-                Task.Run(async () =>
+                //Task.Run(async () =>
+                    Device.BeginInvokeOnMainThread(async () =>
                 {
                     await CreateForm(RecId, FormId, GeomId);
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
+                    //{
                         DataFormFinished = true; 
-                    });
+                    //});
                 });
             }
         }
@@ -405,7 +405,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             if (Device.RuntimePlatform == Device.Android)
                             {
                                 dropField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);
-                            } 
+                            }
                             else if (Device.RuntimePlatform == Device.iOS)
                             {
                                 dropField.SetAppThemeColor(SfAutoComplete.BorderColorProperty, Color.FromRgb(0.95, 0.95, 0.95), Color.FromRgb(0.2, 0.2, 0.2));
@@ -426,8 +426,8 @@ namespace BioDivCollectorXamarin.ViewModels
                             dropField.MultiSelectMode = MultiSelectMode.None;
                             dropField.ShowSuggestionsOnFocus = true;
                             dropField.IsSelectedItemsVisibleInDropDown = false;
-                            
                             dropField.TextSize = fontSize;
+
                             dropField.DropDownBackgroundColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGrey"];
                             dropField.DropDownTextColor = Color.White;
                             dropField.HighlightedTextColor = (Color)Xamarin.Forms.Application.Current.Resources["BioDivGreen"];

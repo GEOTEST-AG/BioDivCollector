@@ -109,7 +109,10 @@ namespace BioDivCollectorXamarin.Views
                     var makeFormTask = Task.Run(() =>
                     {
                         ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
-                        BindingContext = ViewModel;
+                        Device.BeginInvokeOnMainThread(() =>
+                        {
+                            BindingContext = ViewModel;
+                        });
                     });
 
                     await makeFormTask;
