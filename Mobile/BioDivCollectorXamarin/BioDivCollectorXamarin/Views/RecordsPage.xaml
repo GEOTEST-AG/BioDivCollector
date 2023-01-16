@@ -44,6 +44,7 @@
                         <TextCell Height="120" Text="{Binding String1}" Detail="{Binding String2}">
                             <TextCell.ContextActions>
                                 <MenuItem 
+                                      Text="Entfernen"
                                       IconImageSource="delete.png"
                                       IsDestructive="True"
                                       Command="{Binding Path=BindingContext.RecordDeleteCommand, Source={x:Reference Records}}"
