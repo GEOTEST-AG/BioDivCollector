@@ -147,14 +147,24 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public static async Task RemoveFileLayers(int projectId)
         {
             var conn = App.ActiveDatabaseConnection;
-                try
+            try
+            {
+                await conn.Table<Layer>().DeleteAsync(layer => (layer.project_fk == projectId && layer.fileBased == true));
+
+                //reorder the online layers to compensate for the lack of offline layers
+                var onlineLayers = await conn.Table<Layer>().Where(layer => layer.project_fk == projectId).OrderBy(layer => layer.order).ToListAsync();
+                int i = 1;
+                foreach (var layer in onlineLayers)
                 {
-                    await conn.Table<Layer>().DeleteAsync(layer => (layer.project_fk == projectId && layer.fileBased == true));
+                    layer.order = i;
+                    await conn.UpdateAsync(layer);
+                    i++;
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }
