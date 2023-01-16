@@ -63,6 +63,8 @@ namespace BioDivCollectorXamarin.Models
                     {
                         //Add mbtiles layers
                         offlineLayers.TryGetValue(layer.wmsLayer, out ILayer offlineLayer);
+                        offlineLayer.Enabled = layer.visible;
+                        offlineLayer.Opacity = layer.opacity;
                         var fileLayer = new MapLayer(layer.Id, layer.visible, layer.order, offlineLayer);
                         fileLayer.Opacity = layer.opacity;
                         fileLayer.Name = layer.title;
@@ -151,7 +153,7 @@ namespace BioDivCollectorXamarin.Models
                 }
             }
 
-            var mapLayersTempList = mapLayersTemp.ToList().GetRange(0, i);
+            var mapLayersTempList = mapLayersTemp.ToList().GetRange(0, i).Where(x => x != null).ToList();
 
             return mapLayersTempList;
 

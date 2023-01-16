@@ -128,7 +128,7 @@ namespace BioDivCollectorXamarin
             {
                 if (IsTest)
                 {
-                    return authParams = "BioDivCollectorXamarin.Models.LoginModel.AuthTest.xml";
+                    return authParams = "BioDivCollectorXamarin.Models.LoginModel.Auth.xml";
                 }
                 else
                 {

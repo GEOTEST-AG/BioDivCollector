@@ -22,22 +22,16 @@ namespace BioDivCollectorXamarin.Views
             InitializeComponent();
             ViewModel = new MapLayersPageVM();
             BindingContext = ViewModel;
-            LayerList.ItemsSource = ViewModel.MapLayers;
             LayerList.HeightRequest = DeviceDisplay.MainDisplayInfo.Height;
 
-            MessagingCenter.Subscribe<MapLayersPageVM>(this, "ListSourceChanged", (sender) =>
+            MessagingCenter.Subscribe<MapLayersPageVM>(ViewModel, "ListSourceChanged", (sender) =>
             {
                 //Remake map layer list
-                LayerList.ItemsSource = null;
+                //LayerList.ItemsSource = null;
                 LayerList.ItemsSource = ViewModel.MapLayers;
                 LayerList.ScrollTo(0, false);
             });
 
-            MessagingCenter.Unsubscribe<Xamarin.Forms.Application>(App.Current, "UpdateMapLayers");
-            MessagingCenter.Subscribe<Xamarin.Forms.Application>(App.Current, "UpdateMapLayers", (sender) =>
-            {
-                UpdateLayerList();
-            });
         }
 
         /// <summary>
@@ -142,25 +136,6 @@ namespace BioDivCollectorXamarin.Views
             }
         }
 
-        /// <summary>
-        /// Handles what happens if a layerCheckbox is checked or unchecked
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void CheckBox_CheckedChanged(System.Object sender, Xamarin.Forms.CheckedChangedEventArgs e)
-        {
-            CheckBox checky = sender as CheckBox;
-            Preferences.Set("ShowLocalOnly", checky.IsChecked);
-            if (checky.IsChecked)
-            {
-                ViewModel.AddFileLayers();
-            }
-            else
-            {
-                ViewModel.RemoveFileLayers();
-            }
-            ViewModel.UpdateMapLayers();
-        }
 
         /// <summary>
         /// Update the layerList

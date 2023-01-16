@@ -23,8 +23,7 @@ namespace BioDivCollectorXamarin.ViewModels
             set
             {
                 mapLayers = value;
-                MessagingCenter.Send<Application>(App.Current, "UpdateMapLayers");
-                OnPropertyChanged();
+                OnPropertyChanged("MapLayers");
             }
         }
 
@@ -66,7 +65,31 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Determines whether the list should show the localonly files
         /// </summary>
-        public bool ShowLocalOnly { get; set; }
+        private bool showLocalOnly;
+        public bool ShowLocalOnly
+        {
+            get
+            {
+                return showLocalOnly;
+            }
+            set
+            {
+                Task.Run(async () =>
+                {
+                    showLocalOnly = value;
+                    Preferences.Set("ShowLocalOnly", showLocalOnly);
+                    if (showLocalOnly)
+                    {
+                        AddFileLayers();
+                    }
+                    else
+                    {
+                        RemoveFileLayers();
+                    }
+                    UpdateMapLayers();
+                });
+            }
+        }
 
         /// <summary>
         /// The current base layer
@@ -116,7 +139,6 @@ namespace BioDivCollectorXamarin.ViewModels
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 var allMapLayers = await MapModel.MakeArrayOfLayers();
-                MapLayers = new ObservableCollection<MapLayer>(new List<MapLayer>());
                 MapLayers = new ObservableCollection<MapLayer>(allMapLayers);
             });
 
@@ -146,14 +168,17 @@ namespace BioDivCollectorXamarin.ViewModels
             });
 
         }
+
+        /// <summary>
+        /// Updates the available map layers seen on the page
+        /// </summary>
         public void UpdateMapLayers()
         {
-            Device.BeginInvokeOnMainThread(async () =>
+            Task.Run(async () =>
             {
                 var newMapLayers = await MapModel.MakeArrayOfLayers();
                 MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
-                OnPropertyChanged("MapLayers");
-                MessagingCenter.Send<MapLayersPageVM>(this, "ListSourceChanged");
+                MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged"); //No idea why this works the way it does. If you take the above two lines out, it doesn't work, and if you just add OnPropertyChanged, it doesn't work
             });
         }
 
@@ -346,6 +371,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Task.Run(async () =>
             {
                 await MapModel.RemoveOfflineLayersFromProject();
+                MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
             });
         }
     }
