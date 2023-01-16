@@ -40,7 +40,8 @@ namespace BioDivCollectorXamarin.Droid
 
         public string GetImagePath()
         {
-            var directory = Path.Combine(GetRootFolder(), Android.OS.Environment.DirectoryPictures);
+            //var directory = Path.Combine(GetRootFolder(), Android.OS.Environment.DirectoryPictures);
+            var directory = Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDcim).ToString(), "BioDivCollector");
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
