@@ -170,7 +170,7 @@ namespace BioDivCollectorXamarin.ViewModels
             set
             {
                 geometryType = value;
-                (SaveGeomCommand as Command).ChangeCanExecute();
+                //(SaveGeomCommand as Command).ChangeCanExecute();
             }
         }
 
@@ -190,7 +190,7 @@ namespace BioDivCollectorXamarin.ViewModels
             set
             {
                 tempCoordinates = value;
-                //(SaveGeomCommand as Command).ChangeCanExecute();
+                (SaveGeomCommand as Command).ChangeCanExecute();
             }
         }
 
@@ -1608,7 +1608,6 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             if (GeometryType == "Punkt")
             {
-                return true;
                 return TempCoordinates.Count > 0;
             }
             else if (GeometryType == "Linie")
