@@ -80,7 +80,7 @@ namespace BioDivCollectorXamarin.Views
                     Device.BeginInvokeOnMainThread(async () =>
                     {
                         var rec = await Record.FetchRecord(ViewModel.RecordId);
-                        await Shell.Current.GoToAsync($"..?formid={rec.formId}&recid={ViewModel.RecordId}&geomid={rec.geometry_fk}");
+                        await Shell.Current.GoToAsync($"Form?formid={rec.formId}&recid={ViewModel.RecordId}&geomid={rec.geometry_fk}");
                     });
                 })
             });

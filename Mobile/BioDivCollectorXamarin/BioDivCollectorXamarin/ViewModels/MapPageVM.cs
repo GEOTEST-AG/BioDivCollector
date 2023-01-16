@@ -170,7 +170,7 @@ namespace BioDivCollectorXamarin.ViewModels
             set
             {
                 geometryType = value;
-                //(SaveGeomCommand as Command).ChangeCanExecute();
+                (SaveGeomCommand as Command).ChangeCanExecute();
             }
         }
 
@@ -1551,6 +1551,14 @@ namespace BioDivCollectorXamarin.ViewModels
                 var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
 
                 string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie einen Geometrienamen ein", accept:"Speichern", cancel:"Abbrechen");
+
+                if (Device.RuntimePlatform == Device.iOS && geomName == "")
+                {
+                    while (geomName == "")
+                    {
+                        geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Auf iOS-Geräten sind leere Geometrienamen zurzeit nicht möglich. Bitte geben Sie einen Geometrienamen ein", accept: "Speichern", cancel: "Abbrechen");
+                    }
+                }
 
                 var geomNames = await ReferenceGeometry.GetAllGeometryNames();
                 var geomNameExists = false;
