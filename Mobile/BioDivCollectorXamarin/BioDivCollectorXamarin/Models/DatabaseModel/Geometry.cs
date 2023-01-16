@@ -104,7 +104,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public static async Task<List<string>> GetAllGeometryNames()
         {
             var queriedGeoms = new List<ReferenceGeometry>();
-            var project = Project.FetchCurrentProject();
+            var project = await Project.FetchCurrentProject();
             var conn = App.ActiveDatabaseConnection;
             queriedGeoms = await conn.Table<ReferenceGeometry>().Where(geom => geom.project_fk == project.Id).ToListAsync();
             var geomNames = new List<string>();
