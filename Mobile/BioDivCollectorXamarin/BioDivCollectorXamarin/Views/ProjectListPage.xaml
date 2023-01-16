@@ -86,7 +86,7 @@
                                     </FlexLayout>
                                 </xct:Expander>
                                 <FlexLayout Direction="Row" >
-                                    <Button x:Name="ProjectDeleteButton" Style="{StaticResource DangerButtonStyle}" ImageSource="delete.png" Margin="5" TextTransform="Uppercase" CornerRadius="10" HeightRequest="50" WidthRequest="20" HorizontalOptions="FillAndExpand"  Command="{Binding BindingContext.DeleteProjectCommand, Source={x:Reference ProjectListObject}}" CommandParameter="{Binding .}" FlexLayout.Grow="0" FlexLayout.Basis="20%"/>
+                                    <Button x:Name="ProjectDeleteButton" Style="{StaticResource DangerButtonStyle}" Text="&#xe872;" FontFamily="Material" FontSize="25" Margin="5" TextTransform="Uppercase" CornerRadius="10" HeightRequest="50" WidthRequest="20" HorizontalOptions="FillAndExpand"  Command="{Binding BindingContext.DeleteProjectCommand, Source={x:Reference ProjectListObject}}" CommandParameter="{Binding .}" FlexLayout.Grow="0" FlexLayout.Basis="20%"/>
                                     <Button x:Name="ProjectOptionsButton" Margin="5" Text="Verwenden" TextTransform="Uppercase" CornerRadius="10" HeightRequest="50" HorizontalOptions="FillAndExpand" Command="{Binding BindingContext.SyncProjectCommand, Source={x:Reference ProjectListObject}}" CommandParameter="{Binding .}" FlexLayout.Grow="1" FlexLayout.Basis="80%"/>
                                 </FlexLayout>
                             </StackLayout>

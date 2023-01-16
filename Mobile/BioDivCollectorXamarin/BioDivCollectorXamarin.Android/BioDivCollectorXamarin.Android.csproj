@@ -287,9 +287,6 @@
     <AndroidResource Include="Resources\drawable\Project.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\delete.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\More.png" />
   </ItemGroup>
   <ItemGroup>

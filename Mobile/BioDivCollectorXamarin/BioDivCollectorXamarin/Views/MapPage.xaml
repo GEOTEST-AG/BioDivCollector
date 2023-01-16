@@ -26,8 +26,8 @@
                         <Button x:Name="SaveButton" Text="&#xe161;" Style="{StaticResource mapButtonStyle}"  Command ="{Binding SaveMapCommand}" BackgroundColor="{StaticResource BioDivGrey}"/>
                     </StackLayout>
                     <StackLayout WidthRequest="50" Padding="10,20,10,20" VerticalOptions="End" HorizontalOptions="Start">
-                        <Button x:Name="ClearButton" ImageSource="clear.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding ClearGeomCommand}" BackgroundColor="{StaticResource BioDivGreen}" IsVisible="{Binding CanAddMapGeometry}"/>
-                        <Button x:Name="UndoButton" ImageSource="undo.png" Style="{StaticResource mapButtonStyle}" Command ="{Binding UndoGeomCommand}" BackgroundColor="{StaticResource BioDivGreen}" IsVisible="{Binding CanAddMapGeometry}"/>
+                    <Button x:Name="ClearButton" Text="&#xe5cd;" Style="{StaticResource mapButtonStyle}" Command ="{Binding ClearGeomCommand}" BackgroundColor="{StaticResource BioDivGreen}" IsVisible="{Binding CanAddMapGeometry}"/>
+                    <Button x:Name="UndoButton" Text="&#xe166;" Style="{StaticResource mapButtonStyle}" Command ="{Binding UndoGeomCommand}" BackgroundColor="{StaticResource BioDivGreen}" IsVisible="{Binding CanAddMapGeometry}"/>
                     </StackLayout>
                 </Grid>
             
