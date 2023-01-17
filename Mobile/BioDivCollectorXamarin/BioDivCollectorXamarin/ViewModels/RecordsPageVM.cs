@@ -91,12 +91,16 @@ namespace BioDivCollectorXamarin.ViewModels
             get { return formName; }
             set
             {
-                formName = value;
-                var form = Form.FetchFormWithFormName(formName);
-                if (form != null)
+                Task.Run(async () =>
                 {
-                    Form_pk = form.Id;
-                }
+                    formName = value;
+                    var form = await Form.FetchFormWithFormName(formName);
+                    if (form != null)
+                    {
+                        Form_pk = form.Id;
+                    }
+                    UpdateRecords();
+                });
             }
         }
 
