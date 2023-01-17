@@ -1023,33 +1023,8 @@ namespace BioDivCollectorXamarin.Models
 
         public static async Task RemoveOfflineLayersFromProject()
         {
-            //var proj = Project.FetchProject(App.CurrentProjectId);
-            //await DatabaseModel.Layer.RemoveFileLayers(proj.Id);
-
-            var dirPath = App.TileLocation;
-            //Get the offline layers
-            var offlineLayers = GetOfflineLayers(dirPath);
-            //Get all layers
-            var layers = await GetLayersForMap(App.CurrentProjectId);
-            //Add online wms layers
-            var layerStack = layers.OrderBy(o => o.order).ToList();
-
-            int i = 1;
-            //Identify the offline only layers
-            foreach (var layer in layers)
-            {
-                foreach (var offlineLayerTitle in offlineLayers.Keys)
-                {
-                    if (layer.title == offlineLayerTitle)
-                    {
-                        layerStack.Remove(layer);
-                        await BioDivCollectorXamarin.Models.DatabaseModel.Layer.RemoveFileLayers(layer);
-                    }
-                }
-            }
-
-            var test = layerStack;
-
+            var proj = await Project.FetchProject(App.CurrentProjectId);
+            await DatabaseModel.Layer.RemoveFileLayers(proj.Id);
         }
     }
 }
