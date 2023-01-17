@@ -26,10 +26,12 @@ namespace BioDivCollectorXamarin.Views
 
             MessagingCenter.Subscribe<MapLayersPageVM>(ViewModel, "ListSourceChanged", (sender) =>
             {
-                //Remake map layer list
-                //LayerList.ItemsSource = null;
-                LayerList.ItemsSource = ViewModel.MapLayers;
-                LayerList.ScrollTo(0, false);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    //Remake map layer list
+                    LayerList.ItemsSource = ViewModel.MapLayers;
+                    LayerList.ScrollTo(0, false);
+                });
             });
 
         }
