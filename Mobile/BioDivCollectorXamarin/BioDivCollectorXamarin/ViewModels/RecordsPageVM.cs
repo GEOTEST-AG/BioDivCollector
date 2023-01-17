@@ -157,6 +157,25 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public ReferenceGeometry CurrentGeometry { get; set; }
 
+        //private bool showAddButtonGeom;
+        //public bool ShowAddButtonGeom
+        //{
+        //    get { return showAddButtonGeom; }
+        //    set
+        //    {
+        //        showAddButtonGeom = value;
+        //        OnPropertyChanged();
+        //        if (Records.Count != 0)
+        //        {
+        //            foreach (var rec in Records)
+        //            {
+        //                rec.ShowAddButtonGeom = value;
+        //            }
+        //        }
+        //        UpdateRecords();
+        //    }
+        //}
+
         /// <summary>
         /// Initialisation without a selected geometry
         /// </summary>
@@ -326,15 +345,21 @@ namespace BioDivCollectorXamarin.ViewModels
     {
         public string LongGeomName { get; set; }
         public int? GeomId { get; set; }
+        public int? FormId { get; set; }
         public bool ShowButton { get; set; }
 
+        public bool ShowAddButtonGeom { get; set; } 
+        public bool ShowAddButtonForm { get; set; } 
+        
         public GroupedFormRec()
         {
-
+            //ShowAddButtonGeom = true;
         }
 
         public GroupedFormRec(List<FormRec> RecList)
         {
+            //ShowAddButtonGeom = true;
+
             foreach (var formRec in RecList)
             {
                 this.Add(formRec);

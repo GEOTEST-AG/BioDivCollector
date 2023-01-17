@@ -145,6 +145,10 @@ namespace BioDivCollectorXamarin.Views
             { 
                 ViewModel.SortBy = action;
                 SortierenButton.Text = "Sortiert nach " + action;
+                //if (action == "Formulartyp")
+                //{
+                //    ViewModel.ShowAddButtonGeom = false;
+                //}
             }
             ViewModel.UpdateRecords();
         }
