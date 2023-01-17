@@ -55,39 +55,42 @@ namespace BioDivCollectorXamarin.ViewModels
 
         private async Task TakePhotoAsync()
         {
-            try
+            Device.BeginInvokeOnMainThread(async () =>
             {
-                if (!MediaGallery.CheckCapturePhotoSupport())
-                    return;
-
-                var status = await Permissions.RequestAsync<Permissions.Camera>();
-                var status2 = await Permissions.RequestAsync<SaveMediaPermission>();
-
-                if (status != PermissionStatus.Granted || status2 != PermissionStatus.Granted)
-                    return;
-
-                using (var file = await MediaGallery.CapturePhotoAsync())
+                try
                 {
-                    var stream = await file.OpenReadAsync();
-                    var arr = stream.ToBytes();
-                    SaveToAlbum(arr);
-                    var success = await SaveToFile(arr);
-                    if (success) { SwitchView(); }
-                    else { }
+                    if (!MediaGallery.CheckCapturePhotoSupport())
+                        return;
+
+                    var status = await Permissions.RequestAsync<Permissions.Camera>();
+                    var status2 = await Permissions.RequestAsync<SaveMediaPermission>();
+
+                    if (status != PermissionStatus.Granted || status2 != PermissionStatus.Granted)
+                        return;
+
+                    using (var file = await MediaGallery.CapturePhotoAsync())
+                    {
+                        var stream = await file.OpenReadAsync();
+                        var arr = stream.ToBytes();
+                        SaveToAlbum(arr);
+                        var success = await SaveToFile(arr);
+                        if (success) { SwitchView(); }
+                        else { }
+                    }
                 }
-            }
-            catch (FeatureNotSupportedException fnsEx)
-            {
-                // Feature is not supported on the device
-            }
-            catch (PermissionException pEx)
-            {
-                // Permissions not granted
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"CapturePhotoAsync THREW: {ex.Message}");
-            }
+                catch (FeatureNotSupportedException fnsEx)
+                {
+                    // Feature is not supported on the device
+                }
+                catch (PermissionException pEx)
+                {
+                    // Permissions not granted
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"CapturePhotoAsync THREW: {ex.Message}");
+                }
+            });
         }
 
         private async Task PickPhotoAsync()

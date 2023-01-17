@@ -144,7 +144,6 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         protected override void OnAppearing()
         {
-            //ViewModel.OnAppearing();
         }
 
         private void UpdateFormView()
