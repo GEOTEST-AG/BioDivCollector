@@ -1015,7 +1015,7 @@ namespace BioDivCollectorXamarin.Models
                     offlineLayers.TryGetValue(layertitle, out ILayer layer);
                     var lay = new DatabaseModel.Layer();
                     var path = dirPath + "/" + layertitle;
-                    var proj = Project.FetchProject(App.CurrentProjectId);
+                    var proj = await Project.FetchProject(App.CurrentProjectId);
                     await BioDivCollectorXamarin.Models.DatabaseModel.Layer.AddFileLayer(layer.Name, layertitle, dirPath + "/" + layertitle + ".mbtiles", proj.Id, layers.Count + i++);
                 }
             }
