@@ -77,6 +77,10 @@
     <Compile Update="Views\FormPage.xaml.cs">
       <DependentUpon>FormPage.xaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\GeomSelectionPage.xaml.cs">
+      <SubType>Code</SubType>
+      <DependentUpon>GeomSelectionPage.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\RecordsPage.xaml.cs">
       <DependentUpon>RecordsPage.xaml</DependentUpon>
     </Compile>
@@ -95,6 +99,10 @@
     </EmbeddedResource>
     <EmbeddedResource Update="Views\ConnectionView.xaml">
       <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Views\GeomSelectionPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Views\FormSelectionPage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>

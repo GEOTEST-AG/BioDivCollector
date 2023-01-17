@@ -303,32 +303,57 @@ namespace BioDivCollectorXamarin.Views
         /// <param name="e"></param>
         private async void AddButton_Clicked(object sender, EventArgs e)
         {
-
-            var button = sender as Button;
-            var geomId = button.CommandParameter as int?;
-
-            var formList = await Form.FetchFormsForProject();
-            int i = formList.Count;
-
-            if (i == 1)
+            if (ViewModel.SortBy == "Formulartyp")
             {
-                //Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
-                Shell.Current.GoToAsync($"Form?recid=&formid={formList.First().formId}&geomid={(int?)geomId}", true);
-            }
-            else
-            {
+                var button = sender as Button;
+                var formId = button.CommandParameter as int?;
 
-                if (geomId != null)
+
+                var geometryList = await ReferenceGeometry.GetAllGeometries();
+                int i = geometryList.Count;
+
+                if (i == 1)
                 {
-                    await Navigation.PushAsync(new FormSelectionPage((int?)geomId), true);
+                    //Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
+                    Shell.Current.GoToAsync($"Form?recid=&formid={(int?)formId}&geomid={geometryList.First().Id}", true);
                 }
                 else
                 {
-                    await Navigation.PushAsync(new FormSelectionPage(null), true);
+                    if (formId != null)
+                    {
+                        await Navigation.PushAsync(new GeomSelectionPage((int?)formId), true);
+                    }
+                    else
+                    {
+                        await Navigation.PushAsync(new GeomSelectionPage(null), true);
+                    }
                 }
-
             }
-            
+            else
+            {
+                var button = sender as Button;
+                var geomId = button.CommandParameter as int?;
+
+                var formList = await Form.FetchFormsForProject();
+                int i = formList.Count;
+
+                if (i == 1)
+                {
+                    //Navigation.PushAsync(new FormPage(null, formList.First().formId, (int?)geomId), true);
+                    Shell.Current.GoToAsync($"Form?recid=&formid={formList.First().formId}&geomid={(int?)geomId}", true);
+                }
+                else
+                {
+                    if (geomId != null)
+                    {
+                        await Navigation.PushAsync(new FormSelectionPage((int?)geomId), true);
+                    }
+                    else
+                    {
+                        await Navigation.PushAsync(new FormSelectionPage(null), true);
+                    }
+                }
+            }
         }
 
         /// <summary>

@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BioDivCollectorXamarin.Views.GeomSelectionPage"
+             xmlns:local="clr-namespace:BioDivCollectorXamarin" 
+             xmlns:model="clr-namespace:BioDivCollectorXamarin.Models.DatabaseModel" 
+             xmlns:viewmodels="clr-namespace:BioDivCollectorXamarin.ViewModels"
+             BackgroundColor = "{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}">
+
+    <ContentPage.BindingContext>
+        <viewmodels:GeomSelectionPageVM/>
+    </ContentPage.BindingContext>
+    <ContentPage.Content>
+        <StackLayout>
+            <ListView x:Name="GeomListView"
+            ItemsSource="{Binding Geometries}"
+            ItemTapped="GeomListView_ItemTapped"
+            RowHeight="80"
+            SeparatorColor="Gray"
+            SelectionMode="None">
+
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="model:ReferenceGeometry">
+                        <ViewCell>
+                            <StackLayout VerticalOptions="Center" Margin="20">
+                                <Label Text="{Binding geometryName}"  Style="{DynamicResource ListItemTextStyle}" />
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+
+            </ListView>
+
+            <local:ConnectionView/>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
