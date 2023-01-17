@@ -166,5 +166,25 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 Console.WriteLine(e);
             }
         }
+
+        /// <summary>
+        /// Queries a list of layers available for a particular project
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns>List of layers</returns>
+        public static async Task<List<Layer>> GetLayersForMap(string projectId)
+        {
+            var conn = App.ActiveDatabaseConnection;
+            try
+            {
+                var proj = await conn.Table<Project>().Where(Project => Project.projectId == projectId).FirstOrDefaultAsync();
+                var layers = await conn.Table<Layer>().Where(Layer => Layer.project_fk == proj.Id).ToListAsync();
+                return layers;
+            }
+            catch
+            {
+                return new List<Layer>();
+            }
+        }
     }
 }

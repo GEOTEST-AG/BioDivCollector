@@ -9,6 +9,8 @@ using BioDivCollectorXamarin.Controls;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Views;
 using Mapsui.UI.Forms;
+using NativeMedia;
+using Plugin.Media;
 using SQLite;
 using SQLiteNetExtensions.Extensions;
 using SQLiteNetExtensionsAsync.Extensions;
@@ -751,24 +753,6 @@ namespace BioDivCollectorXamarin.ViewModels
 
         }
 
-        /// <summary>
-        /// Carry out tasks on screen appearing
-        /// </summary>
-        public void OnAppearing()
-        {
-            if (FormId != 0)
-            {
-                Assets = new List<View>();
-                var createFormTask = CreateForm(RecId, FormId, GeomId);
-
-                Task.Run(async () =>
-                {
-                    await createFormTask;
-                    //var temp = TempAssets;
-                    //Assets = temp;
-                });
-            }
-        }
 
         /// <summary>
         /// Carry out tasks on leaving the view

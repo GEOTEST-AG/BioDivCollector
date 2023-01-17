@@ -42,7 +42,7 @@ namespace BioDivCollectorXamarin.Models
             //Get the offline layers
             var offlineLayers = GetOfflineLayers(dirPath);
             //Get the online layers
-            var layers = await GetLayersForMap(App.CurrentProjectId);
+            var layers = await DatabaseModel.Layer.GetLayersForMap(App.CurrentProjectId);
             //Add online wms layers
             var layerStack = layers.OrderByDescending(o => o.order).ToList();
 
@@ -127,6 +127,7 @@ namespace BioDivCollectorXamarin.Models
                             WmsLayer.Opacity = layer.opacity;
                             WmsLayer.Enabled = layer.visible;
                             WmsLayer.LayerZ = layer.order;
+                            WmsLayer.Name = layer.title;
 
                             mapLayersTemp.SetValue(WmsLayer, layerNo);
                             if (offlineLayerExists)

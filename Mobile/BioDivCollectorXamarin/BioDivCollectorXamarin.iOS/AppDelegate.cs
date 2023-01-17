@@ -2,7 +2,9 @@
 using System.IO;
 using System.Linq;
 using Foundation;
+using NativeMedia;
 using UIKit;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using static BioDivCollectorXamarin.Helpers.Interfaces;
 
@@ -34,6 +36,11 @@ namespace BioDivCollectorXamarin.iOS
             string fullPath = Path.Combine(folderPath, dbName);
             string tilePath = DependencyService.Get<FileInterface>().GetMbTilesPath();
             LoadApplication(new App(fullPath,tilePath));
+
+            Device.InvokeOnMainThreadAsync(async () => {
+                var status = await Permissions.RequestAsync<Permissions.Camera>();
+                var status2 = await Permissions.RequestAsync<SaveMediaPermission>();
+            });
 
             return base.FinishedLaunching(app, options);
         }
