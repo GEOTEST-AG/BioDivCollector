@@ -190,7 +190,7 @@ namespace BioDivCollectorXamarin.ViewModels
             set
             {
                 tempCoordinates = value;
-                //(SaveGeomCommand as Command).ChangeCanExecute();
+                (SaveGeomCommand as Command).ChangeCanExecute();
             }
         }
 
@@ -1550,7 +1550,12 @@ namespace BioDivCollectorXamarin.ViewModels
                 var coords = point.ToDoubleArray();
                 var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
 
-                string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie einen Geometrienamen ein", accept:"Speichern", cancel:"Abbrechen");
+                string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie einen Geometrienamen ein", accept: "Speichern", cancel: "Abbrechen");
+
+                while (geomName == "")
+                {
+                    geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Leere Geometrienamen zurzeit nicht möglich. Bitte geben Sie einen Geometrienamen ein", accept: "Speichern", cancel: "Abbrechen");
+                }
 
                 var geomNames = await ReferenceGeometry.GetAllGeometryNames();
                 var geomNameExists = false;
@@ -1608,7 +1613,6 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             if (GeometryType == "Punkt")
             {
-                return true;
                 return TempCoordinates.Count > 0;
             }
             else if (GeometryType == "Linie")

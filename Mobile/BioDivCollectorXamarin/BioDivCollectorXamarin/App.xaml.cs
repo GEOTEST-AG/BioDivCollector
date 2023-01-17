@@ -226,11 +226,6 @@ namespace BioDivCollectorXamarin
             Device.BeginInvokeOnMainThread(async () =>
             {
                 CurrentProject = await Project.FetchCurrentProject();
-                //var tempCurrentUser = await User.RetrieveUser();
-                //if (tempCurrentUser.userId != String.Empty && tempCurrentUser.userId != null)
-                //{
-                //    CurrentUser = tempCurrentUser;
-                //}
             });
 
             VersionTracking.Track();

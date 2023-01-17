@@ -26,6 +26,7 @@ namespace BioDivCollectorXamarin.Droid
 
             if (Control == null || e.NewElement == null) return;
 
+            
             if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
             {
                 OSAppTheme currentTheme = Application.Current.RequestedTheme;
