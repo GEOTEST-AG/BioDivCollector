@@ -74,7 +74,7 @@
                     <Label Text="{Binding BaseLayerSize}" HorizontalTextAlignment="Center" TextColor="White" VerticalOptions="Fill" HorizontalOptions="Fill" VerticalTextAlignment="Center"/>
                 </StackLayout>
             </FlexLayout>
-            <FlexLayout Direction="Row" WidthRequest="500" AlignContent="SpaceEvenly" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="0" Margin="0" BackgroundColor="{StaticResource BioDivGrey}" HeightRequest="57">
+            <FlexLayout x:Name="ButtonLayout" Direction="Row" WidthRequest="500" AlignContent="SpaceEvenly" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="0" Margin="0" BackgroundColor="{StaticResource BioDivGrey}" HeightRequest="57">
                 <Button x:Name="OSMButton" Text="Open Street Map" TextTransform="Uppercase" FontSize="Small" VerticalOptions="Center" FlexLayout.Basis="33.3%" Margin="0,2,1,0" CornerRadius="0" Clicked="OSMButton_Clicked" HeightRequest="53"/>
                 <Button x:Name="SwisstopoButton" Text="Landeskarte Schweiz" TextTransform="Uppercase" FontSize="Small" VerticalOptions="Center" FlexLayout.Basis="33.3%" Margin="1,2,1,0" CornerRadius="0" Clicked="SwisstopoButton_Clicked" HeightRequest="53"/>
                 <Button x:Name="SwissimageButton" Text="Orthofoto Schweiz" TextTransform="Uppercase" FontSize="Small" VerticalOptions="Center" FlexLayout.Basis="33.3%" Margin="1,2,0,0" CornerRadius="0" Clicked="SwissimageButton_Clicked" HeightRequest="53"/>

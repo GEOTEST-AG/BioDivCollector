@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Views;
@@ -23,6 +22,7 @@ namespace BioDivCollectorXamarin.ViewModels
             set
             {
                 mapLayers = value;
+                //MessagingCenter.Send<Application>(App.Current, "UpdateMapLayers");
                 OnPropertyChanged("MapLayers");
             }
         }
@@ -80,11 +80,11 @@ namespace BioDivCollectorXamarin.ViewModels
                     Preferences.Set("ShowLocalOnly", showLocalOnly);
                     if (showLocalOnly)
                     {
-                        AddFileLayers();
+                        await AddFileLayers();
                     }
                     else
                     {
-                        RemoveFileLayers();
+                        await RemoveFileLayers();
                     }
                     UpdateMapLayers();
                 });
@@ -139,27 +139,29 @@ namespace BioDivCollectorXamarin.ViewModels
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 var allMapLayers = await MapModel.MakeArrayOfLayers();
+                MapLayers = new ObservableCollection<MapLayer>(new List<MapLayer>());
                 MapLayers = new ObservableCollection<MapLayer>(allMapLayers);
             });
 
-            MessagingCenter.Subscribe<MapLayersPageVM>(this, "LayerOrderChanged", (sender) =>
+            MessagingCenter.Subscribe<Application>(App.Current, "LayerOrderChanged", (sender) =>
             {
                 Device.BeginInvokeOnMainThread(async () =>
                 {
-                    var model = new MapModel();
                     var newMapLayers = await MapModel.MakeArrayOfLayers();
                     MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
+                    UpdateMapLayers();
                     OnPropertyChanged("MapLayers");
+                    MessagingCenter.Send<Application>(App.Current, "ListSourceChanged");
                 });
             });
 
             MessagingCenter.Subscribe<Application,string>(App.Current, "DownloadComplete", (sender,json) =>
             {
-                MapLayers = new ObservableCollection<BioDivCollectorXamarin.Models.MapLayer>();
-                foreach (var layer in mapLayers)
+                mapLayers = new ObservableCollection<BioDivCollectorXamarin.Models.MapLayer>();
+                foreach (var layer in MapLayers)
                 {
                     if (layer != null)
-                    { MapLayers.Add(layer); }
+                    { mapLayers.Add(layer); }
                 }
                 Device.BeginInvokeOnMainThread(() =>
                 {
@@ -174,11 +176,12 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void UpdateMapLayers()
         {
-            Task.Run(async () =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
                 var newMapLayers = await MapModel.MakeArrayOfLayers();
                 MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
-                MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged"); //No idea why this works the way it does. If you take the above two lines out, it doesn't work, and if you just add OnPropertyChanged, it doesn't work
+                OnPropertyChanged("MapLayers");
+                MessagingCenter.Send<MapLayersPageVM>(this, "ListSourceChanged"); //No idea why this works the way it does. If you take the above two lines out, it doesn't work, and if you just add OnPropertyChanged, it doesn't work
             });
         }
 
@@ -286,7 +289,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             }
                         }
                     }
-                    MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
+                    MessagingCenter.Send<Application>(App.Current, "LayerOrderChanged");
                 }
             }
             catch
@@ -355,24 +358,17 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Add layers to the database to correspond with the local mbtiles files
         /// </summary>
-        internal void AddFileLayers()
+        internal async Task AddFileLayers()
         {
-            Task.Run(async () =>
-            {
-                await MapModel.AddOfflineLayersToProject();
-            });
+            await MapModel.AddOfflineLayersToProject();
         }
 
         /// <summary>
         /// Delete layers from the database corresponding to mbtiles files
         /// </summary>
-        internal void RemoveFileLayers()
+        internal async Task RemoveFileLayers()
         {
-            Task.Run(async () =>
-            {
-                await MapModel.RemoveOfflineLayersFromProject();
-                MessagingCenter.Send<MapLayersPageVM>(this, "LayerOrderChanged");
-            });
+            await MapModel.RemoveOfflineLayersFromProject();
         }
     }
 }

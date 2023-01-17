@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using BioDivCollectorXamarin.Models;
-using BioDivCollectorXamarin.ViewModels;
+﻿using BioDivCollectorXamarin.ViewModels;
 using Xamarin.Essentials;
 using Xamarin.Forms;
+using Xamarin.Forms.PlatformConfiguration;
+using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
 using Xamarin.Forms.Xaml;
 
 namespace BioDivCollectorXamarin.Views
@@ -22,18 +22,33 @@ namespace BioDivCollectorXamarin.Views
             InitializeComponent();
             ViewModel = new MapLayersPageVM();
             BindingContext = ViewModel;
+            LayerList.ItemsSource = ViewModel.MapLayers;
             LayerList.HeightRequest = DeviceDisplay.MainDisplayInfo.Height;
 
-            MessagingCenter.Subscribe<MapLayersPageVM>(ViewModel, "ListSourceChanged", (sender) =>
+            MessagingCenter.Subscribe<Xamarin.Forms.Application>(App.Current, "ListSourceChanged", (sender) =>
             {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    //Remake map layer list
-                    LayerList.ItemsSource = ViewModel.MapLayers;
-                    LayerList.ScrollTo(0, false);
-                });
+                //Remake map layer list
+                LayerList.ItemsSource = null;
+                LayerList.ItemsSource = ViewModel.MapLayers;
+                LayerList.ScrollTo(0, false);
             });
 
+            MessagingCenter.Unsubscribe<Xamarin.Forms.Application>(App.Current, "UpdateMapLayers");
+            MessagingCenter.Subscribe<Xamarin.Forms.Application>(App.Current, "UpdateMapLayers", (sender) =>
+            {
+                UpdateLayerList();
+            });
+        }
+
+        protected override void OnSizeAllocated(double width, double height)
+        {
+            base.OnSizeAllocated(width, height);
+            var safeInsets = On<iOS>().SafeAreaInsets();
+            Padding = new Thickness(0, safeInsets.Top, 0, 0);
+            OSMButton.HeightRequest = 53 + safeInsets.Bottom;
+            SwisstopoButton.HeightRequest = 53 + safeInsets.Bottom;
+            SwissimageButton.HeightRequest = 53 + safeInsets.Bottom;
+            ButtonLayout.HeightRequest = 57 + safeInsets.Bottom;
         }
 
         /// <summary>
@@ -47,23 +62,23 @@ namespace BioDivCollectorXamarin.Views
             if (baseLayer == "swisstopo_pixelkarte")
             {
                 ViewModel.BaseLayerName = "Landeskarte Schweiz";
-                OSMButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
-                SwisstopoButton.Style = (Style)Application.Current.Resources["PressedButtonStyle"];
-                SwissimageButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
+                OSMButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
+                SwisstopoButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["PressedButtonStyle"];
+                SwissimageButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
             }
             else if (baseLayer == "swissimage")
             {
                 ViewModel.BaseLayerName = "Orthofoto Schweiz";
-                OSMButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
-                SwisstopoButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
-                SwissimageButton.Style = (Style)Application.Current.Resources["PressedButtonStyle"];
+                OSMButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
+                SwisstopoButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
+                SwissimageButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["PressedButtonStyle"];
             }
             else
             {
                 ViewModel.BaseLayerName = "Open Street Map";
-                OSMButton.Style = (Style)Application.Current.Resources["PressedButtonStyle"];
-                SwisstopoButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
-                SwissimageButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
+                OSMButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["PressedButtonStyle"];
+                SwisstopoButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
+                SwissimageButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
             }
             
         }
@@ -78,9 +93,9 @@ namespace BioDivCollectorXamarin.Views
         {
             Preferences.Set("BaseLayer", "osm");
             ViewModel.ChangeBaseLayerLabel();
-            OSMButton.Style= (Style)Application.Current.Resources["PressedButtonStyle"];
-            SwisstopoButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
-            SwissimageButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
+            OSMButton.Style= (Style)Xamarin.Forms.Application.Current.Resources["PressedButtonStyle"];
+            SwisstopoButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
+            SwissimageButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
         }
 
         /// <summary>
@@ -92,9 +107,9 @@ namespace BioDivCollectorXamarin.Views
         {
             Preferences.Set("BaseLayer", "swisstopo_pixelkarte");
             ViewModel.ChangeBaseLayerLabel();
-            OSMButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
-            SwisstopoButton.Style = (Style)Application.Current.Resources["PressedButtonStyle"];
-            SwissimageButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
+            OSMButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
+            SwisstopoButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["PressedButtonStyle"];
+            SwissimageButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
         }
 
         /// <summary>
@@ -106,9 +121,9 @@ namespace BioDivCollectorXamarin.Views
         {
             Preferences.Set("BaseLayer", "swissimage");
             ViewModel.ChangeBaseLayerLabel();
-            OSMButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
-            SwisstopoButton.Style = (Style)Application.Current.Resources["ReleasedButtonStyle"];
-            SwissimageButton.Style = (Style)Application.Current.Resources["PressedButtonStyle"];
+            OSMButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
+            SwisstopoButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["ReleasedButtonStyle"];
+            SwissimageButton.Style = (Style)Xamarin.Forms.Application.Current.Resources["PressedButtonStyle"];
         }
 
         /// <summary>
@@ -138,6 +153,25 @@ namespace BioDivCollectorXamarin.Views
             }
         }
 
+        /// <summary>
+        /// Handles what happens if a layerCheckbox is checked or unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        async void CheckBox_CheckedChanged(System.Object sender, Xamarin.Forms.CheckedChangedEventArgs e)
+        {
+            CheckBox checky = sender as CheckBox;
+            Preferences.Set("ShowLocalOnly", checky.IsChecked);
+            if (checky.IsChecked)
+            {
+                await ViewModel.AddFileLayers();
+            }
+            else
+            {
+                await ViewModel.RemoveFileLayers();
+            }
+            ViewModel.UpdateMapLayers();
+        }
 
         /// <summary>
         /// Update the layerList
