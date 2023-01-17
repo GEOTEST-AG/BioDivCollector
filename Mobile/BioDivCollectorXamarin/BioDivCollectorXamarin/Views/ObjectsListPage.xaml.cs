@@ -30,6 +30,19 @@ namespace BioDivCollectorXamarin.Views
                 });
 
             });
+
+            Shell.SetBackButtonBehavior(this, new BackButtonBehavior
+            {
+                Command = new Command(() =>
+                {
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        App.CurrentRoute = "//Records";
+                        MessagingCenter.Send<Application>(App.Current, "SetBackSortBy");
+                        Shell.Current.Navigation.PopAsync();
+                    });
+                })
+            });
         }
 
         /// <summary>

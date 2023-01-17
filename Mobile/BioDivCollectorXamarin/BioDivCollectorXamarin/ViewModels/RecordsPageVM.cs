@@ -161,25 +161,6 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public ReferenceGeometry CurrentGeometry { get; set; }
 
-        //private bool showAddButtonGeom;
-        //public bool ShowAddButtonGeom
-        //{
-        //    get { return showAddButtonGeom; }
-        //    set
-        //    {
-        //        showAddButtonGeom = value;
-        //        OnPropertyChanged();
-        //        if (Records.Count != 0)
-        //        {
-        //            foreach (var rec in Records)
-        //            {
-        //                rec.ShowAddButtonGeom = value;
-        //            }
-        //        }
-        //        UpdateRecords();
-        //    }
-        //}
-
         /// <summary>
         /// Initialisation without a selected geometry
         /// </summary>

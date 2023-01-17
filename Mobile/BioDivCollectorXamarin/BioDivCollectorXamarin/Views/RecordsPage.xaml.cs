@@ -76,6 +76,14 @@ namespace BioDivCollectorXamarin.Views
                 AddFormToNewGeometry(i, formList, geom, geomId);
                 MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
             });
+
+            MessagingCenter.Unsubscribe<Application>(App.Current, "SetBackSortBy");
+            MessagingCenter.Subscribe<Application>(App.Current, "SetBackSortBy", (sender) =>
+            {
+                FiltrierenButton.Text = "Filtern nach";
+                ViewModel.FilterBy = String.Empty;
+                ViewModel.UpdateRecords();
+            });
         }
 
         /// <summary>
@@ -145,10 +153,6 @@ namespace BioDivCollectorXamarin.Views
             { 
                 ViewModel.SortBy = action;
                 SortierenButton.Text = "Sortiert nach " + action;
-                //if (action == "Formulartyp")
-                //{
-                //    ViewModel.ShowAddButtonGeom = false;
-                //}
             }
             ViewModel.UpdateRecords();
         }
