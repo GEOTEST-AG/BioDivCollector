@@ -92,7 +92,7 @@ namespace BioDivCollectorXamarin.Views
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            MessagingCenter.Send<Application>(App.Current, "RecordsPageReady");
+            MessagingCenter.Send<Application>(App.Current, "RecordsPageReady"); //Tell the map page that this page exists
             if (App.CurrentRoute.Length < 11 || App.CurrentRoute.Substring(0,10) != "///Records" )
             {
                 App.CurrentRoute = "//Records";

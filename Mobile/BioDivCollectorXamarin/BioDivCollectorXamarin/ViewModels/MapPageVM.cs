@@ -1618,7 +1618,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 if (geom != null)
                 {
-                    
+                    //Wait to ensure that the records page has been created before sending the GenerateNewForm message
                     MessagingCenter.Subscribe<Application>(App.Current,"RecordsPageReady", async (sender) =>
                     {
                         MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
