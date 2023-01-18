@@ -427,10 +427,11 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     MessagingCenter.Send<MapPageVM>(this, "SelectGeometryType");
                 }
-                if (Map.Layers[Map.Layers.Count - 1] == TempLayer)
-                {
-                    Map.Layers.Remove(TempLayer);
-                }
+
+                var mapLayer = Map.Layers.Where(x => x == TempLayer).FirstOrDefault();
+                if (mapLayer != null)
+                    Map.Layers.Remove(mapLayer);
+
                 var mapPt = new Mapsui.Geometries.Point(Convert.ToDouble(screenPt.Longitude), Convert.ToDouble(screenPt.Latitude));
                 if (GeometryType == "Punkt")
                 {
@@ -450,6 +451,8 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     TempCoordinates.Add(mapPt);
                 }
+                //if(TempLayer!= null)
+                //    Map.Layers.Remove(TempLayer);
                 
                 TempLayer = MapModel.CreateTempLayer(TempCoordinates);
                 Map.Layers.Insert(Map.Layers.Count, TempLayer);
@@ -1542,7 +1545,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 GeomToEdit = 0;
                 AllowAddNewGeom();
                 RemoveTempGeometry();
-                RefreshShapes();
+                await RefreshShapes();
             }
             else
             {
@@ -1705,7 +1708,10 @@ namespace BioDivCollectorXamarin.ViewModels
             if (TempCoordinates.Count > 1)
             {
                 TempCoordinates = new List<Mapsui.Geometries.Point>();
-                Map.Layers.Remove(TempLayer);
+                //Map.Layers.Remove(TempLayer);
+                var mapLayer = Map.Layers.Where(x => x == TempLayer).FirstOrDefault();
+                if (mapLayer != null)
+                    Map.Layers.Remove(mapLayer);
                 (ClearGeomCommand as Command).ChangeCanExecute();
                 (UndoGeomCommand as Command).ChangeCanExecute();
             }
@@ -1779,10 +1785,9 @@ namespace BioDivCollectorXamarin.ViewModels
             Device.InvokeOnMainThreadAsync(() =>
             {
                 TempCoordinates = new List<Mapsui.Geometries.Point>();
-                if (Map.Layers[Map.Layers.Count - 1] == TempLayer)
-                {
-                    Map.Layers.Remove(TempLayer);
-                }
+                var mapLayer = Map.Layers.Where(x => x == TempLayer).FirstOrDefault();
+                if (mapLayer != null)
+                    Map.Layers.Remove(mapLayer);
                 CanAddMapGeometry = false;
                 GeometryType = String.Empty;
                 VMGeomEditButton.BackgroundColor = (Xamarin.Forms.Color)Application.Current.Resources["BioDivGrey"];

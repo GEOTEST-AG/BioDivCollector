@@ -307,7 +307,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         bool success = await Project.DeleteProject(App.CurrentProjectId);
                         if (success)
                         {
-                            App.SetProject(String.Empty);
+                            await App.SetProject(String.Empty);
                         }
                     }
                     Preferences.Set("FilterGeometry", String.Empty);

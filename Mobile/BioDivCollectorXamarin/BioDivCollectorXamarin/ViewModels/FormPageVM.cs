@@ -757,11 +757,11 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Carry out tasks on leaving the view
         /// </summary>
-        public void OnDisappearing()
+        public async void OnDisappearing()
         {
             if (NewRecord)
             {
-                Record.DeleteRecord(RecId); //Delete any temporary record
+                await Record.DeleteRecord(RecId); //Delete any temporary record
             }
         }
 
@@ -796,11 +796,11 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Cancel, lose any changes and return to the record list
         /// </summary>
-        private void OnCancel()
+        private async void OnCancel()
         {
             if (NewRecord)
             {
-                Record.DeleteRecord(RecId); //Delete any temporary record
+                await Record.DeleteRecord(RecId); //Delete any temporary record
             }
             // This will pop the current page off the navigation stack
             MessagingCenter.Send<Application>(App.Current, "NavigateBack");

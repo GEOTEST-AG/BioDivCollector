@@ -26,7 +26,7 @@ namespace BioDivCollectorXamarin.Models
             set
             {
                 formName = value;
-                var form = Form.FetchFormWithFormName(formName);
+                var form = Form.FetchFormWithFormName(formName).Result;
                 if (form != null)
                 {
                     Form_pk = form.Id;
