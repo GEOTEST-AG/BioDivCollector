@@ -1618,8 +1618,13 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 if (geom != null)
                 {
+                    
+                    MessagingCenter.Subscribe<Application>(App.Current,"RecordsPageReady", async (sender) =>
+                    {
+                        MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
+                        MessagingCenter.Unsubscribe<Application>(App.Current, "RecordsPageReady");
+                    });
                     await Shell.Current.GoToAsync($"//Records?objectId={geom.Id}", true);
-                    MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
                 }
 
                 GeomToEdit = 0;
