@@ -64,7 +64,7 @@ namespace BioDivCollector.WebApp.Controllers
                     gvm.ShowOnly = false;
                     groups.Add(gvm);
                 }
-                else if ((User.IsInRole("PL")) || (User.IsInRole("PM")))
+                else if ((User.IsInRole("PL")) || (User.IsInRole("PK")))
                 {
                     GroupViewModel gvm = new GroupViewModel() { Group = g };
                     gvm.Editable = false;

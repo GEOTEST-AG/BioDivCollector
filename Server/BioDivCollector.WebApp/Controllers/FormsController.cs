@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
@@ -278,9 +279,6 @@ namespace BioDivCollector.WebApp.Controllers
             stream.Position = 0; //reset stream
             return File(stream, "application/octet-stream", "style.qml");
 
-
-
-            return View(ltvms);
         }
 
         public async Task<IActionResult> Create(string name)
@@ -1278,7 +1276,7 @@ namespace BioDivCollector.WebApp.Controllers
             string pgstring = " PG:\"dbname = '" + db + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
 
             
-            psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " -sql \"select fieldchoiceid, text, \\\"order\\\" from fieldchoices where \\\"formfieldid\\\" = " + fieldchoice +"\"";
+            psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " -sql \"select fieldchoiceid, formfieldid, text, \\\"order\\\" from fieldchoices where \\\"formfieldid\\\" = " + fieldchoice +"\"";
 
             var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
             if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
@@ -1372,6 +1370,7 @@ namespace BioDivCollector.WebApp.Controllers
                         {
                             var names = Enumerable.Range(0, result.FieldCount).Select(result.GetName).ToList();
                             int fieldchoiceid = names.IndexOf("fieldchoiceid");
+                            int formfieldid = names.IndexOf("formfieldid");
                             int text = names.IndexOf("text");
                             int order = names.IndexOf("order");
 
@@ -1387,24 +1386,30 @@ namespace BioDivCollector.WebApp.Controllers
                                         int newId = Int16.Parse(result.GetString(fieldchoiceid));
                                         fc = db.FieldChoices.Include(m => m.FormField).Where(m => m.FieldChoiceId == newId).FirstOrDefault();
                                         string content = result.GetString(text);
-                                        lastFF = fc.FormField;
 
-                                        if ((fc.Text != content) || (fc.Order != Int16.Parse(result.GetString(order))))
+                                        if (fc.FormField.FormFieldId == Int16.Parse(result.GetString(formfieldid)))
                                         {
-                                            fc.Text = content;
-                                            fc.Order = Int16.Parse(result.GetString(order));
+                                            lastFF = fc.FormField;
 
-                                            db.Entry(fc).State = EntityState.Modified;
-                                            returnMessage += "<li>Auswahldeld (" + fc.FieldChoiceId + ") angepasst mit neuem Text " + fc.Text + "</li>";
+                                            if ((fc.Text != content) || (fc.Order != Int16.Parse(result.GetString(order))))
+                                            {
+                                                fc.Text = content;
+                                                fc.Order = Int16.Parse(result.GetString(order));
+
+                                                db.Entry(fc).State = EntityState.Modified;
+                                                returnMessage += "<li>Auswahldeld (" + fc.FieldChoiceId + ") angepasst mit neuem Text " + fc.Text + "</li>";
+                                            }
                                         }
 
                                     }
                                     catch (Exception ex)
                                     {
-                                        if ((fc == null) && (lastFF != null))
+                                        int ffid = Int16.Parse(result.GetString(formfieldid));
+                                        FormField ff = await db.FormFields.Where(m => m.FormFieldId == ffid).SingleOrDefaultAsync();
+                                        if ((fc == null) && (ff != null))
                                         {
                                             fc = new FieldChoice();
-                                            fc.FormField = lastFF;
+                                            fc.FormField = ff;
                                             fc.Text = result.GetString(text);
                                             fc.Order = Int16.Parse(result.GetString(order));
                                             db.Entry(fc).State = EntityState.Added;
