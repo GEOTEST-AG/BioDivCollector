@@ -97,6 +97,14 @@ namespace BioDivCollectorXamarin.ViewModels
                     //});
                 });
             }
+
+            MessagingCenter.Unsubscribe<Application>(App.Current, "BackButtonPressed");
+            MessagingCenter.Subscribe<Application>(App.Current, "BackButtonPressed", (sender) =>
+            {
+                //If the BackButton is pressed, use the same behaviour as if the CancelButton is pressed
+                OnCancel();
+            });
+
         }
 
         public async Task CreateForm(string recId, int formId, int? geomId)
