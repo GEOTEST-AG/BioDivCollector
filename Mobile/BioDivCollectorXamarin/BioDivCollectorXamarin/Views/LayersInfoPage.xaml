@@ -7,6 +7,7 @@
     xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
     ios:Page.UseSafeArea="True">
     <ContentPage.Content>
+        <ScrollView>
         <StackLayout Margin="20">
             <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
                 <Button Text="&#xe5cd;" FontFamily="Material" TextColor="{AppThemeBinding Light={StaticResource LightTextColor}, Dark={StaticResource DarkTextColor}}" BackgroundColor="Transparent" Clicked="CloseButton_Clicked" FontSize="35" HorizontalOptions="EndAndExpand" VerticalOptions="Center" Margin="0,0,20,0"/>
@@ -39,7 +40,7 @@ Um die Datei zur App hinzuzufügen, müssen Sie sie in das App-Verzeichnis kopie
             <Label Text="Auswählen der lokalen Layer in der App:" FontAttributes="Bold" Margin="0,10"/>
             <Label Text="Nachdem Sie Ihre Datei in das App-Verzeichnis kopiert haben, können Sie die App öffnen, den Reiter «Karten» auswählen, das Ebenen-Fenster über den Button rechts öffnen und dann die Option oben auf der Seite «Lokale Dateien zusätzlich anzeigen» auswählen. In der Liste der Ebenen werden alle lokalen Ebenen angezeigt."/>
         </StackLayout>
-        
+        </ScrollView>
     </ContentPage.Content>
 </ContentPage>
 
