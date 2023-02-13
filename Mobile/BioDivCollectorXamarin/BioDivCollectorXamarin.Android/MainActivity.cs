@@ -19,7 +19,6 @@ using static BioDivCollectorXamarin.Helpers.Interfaces;
 [assembly: Dependency(typeof(BioDivCollectorXamarin.Droid.AndroidDownloader))]
 namespace BioDivCollectorXamarin.Droid
 {
-
     [Activity(Label = "BioDiv", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = false, ConfigurationChanges = ConfigChanges.ScreenSize  | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Orientation, ScreenOrientation = ScreenOrientation.Portrait)]
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
@@ -69,6 +68,7 @@ namespace BioDivCollectorXamarin.Droid
 
             base.OnActivityResult(requestCode, resultCode, intent);
         }
+
     }
 
 }

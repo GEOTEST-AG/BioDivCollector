@@ -1,9 +1,12 @@
 ﻿using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.ViewModels;
 using Syncfusion.SfImageEditor.XForms;
+using System.Reflection;
+using System.Resources;
 using Xamarin.Forms;
 using Xamarin.Forms.PlatformConfiguration;
 using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
+using static BioDivCollectorXamarin.Helpers.Interfaces;
 
 namespace BioDivCollectorXamarin.Views
 {
@@ -46,8 +49,12 @@ namespace BioDivCollectorXamarin.Views
 
         public SfImageEditorPage()
         {
+
             if (ViewModel == null) { ViewModel = new ImageEditorViewModel(); }
             Editor = ViewModel.CreateEditor();
+
+            ImageEditorResourceManager.Manager = new ResourceManager("BioDivCollectorXamarin.Resources.Syncfusion.SfImageEditor.XForms", GetType().GetTypeInfo().Assembly);
+
             Content = Editor;
         }
 
@@ -58,6 +65,9 @@ namespace BioDivCollectorXamarin.Views
             ViewModel.BinaryDataId = binaryId;
             ViewModel.RecordId = recordId;
             Editor = ViewModel.CreateEditor();
+
+            ImageEditorResourceManager.Manager = new ResourceManager("BioDivCollectorXamarin.Resources.Syncfusion.SfImageEditor.XForms", GetType().GetTypeInfo().Assembly);
+
             Content = Editor;
         }
 

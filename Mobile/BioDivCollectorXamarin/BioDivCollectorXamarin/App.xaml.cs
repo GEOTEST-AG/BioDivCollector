@@ -14,6 +14,7 @@ using BioDivCollectorXamarin.Models.LoginModel;
 using SQLite;
 using Xamarin.Essentials;
 using Xamarin.Forms;
+using static BioDivCollectorXamarin.Helpers.Interfaces;
 
 [assembly: ExportFont("MaterialIcons-Regular.ttf", Alias = "Material")]
 namespace BioDivCollectorXamarin
@@ -204,6 +205,9 @@ namespace BioDivCollectorXamarin
             Device.SetFlags(new string[] { "RadioButton_Experimental", "Shapes_Experimental", "Expander_Experimental" });
             BioDivPrefs = new BioDivPreferences();
             Preferences.Set("databaseLocation", databaseLocation);
+
+            //Used to set the language of the ImageEditorPage
+            DependencyService.Get<ILocalize>().SetLocale("de-DE");
 
             Task.Run(async () =>
             {

@@ -109,6 +109,7 @@
     <Compile Include="CustomTimePickerRenderer.cs" />
     <Compile Include="CustomDatePickerRenderer.cs" />
     <Compile Include="EntryRenderer.cs" />
+    <Compile Include="LocalizationService.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="MultilineButtonRenderer.cs" />
     <Compile Include="PickerRenderer.cs" />
@@ -304,7 +305,6 @@
   <ItemGroup>
     <AndroidResource Include="Resources\mipmap-xxxhdpi\ic_launcher.png" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
