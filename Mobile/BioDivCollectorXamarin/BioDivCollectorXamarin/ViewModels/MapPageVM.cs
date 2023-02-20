@@ -1067,7 +1067,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 GPSLayer = CreateGPSLayer(latitude, longitude, accuracy, heading);
                 GPSPointLayer = CreateGPSPointLayer(latitude, longitude, accuracy, heading);
                 BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
-                var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Point" || l.Name == "Bearing").ToArray();
+                var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "GPSPoint" || l.Name == "Bearing").ToArray();
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     try
