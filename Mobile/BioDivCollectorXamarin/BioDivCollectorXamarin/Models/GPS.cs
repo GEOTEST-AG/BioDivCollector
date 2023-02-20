@@ -28,7 +28,7 @@ namespace BioDivCollectorXamarin.Models
         /// <summary>
         /// Retrieve and request permissions for GPS use
         /// </summary>
-        public async void GetPermissions()
+        public async Task GetPermissions()
         {
             try
             {
@@ -89,7 +89,7 @@ namespace BioDivCollectorXamarin.Models
                      else
                      {
                          Task.Delay(5000).Wait();
-                         GetPermissions();
+                         await GetPermissions();
                      }
                  }
              });
@@ -103,8 +103,8 @@ namespace BioDivCollectorXamarin.Models
         /// <param name="e"></param>
         private void Locator_PositionChanged(object sender, Plugin.Geolocator.Abstractions.PositionEventArgs e)
         {
-            Device.BeginInvokeOnMainThread(() =>
-            {
+            //Device.BeginInvokeOnMainThread(() =>
+            //{
                 try
                 {
                     if (e.Position.Accuracy < 10000)
@@ -144,14 +144,14 @@ namespace BioDivCollectorXamarin.Models
                         Preferences.Set("LastPositionHeading", e.Position.Heading);
                         dic.Add("speed", e.Position.Speed);
                         Preferences.Set("LastPositionSpeed", e.Position.Speed);
-                        MessagingCenter.Send<GPS, Dictionary<string, double>>(this, "GPSPositionUpdate", dic);
+                        MessagingCenter.Send<GPS>(this, "GPSPositionUpdate");
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                 }
-            });
+            //});
         }
 
         /// <summary>

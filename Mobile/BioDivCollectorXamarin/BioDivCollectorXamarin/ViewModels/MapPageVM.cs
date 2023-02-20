@@ -20,6 +20,7 @@ using Mapsui.Providers;
 using Mapsui.Styles;
 using Mapsui.UI;
 using Mapsui.Utilities;
+using Plugin.Geolocator;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Exception = System.Exception;
@@ -338,7 +339,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void StartGPS()
         {
-            MessagingCenter.Subscribe<GPS, Dictionary<string, double>>(this, "GPSPositionUpdate", (sender, arg) =>
+            MessagingCenter.Subscribe<GPS>(this, "GPSPositionUpdate", (sender) =>
             {
                 var gps = Preferences.Get("GPS", false);
                 var centred = Preferences.Get("GPS_Centred", false);
@@ -1162,7 +1163,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
         private void RemoveGPSLayers()
         {
-            var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").ToList();
+            var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing" || l.Name == "GPSPoint").ToList();
             Device.BeginInvokeOnMainThread(() =>
             {
                 foreach (var layer in gpsLayers)
@@ -1222,7 +1223,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 IsMapInfoLayer = false,
                 Style = style
             };
-            gpsLayer.Name = "Point";
+            gpsLayer.Name = "GPSPoint";
             gpsLayer.IsMapInfoLayer = false;
             return gpsLayer;
         }
@@ -1474,16 +1475,28 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void GPSButtonPressed()
         {
-            var gps = Preferences.Get("GPS", false);
-            var centred = Preferences.Get("GPS_Centred", false);
-            if (!centred || !gps)
+            var isLocationAvailable = IsLocationAvailable();
+
+            if (isLocationAvailable)
             {
-                ShowPosition();
-                Preferences.Set("GPS", true);
-                Preferences.Set("GPS_Centred", true);
+                var gps = Preferences.Get("GPS", false);
+                var centred = Preferences.Get("GPS_Centred", false);
+                if (!centred || !gps)
+                {
+                    ShowPosition();
+                    Preferences.Set("GPS", true);
+                    Preferences.Set("GPS_Centred", true);
+                }
+                else
+                {
+                    StopShowingPosition();
+                    Preferences.Set("GPS", false);
+                    Preferences.Set("GPS_Centred", false);
+                }
             }
             else
             {
+                App.Current.MainPage.DisplayAlert("GPS nicht aktiviert", "Auf diesem Gerät wurde kein aktiviertes GPS gefunden. Stellen Sie sicher, dass das Gerät über ein GPS verfügt und dieses eingeschalten ist.", "OK");
                 StopShowingPosition();
                 Preferences.Set("GPS", false);
                 Preferences.Set("GPS_Centred", false);
@@ -1497,6 +1510,18 @@ namespace BioDivCollectorXamarin.ViewModels
         private bool GPSActivated()
         {
             return gps.HasLocationPermission;
+        }
+
+        /// <summary>
+        /// Check if the GPS is activated on the device. This is important for Android, where you can turn GPS off
+        /// </summary>
+        /// <returns></returns>
+        public bool IsLocationAvailable()
+        {
+            if (!CrossGeolocator.IsSupported)
+                return false;
+
+            return CrossGeolocator.Current.IsGeolocationEnabled;
         }
 
         /// <summary>
