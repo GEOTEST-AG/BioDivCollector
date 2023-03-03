@@ -330,6 +330,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             DeviceDisplay.MainDisplayInfoChanged += HandleRotationChange;
 
+            InitialiseGPS();
         }
 
         /// <summary>
@@ -339,7 +340,19 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             MessagingCenter.Subscribe<GPS, Dictionary<string, double>>(this, "GPSPositionUpdate", (sender, arg) =>
             {
-                UpdateLocation();
+                var gps = Preferences.Get("GPS", false);
+                var centred = Preferences.Get("GPS_Centred", false);
+                if (gps)
+                {
+                    UpdateLocation();
+                }
+                //var dic = arg;
+                //dic.TryGetValue("latitude", out double latitude);
+                //dic.TryGetValue("longitude", out double longitude);
+                //dic.TryGetValue("accuracy", out double accuracy);
+                //dic.TryGetValue("heading", out double heading);
+                //dic.TryGetValue("speed", out double speed);
+                //UpdateLocation(latitude, longitude, accuracy, heading, speed);
             });
 
             MessagingCenter.Subscribe<GPS, Dictionary<string, double>>(this, "BearingUpdate", (sender, arg) =>
@@ -359,6 +372,7 @@ namespace BioDivCollectorXamarin.ViewModels
         public void StopGPS()
         {
             GPS.StopGPSAsync();
+            RemoveGPSLayers();
             MessagingCenter.Unsubscribe<GPS>(this, "GPSPositionUpdate");
         }
 
@@ -429,10 +443,11 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     MessagingCenter.Send<MapPageVM>(this, "SelectGeometryType");
                 }
-                if (Map.Layers[Map.Layers.Count - 1] == TempLayer)
-                {
-                    Map.Layers.Remove(TempLayer);
-                }
+
+                var mapLayer = Map.Layers.Where(x => x == TempLayer).FirstOrDefault();
+                if (mapLayer != null)
+                    Map.Layers.Remove(mapLayer);
+
                 var mapPt = new Mapsui.Geometries.Point(Convert.ToDouble(screenPt.Longitude), Convert.ToDouble(screenPt.Latitude));
                 if (GeometryType == "Punkt")
                 {
@@ -538,19 +553,20 @@ namespace BioDivCollectorXamarin.ViewModels
             MessagingCenter.Subscribe<MapLayer, Dictionary<string, int>>(this, "LayerOrderChanged", (sender, arg) =>
             {
 
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    var dic = arg;
-                    dic.TryGetValue("oldZ", out int oldZ);
-                    dic.TryGetValue("newZ", out int newZ);
-                    var oldLayerZ = MapLayers.Count - oldZ;
-                    var newLayerZ = MapLayers.Count - newZ;
-                    if (newLayerZ < MapLayers.Count && newLayerZ >= 0)
+                    Device.BeginInvokeOnMainThread(() =>
                     {
-                        RefreshAllLayers();
-                    }
+                        var dic = arg;
+                        dic.TryGetValue("oldZ", out int oldZ);
+                        dic.TryGetValue("newZ", out int newZ);
+                        var oldLayerZ = MapLayers.Count - oldZ;
+                        var newLayerZ = MapLayers.Count - newZ;
+                        if (newLayerZ < MapLayers.Count && newLayerZ >= 0)
+                        {
+                            RefreshAllLayers();
+                        }
+                        InitialiseGPS();
+                    });
                 });
-            });
 
             if (App.ZoomMapOut)
             {
@@ -1006,7 +1022,6 @@ namespace BioDivCollectorXamarin.ViewModels
                     IsGeneratingLayer = false;
                 }
             });
-
         }
 
 
@@ -1079,7 +1094,6 @@ namespace BioDivCollectorXamarin.ViewModels
                         Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
                     }
                 });
-
             });
         }
 
@@ -1457,7 +1471,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 GeomToEdit = 0;
                 AllowAddNewGeom();
                 RemoveTempGeometry();
-                RefreshShapes();
+                await RefreshShapes();
             }
             else
             {
@@ -1510,8 +1524,13 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 if (geom != null)
                 {
+                    //Wait to ensure that the records page has been created before sending the GenerateNewForm message
+                    MessagingCenter.Subscribe<Application>(App.Current,"RecordsPageReady", async (sender) =>
+                    {
+                        MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
+                        MessagingCenter.Unsubscribe<Application>(App.Current, "RecordsPageReady");
+                    });
                     await Shell.Current.GoToAsync($"//Records?objectId={geom.Id}", true);
-                    MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
                 }
 
                 GeomToEdit = 0;
@@ -1620,7 +1639,10 @@ namespace BioDivCollectorXamarin.ViewModels
             if (TempCoordinates.Count > 1)
             {
                 TempCoordinates = new List<Mapsui.Geometries.Point>();
-                Map.Layers.Remove(TempLayer);
+                //Map.Layers.Remove(TempLayer);
+                var mapLayer = Map.Layers.Where(x => x == TempLayer).FirstOrDefault();
+                if (mapLayer != null)
+                    Map.Layers.Remove(mapLayer);
                 (ClearGeomCommand as Command).ChangeCanExecute();
                 (UndoGeomCommand as Command).ChangeCanExecute();
             }
@@ -1694,10 +1716,9 @@ namespace BioDivCollectorXamarin.ViewModels
             Device.InvokeOnMainThreadAsync(() =>
             {
                 TempCoordinates = new List<Mapsui.Geometries.Point>();
-                if (Map.Layers[Map.Layers.Count - 1] == TempLayer)
-                {
-                    Map.Layers.Remove(TempLayer);
-                }
+                var mapLayer = Map.Layers.Where(x => x == TempLayer).FirstOrDefault();
+                if (mapLayer != null)
+                    Map.Layers.Remove(mapLayer);
                 CanAddMapGeometry = false;
                 GeometryType = String.Empty;
                 VMGeomEditButton.BackgroundColor = (Xamarin.Forms.Color)Application.Current.Resources["BioDivGrey"];

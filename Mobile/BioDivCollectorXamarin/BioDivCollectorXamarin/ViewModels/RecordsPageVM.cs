@@ -91,12 +91,16 @@ namespace BioDivCollectorXamarin.ViewModels
             get { return formName; }
             set
             {
-                formName = value;
-                var form = Form.FetchFormWithFormName(formName);
-                if (form != null)
+                Task.Run(async () =>
                 {
-                    Form_pk = form.Id;
-                }
+                    formName = value;
+                    var form = await Form.FetchFormWithFormName(formName);
+                    if (form != null)
+                    {
+                        Form_pk = form.Id;
+                    }
+                    UpdateRecords();
+                });
             }
         }
 
@@ -326,15 +330,21 @@ namespace BioDivCollectorXamarin.ViewModels
     {
         public string LongGeomName { get; set; }
         public int? GeomId { get; set; }
+        public int? FormId { get; set; }
         public bool ShowButton { get; set; }
 
+        public bool ShowAddButtonGeom { get; set; } 
+        public bool ShowAddButtonForm { get; set; } 
+        
         public GroupedFormRec()
         {
-
+            //ShowAddButtonGeom = true;
         }
 
         public GroupedFormRec(List<FormRec> RecList)
         {
+            //ShowAddButtonGeom = true;
+
             foreach (var formRec in RecList)
             {
                 this.Add(formRec);

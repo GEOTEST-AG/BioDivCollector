@@ -188,10 +188,13 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void DeleteProject()
         {
-            if (SelectedItem != null)
+            Task.Run(async () =>
             {
-                DeleteProject(SelectedItem);
-            }
+                if (SelectedItem != null)
+                {
+                    await DeleteProject(SelectedItem);
+                }
+            });
         }
 
         /// <summary>
@@ -211,8 +214,11 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="projectGUID"></param>
         public void SetProject(string projectGUID)
         {
-            App.SetProject(projectGUID);
-            App.ZoomMapOut = true;
+            Task.Run(async () =>
+            {
+                await App.SetProject(projectGUID);
+                App.ZoomMapOut = true;
+            });
         }
 
         /// <summary>
@@ -331,7 +337,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 bool existsAlready = await Project.LocalProjectExists(proj.projectId);
                 if (existsAlready == true)
                 {
-                    App.SetProject(proj.projectId);
+                    await App.SetProject(proj.projectId);
                     MessagingCenter.Send<SyncListProjectCommand, ProjectSimple>(this, "ProjectSelected", proj);
                 }
                 else

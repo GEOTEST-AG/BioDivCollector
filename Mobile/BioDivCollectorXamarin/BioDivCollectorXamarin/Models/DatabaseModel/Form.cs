@@ -108,16 +108,16 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         public static async Task<Form> FetchFormWithFormName(string formName)
         {
             var conn = App.ActiveDatabaseConnection;
-                try
-                {
-                    var proj = await Project.FetchCurrentProject();
-                    var form = await conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).Where(Form => Form.title == formName).FirstOrDefaultAsync();
-                    return form;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+            try
+            {
+                var proj = await Project.FetchCurrentProject();
+                var form = await conn.Table<Form>().Where(Form => Form.project_fk == proj.Id).Where(Form => Form.title == formName).FirstOrDefaultAsync();
+                return form;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
             return null;
         }
 

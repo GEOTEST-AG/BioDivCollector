@@ -26,7 +26,7 @@ namespace BioDivCollectorXamarin.Models
             set
             {
                 formName = value;
-                var form = Form.FetchFormWithFormName(formName);
+                var form = Form.FetchFormWithFormName(formName).Result;
                 if (form != null)
                 {
                     Form_pk = form.Id;
@@ -82,7 +82,7 @@ namespace BioDivCollectorXamarin.Models
 
                 //No Geometry
 
-                var nogroup = new GroupedFormRec() { LongGeomName = "Allgemeine Beobachtungen", ShowButton = false };
+                var nogroup = new GroupedFormRec() { LongGeomName = "Allgemeine Beobachtungen", ShowButton = false, ShowAddButtonGeom = true, ShowAddButtonForm = false };
                 var norecList = new List<FormRec>();
 
                 if (filter == "Formulartyp")
@@ -181,7 +181,7 @@ namespace BioDivCollectorXamarin.Models
                     recList.AddRange(norecList);
                     var formResults = recList.GroupBy(r => r.FormId, r => r, (key, r) => new { Form = key, Rec = r.ToList() });
                     var forms = await conn.Table<Form>().Where(Form => Form.project_fk == project.Id).ToListAsync();
-                    var recordsByForm = formResults.Join(forms, rid => rid.Form, fid => fid.formId, (formrec, form) => new { LongGeomName = form.title, GeomId = form.Id, ShowButton = false, RecList = formrec.Rec }).Select(g => new GroupedFormRec(g.RecList as List<FormRec>) { LongGeomName = g.LongGeomName, GeomId = g.GeomId, ShowButton = false }).ToList();
+                    var recordsByForm = formResults.Join(forms, rid => rid.Form, fid => fid.formId, (formrec, form) => new { LongGeomName = form.title, GeomId = form.Id, FormId = form.formId, ShowButton = false, RecList = formrec.Rec, ShowAddButtonGeom = false, ShowAddButtonForm = true }).Select(g => new GroupedFormRec(g.RecList as List<FormRec>) { LongGeomName = g.LongGeomName, GeomId = g.GeomId, FormId = g.FormId, ShowButton = false, ShowAddButtonGeom = false, ShowAddButtonForm = true }).ToList();
                     //Sort groups by name
                     var recordsByFormOrdered = recordsByForm.OrderBy(rec => rec.LongGeomName).Select(rec => rec).ToList();
                     return recordsByFormOrdered;
@@ -190,7 +190,7 @@ namespace BioDivCollectorXamarin.Models
                 {
                     var recResults = recList.GroupBy(r => r.GeomId, r => r, (key, r) => new { Geom = key, Rec = r.ToList() });
                     var geoms = await conn.Table<ReferenceGeometry>().Where(ReferenceGeometry => ReferenceGeometry.project_fk == project.Id).ToListAsync();
-                    var recordsByGeometry = recResults.Join(geoms, rid => rid.Geom, gid => gid.Id, (formrec, geom) => new { LongGeomName = geom.geometryName, GeomId = geom.Id, ShowButton = true, RecList = formrec.Rec }).Select(g => new GroupedFormRec(g.RecList as List<FormRec>) { LongGeomName = g.LongGeomName, GeomId = g.GeomId, ShowButton = true }).ToList();
+                    var recordsByGeometry = recResults.Join(geoms, rid => rid.Geom, gid => gid.Id, (formrec, geom) => new { LongGeomName = geom.geometryName, GeomId = geom.Id, ShowButton = true, RecList = formrec.Rec, ShowAddGeomButton = true, ShowAddButtonForm = false }).Select(g => new GroupedFormRec(g.RecList as List<FormRec>) { LongGeomName = g.LongGeomName, GeomId = g.GeomId, ShowButton = true, ShowAddButtonGeom = true, ShowAddButtonForm = false }).ToList();
 
                     //Add in geometries with no records
                     var geomlist = new List<ReferenceGeometry>();
@@ -207,7 +207,7 @@ namespace BioDivCollectorXamarin.Models
                     {
                         if (recResults.Where(r => r.Geom == geom.Id).Count() == 0)
                         {
-                            recordsByGeometry.Add(new GroupedFormRec { LongGeomName = geom.geometryName, GeomId = geom.Id, ShowButton = true });
+                            recordsByGeometry.Add(new GroupedFormRec { LongGeomName = geom.geometryName, GeomId = geom.Id, ShowButton = true, ShowAddButtonGeom = true, ShowAddButtonForm = false });
                         }
                     }
 

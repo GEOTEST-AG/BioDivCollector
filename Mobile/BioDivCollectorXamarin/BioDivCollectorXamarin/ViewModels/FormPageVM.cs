@@ -9,6 +9,8 @@ using BioDivCollectorXamarin.Controls;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Views;
 using Mapsui.UI.Forms;
+using NativeMedia;
+using Plugin.Media;
 using SQLite;
 using SQLiteNetExtensions.Extensions;
 using SQLiteNetExtensionsAsync.Extensions;
@@ -751,33 +753,15 @@ namespace BioDivCollectorXamarin.ViewModels
 
         }
 
-        /// <summary>
-        /// Carry out tasks on screen appearing
-        /// </summary>
-        public void OnAppearing()
-        {
-            if (FormId != 0)
-            {
-                Assets = new List<View>();
-                var createFormTask = CreateForm(RecId, FormId, GeomId);
-
-                Task.Run(async () =>
-                {
-                    await createFormTask;
-                    //var temp = TempAssets;
-                    //Assets = temp;
-                });
-            }
-        }
 
         /// <summary>
         /// Carry out tasks on leaving the view
         /// </summary>
-        public void OnDisappearing()
+        public async void OnDisappearing()
         {
             if (NewRecord)
             {
-                Record.DeleteRecord(RecId); //Delete any temporary record
+                await Record.DeleteRecord(RecId); //Delete any temporary record
             }
         }
 
@@ -812,11 +796,11 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Cancel, lose any changes and return to the record list
         /// </summary>
-        private void OnCancel()
+        private async void OnCancel()
         {
             if (NewRecord)
             {
-                Record.DeleteRecord(RecId); //Delete any temporary record
+                await Record.DeleteRecord(RecId); //Delete any temporary record
             }
             // This will pop the current page off the navigation stack
             MessagingCenter.Send<Application>(App.Current, "NavigateBack");
