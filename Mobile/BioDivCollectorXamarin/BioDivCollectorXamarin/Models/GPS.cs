@@ -64,10 +64,9 @@ namespace BioDivCollectorXamarin.Models
             //Wait to get permission before starting GPS
             Task.Run(async() =>
              {
-                 App.GPSIsOn = true;
-                 while (App.GPSIsOn)
+                 while (Preferences.Get("GPS", false))
                  {
-                     Thread.Sleep(3000);
+                     Thread.Sleep(2000);
                      if (HasLocationPermission)
                      {
                          try {
@@ -93,7 +92,7 @@ namespace BioDivCollectorXamarin.Models
                                               dic.Add("accuracy", (double)location.Accuracy);
                                               Preferences.Set("LastPositionAccuracy", (double)location.Accuracy);
 
-                                              MessagingCenter.Send<GPS, Dictionary<string, double>>(this, "GPSPositionUpdate", dic);
+                                              MessagingCenter.Send<GPS>(this, "GPSPositionUpdate");
                                           }
                                       }
                                       catch (Exception ex)
@@ -161,50 +160,9 @@ namespace BioDivCollectorXamarin.Models
             double.TryParse(lastHeadingString, out var lastHeading);
             if (Math.Abs(lastHeading - e.Reading.HeadingMagneticNorth) > 1) 
             {
-                var actualHeading = Math.Abs((e.Reading.HeadingMagneticNorth + deviceRotation) % 360);
-                Dictionary<string, double> dic = new Dictionary<string, double>();
-                dic.Add("heading", actualHeading);
                 Preferences.Set("LastPositionHeading", e.Reading.HeadingMagneticNorth);
-                var accuracy = Preferences.Get("LastPositionAccuracy", 0.0);
-                MessagingCenter.Send<GPS, Dictionary<string, double>>(this, "BearingUpdate", dic);
+                MessagingCenter.Send<GPS>(this, "BearingUpdate");
             }
-        }
-
-        /// <summary>
-        /// React to an update in the GPS position
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Locator_PositionChanged(object sender, Plugin.Geolocator.Abstractions.PositionEventArgs e)
-        {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                try
-                {
-
-                    if (e.Position.Accuracy < 200)
-                    {
-                        Preferences.Set("LastPositionLatitude", e.Position.Latitude);
-                        Preferences.Set("LastPositionLongitude", e.Position.Longitude);
-                        Preferences.Set("LastPositionTimestamp", e.Position.Timestamp.ToString());
-                        Dictionary<string, double> dic = new Dictionary<string, double>();
-                        dic.Add("latitude", e.Position.Latitude);
-                        dic.Add("longitude", e.Position.Longitude);
-                        Console.WriteLine(e.Position.Latitude.ToString() + ", " + e.Position.Longitude.ToString() + " +/- " + e.Position.Accuracy);
-                        dic.Add("accuracy", e.Position.Accuracy);
-                        Preferences.Set("LastPositionAccuracy", e.Position.Accuracy);
-
-
-                        dic.Add("speed", e.Position.Speed);
-                        Preferences.Set("LastPositionSpeed", e.Position.Speed);
-                        MessagingCenter.Send<GPS, Dictionary<string, double>>(this, "GPSPositionUpdate", dic);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
-            });
         }
 
         /// <summary>
@@ -212,7 +170,6 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         public static void StopGPSAsync()
         {
-            App.GPSIsOn = false;
             if (App.GPSCancellationToken != null && !App.GPSCancellationToken.IsCancellationRequested)
                 App.GPSCancellationToken.Cancel();
         }

@@ -80,12 +80,7 @@ namespace BioDivCollectorXamarin
         /// GPS Cancellation token
         /// </summary>
         public static CancellationTokenSource GPSCancellationToken;
-
-        /// <summary>
-        /// Flag for turning GPS on when coming back from background
-        /// </summary>
-        public static bool GPSIsOn;
-
+        
         /// <summary>
         /// The GPS object
         /// </summary>
@@ -312,7 +307,7 @@ namespace BioDivCollectorXamarin
         {
             Login.CheckLogin();
             this.StartListening();
-            if (GPSIsOn)
+            if (Preferences.Get("GPS", false))
             {
                 App.Gps.StartGPSAsync();
             }
