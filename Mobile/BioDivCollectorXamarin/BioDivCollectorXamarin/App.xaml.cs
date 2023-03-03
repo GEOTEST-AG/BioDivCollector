@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using BioDivCollectorXamarin.Models;
@@ -74,6 +75,21 @@ namespace BioDivCollectorXamarin
         /// Whether the app has a data connection
         /// </summary>
         public static bool IsConnected = true;
+
+        /// <summary>
+        /// GPS Cancellation token
+        /// </summary>
+        public static CancellationTokenSource GPSCancellationToken;
+
+        /// <summary>
+        /// Flag for turning GPS on when coming back from background
+        /// </summary>
+        public static bool GPSIsOn;
+
+        /// <summary>
+        /// The GPS object
+        /// </summary>
+        public static GPS Gps { get; set; } = new GPS();
 
         /// <summary>
         /// Single running Databaseconnection
@@ -285,6 +301,8 @@ namespace BioDivCollectorXamarin
             // Handle when your app sleeps
             this.StopListening();
             ShowLogin = true;
+            Compass.Stop();
+            GPS.StopGPSAsync();
         }
 
         /// <summary>
@@ -294,6 +312,10 @@ namespace BioDivCollectorXamarin
         {
             Login.CheckLogin();
             this.StartListening();
+            if (GPSIsOn)
+            {
+                App.Gps.StartGPSAsync();
+            }
         }
 
         /// <summary>

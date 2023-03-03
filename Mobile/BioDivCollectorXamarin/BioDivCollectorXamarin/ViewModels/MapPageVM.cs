@@ -22,6 +22,7 @@ using Mapsui.UI;
 using Mapsui.Utilities;
 using Xamarin.Essentials;
 using Xamarin.Forms;
+using Xamarin.Forms.Internals;
 using Exception = System.Exception;
 
 namespace BioDivCollectorXamarin.ViewModels
@@ -104,7 +105,8 @@ namespace BioDivCollectorXamarin.ViewModels
         public bool CanAddMapGeometry
         {
             get { return canAddMapGeometry; }
-            set { 
+            set
+            {
                 canAddMapGeometry = value;
                 OnPropertyChanged("CanAddMapGeometry");
             }
@@ -134,11 +136,6 @@ namespace BioDivCollectorXamarin.ViewModels
         /// The page navigation
         /// </summary>
         public INavigation Navigation { get; set; }
-
-        /// <summary>
-        /// The GPS object
-        /// </summary>
-        public GPS gps { get; set; } = new GPS();
 
         /// <summary>
         /// Timestamp of last object selection
@@ -178,6 +175,11 @@ namespace BioDivCollectorXamarin.ViewModels
         /// The geometry to edit
         /// </summary>
         public int GeomToEdit;
+
+        /// <summary>
+        /// A bool to govern when layers can be generated to avoid flicker
+        /// </summary>
+        private bool IsGeneratingLayer;
 
         /// <summary>
         /// A temporary list of coordinates used during geometry creation
@@ -269,7 +271,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             VMMapView.Map.Limiter = new ViewportLimiterKeepWithin
             {
-                PanLimits = new BoundingBox(SphericalMercator.FromLonLat(-180, -90),SphericalMercator.FromLonLat(180, 90))
+                PanLimits = new BoundingBox(SphericalMercator.FromLonLat(-180, -90), SphericalMercator.FromLonLat(180, 90))
             };
 
             Task.Run(async () =>
@@ -294,7 +296,7 @@ namespace BioDivCollectorXamarin.ViewModels
             //}
 
 
-            MessagingCenter.Subscribe<Application,string>(App.Current, "TileSaved", (sender,arg1) =>
+            MessagingCenter.Subscribe<Application, string>(App.Current, "TileSaved", (sender, arg1) =>
             {
                 SaveCountText = (string)arg1;
             });
@@ -316,7 +318,7 @@ namespace BioDivCollectorXamarin.ViewModels
             });
 
             MessagingCenter.Unsubscribe<Application, string>(App.Current, "EditGeometry");
-            MessagingCenter.Subscribe<Application,int>(App.Current, "EditGeometry", async (sender,arg) =>
+            MessagingCenter.Subscribe<Application, int>(App.Current, "EditGeometry", async (sender, arg) =>
             {
                 GeomToEdit = arg;
                 var tempGeom = await ReferenceGeometry.GetGeometry(GeomToEdit);
@@ -337,17 +339,17 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             MessagingCenter.Subscribe<GPS, Dictionary<string, double>>(this, "GPSPositionUpdate", (sender, arg) =>
             {
-                var dic = arg;
-                dic.TryGetValue("latitude", out double latitude);
-                dic.TryGetValue("longitude", out double longitude);
-                dic.TryGetValue("accuracy", out double accuracy);
-                dic.TryGetValue("heading", out double heading);
-                dic.TryGetValue("speed", out double speed);
-                UpdateLocation(latitude, longitude, accuracy, heading, speed);
+                UpdateLocation();
             });
 
-            gps.GetPermissions();
-            gps.StartGPSAsync();
+            MessagingCenter.Subscribe<GPS, Dictionary<string, double>>(this, "BearingUpdate", (sender, arg) =>
+            {
+                UpdateLocation();
+            });
+
+
+            App.Gps.GetPermissions();
+            App.Gps.StartGPSAsync();
             StopShowingPosition();
         }
 
@@ -356,7 +358,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void StopGPS()
         {
-            gps.StopGPSAsync();
+            GPS.StopGPSAsync();
             MessagingCenter.Unsubscribe<GPS>(this, "GPSPositionUpdate");
         }
 
@@ -387,7 +389,7 @@ namespace BioDivCollectorXamarin.ViewModels
             dic.Add("longitude", lon);
             Console.WriteLine(lat + ", " + lon + " +/- " + accuracy);
             dic.Add("accuracy", accuracy);
-            
+
             var deviceRotation = 0;
 
             switch (DeviceDisplay.MainDisplayInfo.Rotation.ToString())
@@ -409,9 +411,9 @@ namespace BioDivCollectorXamarin.ViewModels
             }
 
             var actualHeading = Math.Abs((heading + deviceRotation) % 360);
-            dic.Add("heading", actualHeading );
+            dic.Add("heading", actualHeading);
             dic.Add("speed", speed);
-            MessagingCenter.Send<GPS, Dictionary<string, double>>(this.gps, "GPSPositionUpdate", dic);
+            MessagingCenter.Send<GPS, Dictionary<string, double>>(App.Gps, "GPSPositionUpdate", dic);
         }
 
 
@@ -444,13 +446,13 @@ namespace BioDivCollectorXamarin.ViewModels
                         //Complete the polygon
                         TempCoordinates.Add(TempCoordinates[0]);
                     }
-                    TempCoordinates.Insert(TempCoordinates.Count-1, mapPt);
+                    TempCoordinates.Insert(TempCoordinates.Count - 1, mapPt);
                 }
                 else
                 {
                     TempCoordinates.Add(mapPt);
                 }
-                
+
                 TempLayer = MapModel.CreateTempLayer(TempCoordinates);
                 Map.Layers.Insert(Map.Layers.Count, TempLayer);
 
@@ -465,7 +467,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     Console.WriteLine(e);
                 }
 
-            }        
+            }
         }
 
         /// <summary>
@@ -517,43 +519,43 @@ namespace BioDivCollectorXamarin.ViewModels
             InitialiseGPS();
             //Task.Run(() =>
             //{
-                ReCentreMap();
-                if (Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
-                {
-                    IsNotConnected = false;
-                }
-                else
-                {
-                    IsNotConnected = true;
-                }
+            ReCentreMap();
+            if (Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
+            {
+                IsNotConnected = false;
+            }
+            else
+            {
+                IsNotConnected = true;
+            }
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                RefreshAllLayers();
+            });
+
+
+
+            MessagingCenter.Subscribe<MapLayer, Dictionary<string, int>>(this, "LayerOrderChanged", (sender, arg) =>
+            {
+
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    RefreshAllLayers();
-                });
-
-
-
-                MessagingCenter.Subscribe<MapLayer, Dictionary<string, int>>(this, "LayerOrderChanged", (sender, arg) =>
-                {
-
-                    Device.BeginInvokeOnMainThread(() =>
+                    var dic = arg;
+                    dic.TryGetValue("oldZ", out int oldZ);
+                    dic.TryGetValue("newZ", out int newZ);
+                    var oldLayerZ = MapLayers.Count - oldZ;
+                    var newLayerZ = MapLayers.Count - newZ;
+                    if (newLayerZ < MapLayers.Count && newLayerZ >= 0)
                     {
-                        var dic = arg;
-                        dic.TryGetValue("oldZ", out int oldZ);
-                        dic.TryGetValue("newZ", out int newZ);
-                        var oldLayerZ = MapLayers.Count - oldZ;
-                        var newLayerZ = MapLayers.Count - newZ;
-                        if (newLayerZ < MapLayers.Count && newLayerZ >= 0)
-                        {
-                            RefreshAllLayers();
-                        }
-                    });
+                        RefreshAllLayers();
+                    }
                 });
+            });
 
-                if (App.ZoomMapOut)
-                {
-                    Task.Delay(100).ContinueWith(t => ZoomMapOut());
-                }
+            if (App.ZoomMapOut)
+            {
+                Task.Delay(100).ContinueWith(t => ZoomMapOut());
+            }
             //});
 
         }
@@ -631,7 +633,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             foreach (var layer in Map.Layers)
             {
-                if (layer.Name == "Polygons"|| layer.Name == "Lines"||layer.Name == "Points")
+                if (layer.Name == "Polygons" || layer.Name == "Lines" || layer.Name == "Points")
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
@@ -679,7 +681,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     try
                     {
-                        Device.BeginInvokeOnMainThread(async() =>
+                        Device.BeginInvokeOnMainThread(async () =>
                         {
                             var centre = await MapModel.GetCentreOfGeometry(geomId);
                             if (centre != null)
@@ -762,7 +764,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
         private static void MapControlFeatureInfo(object sender, FeatureInfoEventArgs e)
         {
-            
+
         }
 
 
@@ -876,7 +878,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     //Device.BeginInvokeOnMainThread(() =>
                     //{
-                        Map.Layers.Remove(layer);
+                    Map.Layers.Remove(layer);
                     //});
                 }
             }
@@ -884,7 +886,7 @@ namespace BioDivCollectorXamarin.ViewModels
             try
             {
                 var newMapLayers = await MapModel.MakeArrayOfLayers();
-                MapLayers = new ObservableCollection<MapLayer>(newMapLayers); 
+                MapLayers = new ObservableCollection<MapLayer>(newMapLayers);
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     AddLayersToMap();
@@ -955,7 +957,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="speed"></param>
         private void UpdateLocation()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            Task.Run(async () =>
             {
                 var lat = Preferences.Get("LastPositionLatitude", 0.0);
                 var lon = Preferences.Get("LastPositionLongitude", 0.0);
@@ -972,13 +974,14 @@ namespace BioDivCollectorXamarin.ViewModels
                     CentreOnPoint(lon, lat);
                 }
 
-                if (lat != 0 && lon != 0)
+                if (lat != 0 && lon != 0 && IsGeneratingLayer == false)
                 {
+                    IsGeneratingLayer = true;
                     if (lat != prevlat || lon != prevlon || accuracy != prevaccuracy || layerCount < 2)
                     {
                         try
                         {
-                            AddGPSLayer(lat, lon, accuracy, heading);
+                            await AddGPSLayer(lat, lon, accuracy, heading);
                         }
                         catch (Exception ex)
                         {
@@ -986,31 +989,26 @@ namespace BioDivCollectorXamarin.ViewModels
                             Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
                             Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
                             Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
-                            Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
                         }
                     }
                     else if (Math.Abs(prevheading - heading) > 1 && lat == prevlat && lon == prevlon && accuracy == prevaccuracy)
                     {
                         try
                         {
-                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
-                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
-                            AddBearingLayer(lat, lon, accuracy, heading);
+                            await AddBearingLayer(lat, lon, accuracy, heading);
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine(ex);
-                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
-                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
                             Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
                         }
                     }
+                    IsGeneratingLayer = false;
                 }
             });
 
         }
+
 
         /// <summary>
         /// Moves the map to x,y, whilst keeping the extent the same
@@ -1047,36 +1045,31 @@ namespace BioDivCollectorXamarin.ViewModels
 
         }
 
-        private void AddGPSLayer(double latitude, double longitude, double accuracy, double heading)
+        private async Task AddGPSLayer(double latitude, double longitude, double accuracy, double heading)
         {
-
-            Task.Run(() =>
+            await Task.Run(() =>
             {
                 GPSLayer = CreateGPSLayer(latitude, longitude, accuracy, heading);
                 GPSPointLayer = CreateGPSPointLayer(latitude, longitude, accuracy, heading);
                 BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
-                var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").ToArray();
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     try
                     {
+                        var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").ToArray();
                         if (gpsLayers.Count() > 0)
                         {
-                            VMMapView.Map.Layers.LayerRemoved += Layers_LayerRemoved;
-                            MessagingCenter.Subscribe<MapPageVM>(this, "gpsLayersRemoved", (sender) => {
-                                VMMapView.Map.Layers.Add(GPSLayer);
-                                VMMapView.Map.Layers.Add(GPSPointLayer);
-                                VMMapView.Map.Layers.Add(BearingLayer);
-                                MessagingCenter.Unsubscribe<MapPageVM>(this, "gpsLayersRemoved");
-                            });
                             VMMapView.Map.Layers.Remove(gpsLayers);
+
                         }
-                        else
-                        {
-                            VMMapView.Map.Layers.Add(GPSLayer);
-                            VMMapView.Map.Layers.Add(GPSPointLayer);
-                            VMMapView.Map.Layers.Add(BearingLayer);
-                        }
+                        VMMapView.Map.Layers.Add(GPSLayer);
+                        VMMapView.Map.Layers.Add(GPSPointLayer);
+                        VMMapView.Map.Layers.Add(BearingLayer);
+
+                        Preferences.Set("PrevLastPositionLatitude", latitude);
+                        Preferences.Set("PrevLastPositionLongitude", longitude);
+                        Preferences.Set("PrevLastPositionAccuracy", accuracy);
+                        Preferences.Set("PrevLastPositionHeading", heading);
                     }
                     catch
                     {
@@ -1090,52 +1083,31 @@ namespace BioDivCollectorXamarin.ViewModels
             });
         }
 
-        private void Layers_LayerRemoved(ILayer layer)
+        private async Task AddBearingLayer(double latitude, double longitude, double accuracy, double heading)
         {
-            MessagingCenter.Send<MapPageVM>(this, "gpsLayersRemoved");
-        }
-
-        private void AddBearingLayer(double latitude, double longitude, double accuracy, double heading)
-        {
-
-            Task.Run(() =>
+            await Task.Run(() =>
             {
                 BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
-                var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "Bearing").ToArray();
+                var bearingLayer = VMMapView.Map.Layers.Where(l => l.Name == "Bearing").ToArray();
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     try
                     {
-                        if (gpsLayers.Count() > 0)
+                        if (bearingLayer.Count() > 0)
                         {
-                            VMMapView.Map.Layers.LayerRemoved += Layers_BearingLayerRemoved;
-                            MessagingCenter.Subscribe<MapPageVM>(this, "bearingLayerRemoved", (sender) => {
-                                VMMapView.Map.Layers.Add(BearingLayer);
-                                MessagingCenter.Unsubscribe<MapPageVM>(this, "bearingLayerRemoved");
-                            });
-                            VMMapView.Map.Layers.Remove(gpsLayers);
+                            VMMapView.Map.Layers.Remove(bearingLayer);
                         }
-                        else
-                        {
-                            VMMapView.Map.Layers.Add(BearingLayer);
-                        }
+                        VMMapView.Map.Layers.Add(BearingLayer);
+                        Preferences.Set("PrevLastPositionHeading", heading);
                     }
                     catch
                     {
-                        Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
-                        Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                        Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
                         Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
                     }
                 });
-
             });
         }
 
-        private void Layers_BearingLayerRemoved(ILayer layer)
-        {
-            MessagingCenter.Send<MapPageVM>(this, "bearingLayerRemoved");
-        }
 
         private void RemoveGPSLayers()
         {
@@ -1199,7 +1171,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 IsMapInfoLayer = false,
                 Style = style
             };
-            gpsLayer.Name = "Bearing";
+            gpsLayer.Name = "GPS";
             gpsLayer.IsMapInfoLayer = false;
             return gpsLayer;
         }
@@ -1212,7 +1184,7 @@ namespace BioDivCollectorXamarin.ViewModels
             var R = 6378.1; //Radius of the Earth
             var brng = (Math.PI / 180) * heading; //Bearing is 90 degrees converted to radians.
             var d = accuracy / 1000;
-            var d2 = accuracy / 2000;
+            var d2 = accuracy / 8000;
 
             var lat1 = (Math.PI / 180) * latitude; //Current lat point converted to radians
             var lon1 = (Math.PI / 180) * longitude; //Current long point converted to radians
@@ -1311,12 +1283,15 @@ namespace BioDivCollectorXamarin.ViewModels
                 ["Label"] = "Bearing"
             };
 
-            bearingfeature.Styles = new List<IStyle>(){ new VectorStyle
+            bearingfeature.Styles = new List<IStyle>()
             {
-                Fill = new Mapsui.Styles.Brush(Mapsui.Styles.Color.FromArgb(100,66,135,245)),
-                Outline = null,
-                Line = null
-            } };
+                new VectorStyle
+                {
+                    Fill = new Mapsui.Styles.Brush {FillStyle = FillStyle.Solid, Color = Mapsui.Styles.Color.FromArgb(100,66,135,245), },
+                    Outline = null,
+                    Line = null
+                }
+            };
 
 
             var points = new List<Feature>() { bearingfeature };
@@ -1343,66 +1318,6 @@ namespace BioDivCollectorXamarin.ViewModels
             }
         }
 
-        /// <summary>
-        /// Update the current GPS location on receiving a notification from the GPS object
-        /// </summary>
-        /// <param name="latitude"></param>
-        /// <param name="longitude"></param>
-        /// <param name="accuracy"></param>
-        /// <param name="heading"></param>
-        /// <param name="speed"></param>
-        private void UpdateLocation(double latitude, double longitude, double accuracy, double heading, double speed)
-        {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                var lat = Preferences.Get("LastPositionLatitude", 0.0);
-                var lon = Preferences.Get("LastPositionLongitude", 0.0);
-                var accuracy = Preferences.Get("LastPositionAccuracy", 0.0);
-                var heading = Preferences.Get("LastPositionHeading", 0.0);
-                var prevlat = Preferences.Get("PrevLastPositionLatitude", 0.0);
-                var prevlon = Preferences.Get("PrevLastPositionLongitude", 0.0);
-                var prevaccuracy = Preferences.Get("PrevLastPositionAccuracy", 0.0);
-                var prevheading = Preferences.Get("PrevLastPositionHeading", 0.0);
-                var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
-
-                if (lat != 0 && lon != 0)
-                {
-                    if (lat != prevlat || lon != prevlon || accuracy != prevaccuracy || layerCount < 2)
-                    {
-                        try
-                        {
-                            AddGPSLayer(lat, lon, accuracy, heading);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex);
-                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
-                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
-                            Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
-                        }
-                    }
-                    else if (Math.Abs(prevheading - heading) > 1 && lat == prevlat && lon == prevlon && accuracy == prevaccuracy)
-                    {
-                        try
-                        {
-                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
-                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
-                            AddBearingLayer(lat, lon, accuracy, heading);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex);
-                            Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
-                            Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                            Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
-                            Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
-                        }
-                    }
-                }
-            });
-        }
 
         /// <summary>
         /// Save the current bounding box to the preferences so that it may later be reinstated
@@ -1421,7 +1336,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         public void ShowLayerList()
         {
-            Navigation.PushAsync(new MapLayersPage(),true);
+            Navigation.PushAsync(new MapLayersPage(), true);
         }
 
         /// <summary>
@@ -1473,7 +1388,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <returns>enabled/disabled</returns>
         private bool GPSActivated()
         {
-            return gps.HasLocationPermission;
+            return App.Gps.HasLocationPermission;
         }
 
         /// <summary>
@@ -1535,7 +1450,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private async void SaveNewGeom()
         {
-            
+
             if (GeomToEdit > 0)
             {
                 await ReferenceGeometry.UpdateGeometry(TempCoordinates, GeomToEdit);
@@ -1694,7 +1609,7 @@ namespace BioDivCollectorXamarin.ViewModels
             {
 
             }
-            
+
         }
 
         /// <summary>
