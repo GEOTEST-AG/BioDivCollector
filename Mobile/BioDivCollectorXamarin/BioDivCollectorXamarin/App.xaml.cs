@@ -86,6 +86,8 @@ namespace BioDivCollectorXamarin
         /// </summary>
         public static GPS Gps { get; set; } = new GPS();
 
+        public static bool GpsIsRunning { get; set; }
+
         /// <summary>
         /// Single running Databaseconnection
         /// </summary>
