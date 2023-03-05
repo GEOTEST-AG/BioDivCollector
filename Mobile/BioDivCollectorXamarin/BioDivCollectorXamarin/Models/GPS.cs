@@ -178,6 +178,10 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         public static void StopGPSAsync()
         {
+            if (Compass.IsMonitoring)
+            {
+                Compass.Stop();
+            }
             App.GpsIsRunning = false;
             if (App.GPSCancellationToken != null && !App.GPSCancellationToken.IsCancellationRequested)
                 App.GPSCancellationToken.Cancel();

@@ -922,6 +922,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             Device.BeginInvokeOnMainThread(() =>
             {
+                App.Gps.StartGPSAsync();
                 UpdateLocation();
                 Preferences.Set("GPS", true);
                 Preferences.Set("GPS_Centred", true);
@@ -936,6 +937,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             Device.BeginInvokeOnMainThread(() =>
             {
+                App.Gps.StartGPSAsync();
                 UpdateLocation();
                 Preferences.Set("GPS", true);
                 Preferences.Set("GPS_Centred", false);
@@ -951,6 +953,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Device.BeginInvokeOnMainThread(() =>
             {
                 RemoveGPSLayers();
+                GPS.StopGPSAsync();
                 Preferences.Set("GPS", false);
                 Preferences.Set("GPS_Centred", false);
                 VMGPSButton.Text = "\ue1b5";
@@ -1003,7 +1006,7 @@ namespace BioDivCollectorXamarin.ViewModels
             if (lat != 0 && lon != 0)
             {
 
-                if (lat != prevlat || lon != prevlon || accuracy != prevaccuracy || layerCount < 2 && IsGeneratingLayer == false)
+                if (lat != prevlat || lon != prevlon || accuracy != prevaccuracy || layerCount < 2 && IsGeneratingLayer == false && Preferences.Get("GPS", false))
                 {
                     IsGeneratingLayer = true;
                     try
@@ -1018,12 +1021,12 @@ namespace BioDivCollectorXamarin.ViewModels
                         Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
                     }
                 }
-                else if (Math.Abs(prevheading - heading) > 1 && lat == prevlat && lon == prevlon && accuracy == prevaccuracy && IsGeneratingLayer == false)
+                else if (Math.Abs(prevheading - heading) > 1 && lat == prevlat && lon == prevlon && accuracy == prevaccuracy && IsGeneratingLayer == false && Preferences.Get("GPS", false))
                 {
                     IsGeneratingLayer = true;
                     try
                     {
-                        AddBearingLayer(lat, lon, accuracy, heading);
+                        await AddBearingLayer(lat, lon, accuracy, heading);
                     }
                     catch (Exception ex)
                     {
@@ -1088,10 +1091,12 @@ namespace BioDivCollectorXamarin.ViewModels
                     if (gpsLayers.Count() > 0)
                     {
                         VMMapView.Map.Layers.Remove(gpsLayers);
-
                     }
-
-                    VMMapView.Map.Layers.Add(newLayers.ToArray());
+                    if (Preferences.Get("GPS", false))
+                    {
+                        VMMapView.Map.Layers.Add(newLayers.ToArray());
+                    }
+                    
 
                     Preferences.Set("PrevLastPositionLatitude", latitude);
                     Preferences.Set("PrevLastPositionLongitude", longitude);
@@ -1120,7 +1125,10 @@ namespace BioDivCollectorXamarin.ViewModels
                         {
                             VMMapView.Map.Layers.Remove(bearingLayer);
                         }
-                        VMMapView.Map.Layers.Add(BearingLayer);
+                        if (Preferences.Get("GPS", false))
+                        {
+                            VMMapView.Map.Layers.Add(BearingLayer);
+                        }
                         Preferences.Set("PrevLastPositionHeading", heading);
                     }
                     catch
@@ -1317,7 +1325,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
 
             var points = new List<Feature>() { bearingfeature };
-            ILayer gpsLayer = MapModel.CreatePolygonLayer(points, Mapsui.Styles.Color.Transparent, Mapsui.Styles.Color.Transparent);
+            ILayer gpsLayer = MapModel.CreatePolygonLayer(points, Mapsui.Styles.Color.Transparent, Mapsui.Styles.Color.FromArgb(100, 66, 135, 245));
             gpsLayer.Name = "Bearing";
             gpsLayer.IsMapInfoLayer = false;
             return gpsLayer;

@@ -298,7 +298,6 @@ namespace BioDivCollectorXamarin
             // Handle when your app sleeps
             this.StopListening();
             ShowLogin = true;
-            Compass.Stop();
             GPS.StopGPSAsync();
         }
 
