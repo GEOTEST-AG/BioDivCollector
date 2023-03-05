@@ -34,6 +34,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Editor = new SfImageEditor();
             Editor.ImageSaving += this.ImageEditor_ImageSaving;
             Editor.ImageLoaded += this.Editor_ImageLoaded;
+            Editor.SetToolbarItemVisibility("save, reset", false);
             return Editor;
         }
 
@@ -117,6 +118,16 @@ namespace BioDivCollectorXamarin.ViewModels
                     },
                     Name = "Album"
                 });
+                Editor.ToolbarSettings.ToolbarItems.Insert(0, new HeaderToolbarItem
+                {
+                    Name = "SaveButton",
+                    Text = "Speichern",
+                });
+                Editor.ToolbarSettings.ToolbarItems.Add( new HeaderToolbarItem
+                {
+                        Name = "ResetButton",
+                        Text = "Zurücksetzen",
+                });
                 Editor.ToolbarSettings.ToolbarItemSelected -= ToolbarSettings_ToolbarItemSelected;
                 Editor.ToolbarSettings.ToolbarItemSelected += ToolbarSettings_ToolbarItemSelected;
             }
@@ -137,6 +148,14 @@ namespace BioDivCollectorXamarin.ViewModels
             else if (e.ToolbarItem.Name == "Album")
             {
                 await PickPhotoAsync();
+            }
+            else if (e.ToolbarItem.Name == "SaveButton")
+            {
+                Editor.Save();
+            }
+            else if (e.ToolbarItem.Name == "ResetButton")
+            {
+                Editor.Reset();
             }
         }
 
