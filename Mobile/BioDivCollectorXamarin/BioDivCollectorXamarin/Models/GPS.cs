@@ -38,15 +38,21 @@ namespace BioDivCollectorXamarin.Models
                 if (status != Xamarin.Essentials.PermissionStatus.Granted)
                 {
                     Device.BeginInvokeOnMainThread(async() => {
-                        await App.Current.MainPage.DisplayAlert("GPS-Zugriff", "Wenn Sie Ihren Standort auf der Karte anzeigen möchten, benötigt diese App Zugriff auf die GPS-Funktion. Wenn Sie dies zulassen möchten, akzeptieren Sie bitte die GPS-Anfrage. Ist dies nicht der Fall, können Sie die Anfrage ablehnen und die Einstellungen der App zu einem späteren Zeitpunkt ändern, wenn Sie sie benötigen.", "Zeige mir die Anfrage", "Später");
-                        Task.Run(async () => {
-                            Task.Delay(1000).Wait();
-                            Device.BeginInvokeOnMainThread(async () =>
-                            {
-                                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                        if (Device.RuntimePlatform == "Android")
+                        {
+                            await App.Current.MainPage.DisplayAlert("GPS-Zugriff", "Wenn Sie Ihren Standort auf der Karte anzeigen möchten, benötigt diese App Zugriff auf die GPS-Funktion. Wenn Sie dies zulassen möchten, akzeptieren Sie bitte die GPS-Anfrage. Ist dies nicht der Fall, können Sie die Anfrage ablehnen und die Einstellungen der App zu einem späteren Zeitpunkt ändern, wenn Sie sie benötigen.", "Zeige mir die Anfrage", "Später");
+                            Task.Run(async () => {
+                                Task.Delay(1000).Wait();
+                                Device.BeginInvokeOnMainThread(async () =>
+                                {
+                                    status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                                });
                             });
-                        });
-                        
+                        }
+                        else
+                        {
+                            status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                        }
                     });
                 }
                 if (status == Xamarin.Essentials.PermissionStatus.Granted)
