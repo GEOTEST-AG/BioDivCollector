@@ -355,7 +355,6 @@ namespace BioDivCollectorXamarin.ViewModels
             });
 
 
-            App.Gps.GetPermissions();
             App.Gps.StartGPSAsync();
             StopShowingPosition();
         }

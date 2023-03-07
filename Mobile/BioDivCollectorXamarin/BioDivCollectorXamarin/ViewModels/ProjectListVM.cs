@@ -98,10 +98,28 @@ namespace BioDivCollectorXamarin.ViewModels
         public BDCGUIDListCommand CopyBDCGUIDCommand { get; set; }
 
         /// <summary>
+        /// Refresh the project list
+        /// </summary>
+        public ICommand RefreshCommand { get; }
+
+        /// <summary>
         /// Link command for opening the BioDiv URL in the browser
         /// </summary>
         public ICommand UrlCommand => new Command<string>(async (url) => await Launcher.OpenAsync(url));
 
+        /// <summary>
+        /// Pull to refresh parameters
+        /// </summary>
+        private bool isRefreshing = false;
+        public bool IsRefreshing
+        {
+            get => isRefreshing;
+            set
+            {
+                isRefreshing = value;
+                OnPropertyChanged(nameof(IsRefreshing));
+            }
+        }
 
         /// <summary>
         /// Initialisation
@@ -119,7 +137,8 @@ namespace BioDivCollectorXamarin.ViewModels
             SyncProjectCommand = new SyncListProjectCommand(this);
             DeleteProjectCommand = new DeleteListProjectCommand(this);
             CopyBDCGUIDCommand = new BDCGUIDListCommand(this);
-            
+            RefreshCommand = new Command(ExecuteRefreshCommandAsync);
+
 
             getProjectListTask.Start();
             var newProjectList = getProjectListTask.Result;
@@ -139,14 +158,28 @@ namespace BioDivCollectorXamarin.ViewModels
             MessagingCenter.Subscribe<Application>(App.Current, "RefreshProjectList", (sender) =>
             {
                 RefreshProjectList();
-                //Task.Run(() =>
-                //{
-                //    User messageUser = User.RetrieveUser();
-                //    List<ProjectSimple> messageProjectList = messageUser.projects;
-                //    Projects = new ObservableCollection<ProjectSimple>(new List<ProjectSimple>()); //Force list update by setting it to a cleared list, then setting it back again
-                //    Projects = new ObservableCollection<ProjectSimple>(messageProjectList);
-                //});
             });
+        }
+
+        private void ExecuteRefreshCommandAsync(object obj)
+        {
+            IsRefreshing = true;
+
+            if (App.IsConnected)
+            {
+                Task.Run(() =>
+                {
+                    App.CheckConnection();
+                    if (App.IsConnected)
+                    {
+                        Login.GetUserDetails();
+                        RefreshProjectList();
+                    }
+                });
+            }
+
+            // Stop refreshing
+            IsRefreshing = false;
         }
 
         /// <summary>

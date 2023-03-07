@@ -30,13 +30,14 @@ namespace BioDivCollectorXamarin.Models
         /// <summary>
         /// Retrieve and request permissions for GPS use
         /// </summary>
-        public async void GetPermissions()
+        public async Task GetPermissions()
         {
             try
             {
                 var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
                 if (status != Xamarin.Essentials.PermissionStatus.Granted)
                 {
+                    await App.Current.MainPage.DisplayAlert("GPS-Zugriff", "Wenn Sie Ihren Standort auf der Karte anzeigen möchten, benötigt diese App Zugriff auf die GPS-Funktion. Wenn Sie dies zulassen möchten, akzeptieren Sie bitte die GPS-Anfrage. Ist dies nicht der Fall, können Sie die Anfrage ablehnen und die Einstellungen der App zu einem späteren Zeitpunkt ändern, wenn Sie sie benötigen.", "Zeige mir die Anfrage");
                     status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
                 }
                 if (status == Xamarin.Essentials.PermissionStatus.Granted)
@@ -69,7 +70,7 @@ namespace BioDivCollectorXamarin.Models
                 {
                     while (Preferences.Get("GPS", false))
                     {
-                        Thread.Sleep(2000);
+                        Task.Delay(2000).Wait();
                         if (HasLocationPermission)
                         {
                             try
@@ -107,19 +108,30 @@ namespace BioDivCollectorXamarin.Models
                             }
                             catch (FeatureNotSupportedException fnsEx)
                             {
-                                await App.Current.MainPage.DisplayAlert("GPS wird nicht unterstützt", "Dieses Gerät unterstützt GPS nicht", "OK");
+                                Device.BeginInvokeOnMainThread(async() => {
+                                    await App.Current.MainPage.DisplayAlert("GPS wird nicht unterstützt", "Dieses Gerät unterstützt GPS nicht", "OK");
+                                });
                             }
                             catch (FeatureNotEnabledException fneEx)
                             {
-                                await App.Current.MainPage.DisplayAlert("GPS nicht aktiviert", "GPS ist für diese App nicht aktiviert", "OK");
+                                Device.BeginInvokeOnMainThread(async () => {
+                                    await App.Current.MainPage.DisplayAlert("GPS nicht aktiviert", "GPS ist für diese App nicht aktiviert", "OK");
+                                });
+                                
                             }
                             catch (PermissionException pEx)
                             {
-                                await App.Current.MainPage.DisplayAlert("GPS nicht zugelassen", "Bitte erlauben Sie die GPS-Aktivierung in den Einstellungen der App", "OK");
+                                Device.BeginInvokeOnMainThread(async () => {
+                                    await App.Current.MainPage.DisplayAlert("GPS nicht zugelassen", "Bitte erlauben Sie die GPS-Aktivierung in den Einstellungen der App", "OK");
+                                });
+                                
                             }
                             catch (Exception ex)
                             {
-                                await App.Current.MainPage.DisplayAlert("GPS nicht erreichbar", "Die App konnte nicht auf das GPS zugreifen", "OK");
+                                Device.BeginInvokeOnMainThread(async () => {
+                                    await App.Current.MainPage.DisplayAlert("GPS nicht erreichbar", "Die App konnte nicht auf das GPS zugreifen", "OK");
+                                });
+                                
                             }
 
                             Device.BeginInvokeOnMainThread(() =>
@@ -135,7 +147,7 @@ namespace BioDivCollectorXamarin.Models
                         else
                         {
                             Task.Delay(5000).Wait();
-                            GetPermissions();
+                            await GetPermissions();
                         }
                     }
                 });

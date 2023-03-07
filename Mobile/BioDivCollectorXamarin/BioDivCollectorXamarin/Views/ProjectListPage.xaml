@@ -26,6 +26,8 @@
                     </FormattedString>
                 </Label.FormattedText>
             </Label>
+            <Label Text="Zum Aktualisieren herunterziehen ↓" FontSize="10" HorizontalOptions="Center" Margin="0,5"/>
+            <RefreshView IsRefreshing="{Binding IsRefreshing}"  Command="{Binding RefreshCommand}">
             <CollectionView x:Name="ProjectList"
                                 ItemsSource="{Binding Projects}"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource LightBackgroundColor}, Dark={StaticResource DarkBackgroundColor}}"
@@ -96,6 +98,7 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
+            </RefreshView>
             <Label x:Name="ActivityLabel"
                    IsVisible="{Binding Activity, Converter={StaticResource stringToBool}}"
                    Text="{Binding Activity}"
