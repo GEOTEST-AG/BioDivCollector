@@ -1005,7 +1005,7 @@ namespace BioDivCollectorXamarin.ViewModels
             if (lat != 0 && lon != 0)
             {
 
-                if (lat != prevlat || lon != prevlon || accuracy != prevaccuracy || layerCount < 2 && IsGeneratingLayer == false && Preferences.Get("GPS", false))
+                if ((lat != prevlat || lon != prevlon || accuracy != prevaccuracy || layerCount < 2) && IsGeneratingLayer == false && Preferences.Get("GPS", false))
                 {
                     IsGeneratingLayer = true;
                     try
@@ -1114,27 +1114,25 @@ namespace BioDivCollectorXamarin.ViewModels
 
         private async Task AddBearingLayer(double latitude, double longitude, double accuracy, double heading)
         {
-                BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
+            BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
+
+            try
+            {
                 var bearingLayer = VMMapView.Map.Layers.Where(l => l.Name == "Bearing").ToArray();
-                Device.BeginInvokeOnMainThread(() =>
+                if (bearingLayer.Count() > 0)
                 {
-                    try
-                    {
-                        if (bearingLayer.Count() > 0)
-                        {
-                            VMMapView.Map.Layers.Remove(bearingLayer);
-                        }
-                        if (Preferences.Get("GPS", false))
-                        {
-                            VMMapView.Map.Layers.Add(BearingLayer);
-                        }
-                        Preferences.Set("PrevLastPositionHeading", heading);
-                    }
-                    catch
-                    {
-                        Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
-                    }
-                });
+                    VMMapView.Map.Layers.Remove(bearingLayer);
+                }
+                if (Preferences.Get("GPS", false))
+                {
+                    VMMapView.Map.Layers.Add(BearingLayer);
+                }
+                Preferences.Set("PrevLastPositionHeading", heading);
+            }
+            catch
+            {
+                Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+            }
         }
 
 
