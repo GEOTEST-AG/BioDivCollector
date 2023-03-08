@@ -983,8 +983,8 @@ namespace BioDivCollectorXamarin.ViewModels
             var heading = (int)Preferences.Get("LastPositionHeading", 0);
             var prevlat = Preferences.Get("PrevLastPositionLatitude", 0.0);
             var prevlon = Preferences.Get("PrevLastPositionLongitude", 0.0);
-            var prevaccuracy = (int)Preferences.Get("PrevLastPositionAccuracy", 0);
-            var prevheading = (int)Preferences.Get("PrevLastPositionHeading", 0);
+            var prevaccuracy = Preferences.Get("PrevLastPositionAccuracy", 0);
+            var prevheading = Preferences.Get("PrevLastPositionHeading", 0);
             var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
             var centred = Preferences.Get("GPS_Centred", false);
             if (centred)
@@ -1006,7 +1006,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         Console.WriteLine(ex);
                         Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
                         Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                        Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                        Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0));
                     }
                 }
                 else if (Math.Abs(prevheading - heading) > 0 && (Single)lat == (Single)prevlat && (Single)lon == (Single)prevlon && accuracy == prevaccuracy && IsGeneratingLayer == false && Preferences.Get("GPS", false))
@@ -1019,7 +1019,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex);
-                        Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                        Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0));
                     }
                 }
                 IsGeneratingLayer = false;
@@ -1062,7 +1062,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
         }
 
-        private async Task AddGPSLayer(double latitude, double longitude, double accuracy, double heading)
+        private async Task AddGPSLayer(double latitude, double longitude, int accuracy, int heading)
         {
             GPSLayer = CreateGPSLayer(latitude, longitude, accuracy, heading);
             GPSPointLayer = CreateGPSPointLayer(latitude, longitude, accuracy, heading);
@@ -1097,8 +1097,8 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
                 Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
-                Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0));
+                Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0));
             }
         }
 
@@ -1115,7 +1115,7 @@ namespace BioDivCollectorXamarin.ViewModels
             }
         }
 
-        private async Task AddBearingLayer(double latitude, double longitude, double accuracy, double heading)
+        private async Task AddBearingLayer(double latitude, double longitude, int accuracy, int heading)
         {
             BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
 
@@ -1154,7 +1154,7 @@ namespace BioDivCollectorXamarin.ViewModels
             }
             catch
             {
-                Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0));
             }
         }
 
@@ -1172,7 +1172,7 @@ namespace BioDivCollectorXamarin.ViewModels
         }
 
 
-        private ILayer CreateGPSLayer(double latitude, double longitude, double accuracy, double heading)
+        private ILayer CreateGPSLayer(double latitude, double longitude, int accuracy, int heading)
         {
             var c = new Mapsui.UI.Forms.Circle
             {
@@ -1199,7 +1199,7 @@ namespace BioDivCollectorXamarin.ViewModels
             return gpsLayer;
         }
 
-        private ILayer CreateGPSPointLayer(double latitude, double longitude, double accuracy, double heading)
+        private ILayer CreateGPSPointLayer(double latitude, double longitude, int accuracy, int heading)
         {
             var point = SphericalMercator.FromLonLat(longitude, latitude);
 

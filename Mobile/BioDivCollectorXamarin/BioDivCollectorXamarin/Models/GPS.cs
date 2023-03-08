@@ -109,8 +109,8 @@ namespace BioDivCollectorXamarin.Models
                                             dic.Add("latitude", location.Latitude);
                                             dic.Add("longitude", location.Longitude);
                                             Console.WriteLine(location.Latitude.ToString() + ", " + location.Longitude.ToString() + " +/- " + location.Accuracy);
-                                            dic.Add("accuracy", (double)location.Accuracy);
-                                            Preferences.Set("LastPositionAccuracy", (double)location.Accuracy);
+                                            dic.Add("accuracy", (int)location.Accuracy);
+                                            Preferences.Set("LastPositionAccuracy", (int)location.Accuracy);
 
                                             MessagingCenter.Send<GPS>(this, "GPSPositionUpdate");
                                         }
@@ -171,31 +171,10 @@ namespace BioDivCollectorXamarin.Models
 
         private void Compass_ReadingChanged(object sender, CompassChangedEventArgs e)
         {
-            var deviceRotation = 0;
-
-            switch (DeviceDisplay.MainDisplayInfo.Rotation.ToString())
+            var lastHeading = Preferences.Get("LastPositionHeading", 0);
+            if (Math.Abs(lastHeading - e.Reading.HeadingMagneticNorth) > 0) 
             {
-                case "Rotation0":
-                    deviceRotation = 0;
-                    break;
-                case "Rotation90":
-                    deviceRotation = 90;
-                    break;
-                case "Rotation180":
-                    deviceRotation = 180;
-                    break;
-                case "Rotation270":
-                    deviceRotation = 270;
-                    break;
-                default:
-                    break;
-            }
-
-            var lastHeadingString = Preferences.Get("LastPositionHeading", "0");
-            double.TryParse(lastHeadingString, out var lastHeading);
-            if (Math.Abs(lastHeading - e.Reading.HeadingMagneticNorth) > 1) 
-            {
-                Preferences.Set("LastPositionHeading", e.Reading.HeadingMagneticNorth);
+                Preferences.Set("LastPositionHeading", (int)e.Reading.HeadingMagneticNorth);
                 MessagingCenter.Send<GPS>(this, "BearingUpdate");
             }
         }
