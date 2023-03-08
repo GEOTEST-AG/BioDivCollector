@@ -151,7 +151,7 @@ namespace BioDivCollectorXamarin.Models
 
                             Device.BeginInvokeOnMainThread(() =>
                             {
-                                if (!Compass.IsMonitoring)
+                                if (!Compass.IsMonitoring && Device.RuntimePlatform == "iOS")
                                 {
                                     Compass.ReadingChanged += Compass_ReadingChanged;
                                     Compass.Start(SensorSpeed.UI, true);
@@ -184,7 +184,7 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         public static void StopGPSAsync()
         {
-            if (Compass.IsMonitoring)
+            if (Compass.IsMonitoring && Device.RuntimePlatform == "iOS")
             {
                 Compass.Stop();
             }

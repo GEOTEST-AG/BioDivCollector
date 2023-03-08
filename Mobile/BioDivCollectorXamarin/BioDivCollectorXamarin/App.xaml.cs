@@ -330,7 +330,6 @@ namespace BioDivCollectorXamarin
         {
             Login.CheckLogin();
             this.StartListening();
-
         }
 
         /// <summary>

@@ -1009,7 +1009,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0));
                     }
                 }
-                else if (Math.Abs(prevheading - heading) > 0 && (Single)lat == (Single)prevlat && (Single)lon == (Single)prevlon && accuracy == prevaccuracy && IsGeneratingLayer == false && Preferences.Get("GPS", false))
+                else if (Math.Abs(prevheading - heading) > 0 && (Single)lat == (Single)prevlat && (Single)lon == (Single)prevlon && accuracy == prevaccuracy && IsGeneratingLayer == false && Preferences.Get("GPS", false) && Device.RuntimePlatform == "iOS")
                 {
                     IsGeneratingLayer = true;
                     try
@@ -1066,15 +1066,18 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             GPSLayer = CreateGPSLayer(latitude, longitude, accuracy, heading);
             GPSPointLayer = CreateGPSPointLayer(latitude, longitude, accuracy, heading);
-            BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
+            
             var newLayers = new List<ILayer>();
             newLayers.Add(GPSLayer);
             newLayers.Add(GPSPointLayer);
-            newLayers.Add(BearingLayer);
+            if (Device.RuntimePlatform == "iOS")
+            {
+                BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
+                newLayers.Add(BearingLayer);
+            }
+            
             try
             {
-
-
                 if (Device.RuntimePlatform == Device.iOS)
                 {
                     ReplaceGPSLayers(newLayers);
