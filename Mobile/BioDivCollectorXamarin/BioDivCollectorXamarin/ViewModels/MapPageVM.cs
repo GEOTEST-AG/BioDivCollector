@@ -969,32 +969,22 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="speed"></param>
         private void UpdateLocation()
         {
-            if (Device.RuntimePlatform == Device.iOS)
-            {
-                Device.BeginInvokeOnMainThread(async() =>
-                {
-                    await UpdateLocationWork();
-                });
-            }
-            else if (Device.RuntimePlatform == Device.Android)
-            {
                 Task.Run(async() =>
                 {
                     await UpdateLocationWork();
                 });
-            }
         }
 
         private async Task UpdateLocationWork()
         {
             var lat = Preferences.Get("LastPositionLatitude", 0.0);
             var lon = Preferences.Get("LastPositionLongitude", 0.0);
-            var accuracy = Preferences.Get("LastPositionAccuracy", 0.0);
-            var heading = Preferences.Get("LastPositionHeading", 0.0);
+            var accuracy = (int)Preferences.Get("LastPositionAccuracy", 0);
+            var heading = (int)Preferences.Get("LastPositionHeading", 0);
             var prevlat = Preferences.Get("PrevLastPositionLatitude", 0.0);
             var prevlon = Preferences.Get("PrevLastPositionLongitude", 0.0);
-            var prevaccuracy = Preferences.Get("PrevLastPositionAccuracy", 0.0);
-            var prevheading = Preferences.Get("PrevLastPositionHeading", 0.0);
+            var prevaccuracy = (int)Preferences.Get("PrevLastPositionAccuracy", 0);
+            var prevheading = (int)Preferences.Get("PrevLastPositionHeading", 0);
             var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
             var centred = Preferences.Get("GPS_Centred", false);
             if (centred)
@@ -1004,8 +994,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             if (lat != 0 && lon != 0)
             {
-
-                if ((lat != prevlat || lon != prevlon || accuracy != prevaccuracy || layerCount < 2) && IsGeneratingLayer == false && Preferences.Get("GPS", false))
+                if (((Single)lat != (Single)prevlat || (Single)lon != (Single)prevlon || accuracy != prevaccuracy || layerCount < 2) && IsGeneratingLayer == false && Preferences.Get("GPS", false))
                 {
                     IsGeneratingLayer = true;
                     try
@@ -1020,7 +1009,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
                     }
                 }
-                else if (Math.Abs(prevheading - heading) > 1 && lat == prevlat && lon == prevlon && accuracy == prevaccuracy && IsGeneratingLayer == false && Preferences.Get("GPS", false))
+                else if (Math.Abs(prevheading - heading) > 0 && (Single)lat == (Single)prevlat && (Single)lon == (Single)prevlon && accuracy == prevaccuracy && IsGeneratingLayer == false && Preferences.Get("GPS", false))
                 {
                     IsGeneratingLayer = true;
                     try
@@ -1082,31 +1071,48 @@ namespace BioDivCollectorXamarin.ViewModels
             newLayers.Add(GPSLayer);
             newLayers.Add(GPSPointLayer);
             newLayers.Add(BearingLayer);
-                try
-                {
-                    var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").ToArray();
-                    if (gpsLayers.Count() > 0)
-                    {
-                        VMMapView.Map.Layers.Remove(gpsLayers);
-                    }
-                    if (Preferences.Get("GPS", false))
-                    {
-                        VMMapView.Map.Layers.Add(newLayers.ToArray());
-                    }
-                    
+            try
+            {
 
-                    Preferences.Set("PrevLastPositionLatitude", latitude);
-                    Preferences.Set("PrevLastPositionLongitude", longitude);
-                    Preferences.Set("PrevLastPositionAccuracy", accuracy);
-                    Preferences.Set("PrevLastPositionHeading", heading);
-                }
-                catch
+
+                if (Device.RuntimePlatform == Device.iOS)
                 {
-                    Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
-                    Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                    Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
-                    Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+                    ReplaceGPSLayers(newLayers);
                 }
+                else if (Device.RuntimePlatform == Device.Android)
+                {
+                    Task.Run(async () =>
+                    {
+                        ReplaceGPSLayers(newLayers);
+                    });
+                }
+
+
+                Preferences.Set("PrevLastPositionLatitude", latitude);
+                Preferences.Set("PrevLastPositionLongitude", longitude);
+                Preferences.Set("PrevLastPositionAccuracy", accuracy);
+                Preferences.Set("PrevLastPositionHeading", heading);
+            }
+            catch
+            {
+                Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0.0));
+                Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0.0));
+            }
+        }
+
+        private void ReplaceGPSLayers(IEnumerable<ILayer> newLayers)
+        {
+            var gpsLayers = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").ToArray();
+            if (gpsLayers.Count() > 0)
+            {
+                VMMapView.Map.Layers.Remove(gpsLayers);
+            }
+            if (Preferences.Get("GPS", false))
+            {
+                VMMapView.Map.Layers.Add(newLayers.ToArray());
+            }
         }
 
         private async Task AddBearingLayer(double latitude, double longitude, double accuracy, double heading)
@@ -1115,16 +1121,36 @@ namespace BioDivCollectorXamarin.ViewModels
 
             try
             {
-                var bearingLayer = VMMapView.Map.Layers.Where(l => l.Name == "Bearing").ToArray();
-                if (bearingLayer.Count() > 0)
+
+                if (Device.RuntimePlatform == Device.iOS)
                 {
-                    VMMapView.Map.Layers.Remove(bearingLayer);
+                        var bearingLayer = VMMapView.Map.Layers.Where(l => l.Name == "Bearing").ToArray();
+                        if (bearingLayer.Count() > 0)
+                        {
+                            VMMapView.Map.Layers.Remove(bearingLayer);
+                        }
+                        if (Preferences.Get("GPS", false))
+                        {
+                            VMMapView.Map.Layers.Add(BearingLayer);
+                        }
+                        Preferences.Set("PrevLastPositionHeading", heading);
                 }
-                if (Preferences.Get("GPS", false))
+                else if (Device.RuntimePlatform == Device.Android)
                 {
-                    VMMapView.Map.Layers.Add(BearingLayer);
+                    Task.Run(async () =>
+                    {
+                        var bearingLayer = VMMapView.Map.Layers.Where(l => l.Name == "Bearing").ToArray();
+                        if (bearingLayer.Count() > 0)
+                        {
+                            VMMapView.Map.Layers.Remove(bearingLayer);
+                        }
+                        if (Preferences.Get("GPS", false))
+                        {
+                            VMMapView.Map.Layers.Add(BearingLayer);
+                        }
+                        Preferences.Set("PrevLastPositionHeading", heading);
+                    });
                 }
-                Preferences.Set("PrevLastPositionHeading", heading);
             }
             catch
             {
