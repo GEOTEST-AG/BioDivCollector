@@ -44,7 +44,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         {
             var connectionString = new SQLiteConnectionString(Constants.DatabasePath);
             var instance = new DatabaseConnection(connectionString);
-            //CreateTableResult result = await Database.CreateTableAsync<T>();
+            instance.EnableWriteAheadLoggingAsync().ConfigureAwait(false);
             return instance;
         });
 
