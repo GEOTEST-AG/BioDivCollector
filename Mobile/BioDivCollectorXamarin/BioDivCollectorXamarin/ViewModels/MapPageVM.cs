@@ -987,7 +987,7 @@ namespace BioDivCollectorXamarin.ViewModels
             var prevheading = Preferences.Get("PrevLastPositionHeading", 0);
             var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
             var centred = Preferences.Get("GPS_Centred", false);
-            if (centred)
+            if (centred && lat != 0 && lon != 0)
             {
                 CentreOnPoint(lon, lat);
             }
