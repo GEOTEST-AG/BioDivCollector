@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using AspNetCore;
 using BioDivCollector.DB.Models.Domain;
 using BioDivCollector.WebApp.Helpers;
 using Microsoft.AspNetCore.Http;
@@ -1086,6 +1087,11 @@ namespace BioDivCollector.WebApp.Controllers
                     sqlGeometrieView += "getrecordnumber(r2.recordid, '" + ffnfv.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
                     sqlGeneralView += "getrecordnumber(r2.recordid, '" + ffnfv.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
                 }
+                else if (ffnfv.FormField.FieldTypeId == FieldTypeEnum.Number)
+                {
+                    sqlGeometrieView += "getrecordbinary(r2.recordid, '" + ffnfv.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
+                    sqlGeneralView += "getrecordbinary(r2.recordid, '" + ffnfv.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
+                }
             }
 
 
@@ -1111,6 +1117,11 @@ namespace BioDivCollector.WebApp.Controllers
                         {
                             sqlGeometrieView += "getrecordnumber(r2.recordid, '" + f.Title.Replace("'", "''") + "'::text, '" + fff.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
                             sqlGeneralView += "getrecordnumber(r2.recordid, '" + f.Title.Replace("'", "''") + "'::text, '" + fff.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
+                        }
+                        else if (fff.FormField.FieldTypeId == FieldTypeEnum.Binary)
+                        {
+                            sqlGeometrieView += "getrecordbinary(r2.recordid, '" + f.Title.Replace("'", "''") + "'::text, '" + fff.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
+                            sqlGeneralView += "getrecordbinary(r2.recordid, '" + f.Title.Replace("'", "''") + "'::text, '" + fff.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
                         }
                     }
                 }
@@ -1148,10 +1159,10 @@ namespace BioDivCollector.WebApp.Controllers
             if (prefix != "")
             {
                 string unionquery = "CREATE OR REPLACE VIEW public.{prefix}union_records " +
-                                            "AS select * from {prefix}records_without_geometries " +
-                                            "union all select * from {prefix}point_view where changedate is null " +
-                                            "union all select * from {prefix}line_view where changedate is null " +
-                                            "union all select * from {prefix}polygon_view where changedate is null ";
+                                            "AS select * from {prefix}records_without_geometries where bdcguid_geometrie is null " +
+                                            "union all select * from {prefix}point_view " +
+                                            "union all select * from {prefix}line_view " +
+                                            "union all select * from {prefix}polygon_view ";
                 unionquery = unionquery.Replace("{prefix}", prefix);
                 await db.Database.ExecuteSqlRawAsync(unionquery);
             }
@@ -1227,17 +1238,43 @@ namespace BioDivCollector.WebApp.Controllers
         }
 
 
-        public IActionResult Export()
+        public async Task<IActionResult> Export()
         {
             List<Dictionary<int, string>> returnList = new List<Dictionary<int, string>>();
+
+            List<Form> forms = await db.Forms.Include(m => m.FormProjects).ThenInclude(fp => fp.Project)
+                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
+                .Include(m => m.FormChangeLogs).ThenInclude(m => m.ChangeLog).ThenInclude(m => m.User)
+                .ToListAsync();
+
+            List<Form> fps = new List<Form>();
+
+            if (User.IsInRole("DM"))
+            {
+                foreach (Form f in forms)
+                {
+                    fps.Add(f);
+                }
+            }
+            else
+            {
+                User user = Helpers.UserHelper.GetCurrentUser(User, db);
+                foreach (Form f in forms)
+                {
+                    if (f.FormChangeLogs?.First().ChangeLog?.User == user) fps.Add(f);
+                }
+            }
 
 
 
             List<FormField> ffs = db.FormFields.Include(m=>m.FormFieldForms).ThenInclude(m=>m.Form).Where(m=>m.FieldTypeId == FieldTypeEnum.Choice && m.PublicMotherFormFieldFormFieldId == null).ToList();
             foreach (FormField ff in ffs)
             {
-                Dictionary<int,string> keyValuePairs = new Dictionary<int, string>() { { ff.FormFieldId, ff.Title + "(" + ff.FormFieldForms.FirstOrDefault()?.Form.Title + ")" } };
-                returnList.Add(keyValuePairs);
+                if (ff.FormFieldForms.Where(m => fps.Contains(m.Form)).Any())
+                {
+                    Dictionary<int, string> keyValuePairs = new Dictionary<int, string>() { { ff.FormFieldId, ff.Title + "(" + ff.FormFieldForms.FirstOrDefault()?.Form.Title + ")" } };
+                    returnList.Add(keyValuePairs);
+                }
             }
 
             return View(returnList);
@@ -1391,13 +1428,19 @@ namespace BioDivCollector.WebApp.Controllers
                                         {
                                             lastFF = fc.FormField;
 
-                                            if ((fc.Text != content) || (fc.Order != Int16.Parse(result.GetString(order))))
+                                            if (content.ToLower() == "todelete")
+                                            {
+                                                db.FieldChoices.Remove(fc);
+                                                db.Entry(fc).State = EntityState.Deleted;
+                                                returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + ") gelöscht</li>";
+                                            }
+                                            else if ((fc.Text != content) || (fc.Order != Int16.Parse(result.GetString(order))))
                                             {
                                                 fc.Text = content;
                                                 fc.Order = Int16.Parse(result.GetString(order));
 
                                                 db.Entry(fc).State = EntityState.Modified;
-                                                returnMessage += "<li>Auswahldeld (" + fc.FieldChoiceId + ") angepasst mit neuem Text " + fc.Text + "</li>";
+                                                returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + ") angepasst mit neuem Text " + fc.Text + "</li>";
                                             }
                                         }
 

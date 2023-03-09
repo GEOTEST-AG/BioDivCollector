@@ -73,18 +73,17 @@ namespace BioDivCollector.WebApp.Controllers
            {
                 if (_wmsurlcache != wmsurl)
                 {
-
-                    if (((username != null) && (password != null)) && (!wmsurl.Contains(username)))
-                    {
-                        wmsurl.Replace("://", "://" + username + ":" + password + "@");
-                    }
-
-
                     System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
                     byte[] data;
                     using (WebClient webClient = new WebClient())
+                    {
+                        if (((username != null) && (password != null)) && (!wmsurl.Contains(username + ":")))
+                        {
+                            webClient.Credentials = new NetworkCredential(username, password);
+                        }
                         data = webClient.DownloadData(wmsurl);
+                    }
 
                     string str = Encoding.GetEncoding("UTF-8").GetString(data);
                     XDocument xdoc = XDocument.Parse(str);
@@ -184,6 +183,8 @@ namespace BioDivCollector.WebApp.Controllers
                 }
             }
 
+            layer.Password = "";
+
             return View(layer);
         }
 
@@ -222,6 +223,14 @@ namespace BioDivCollector.WebApp.Controllers
                     layerOld.Title = layer.Title;
                     layerOld.Url = layer.Url;
                     layerOld.WMSLayer = layer.WMSLayer;
+                    
+                    if (layer.Username != null) { 
+                        layerOld.Username= layer.Username;
+                    
+                    }
+                    if ((layer.Password!= null) && (layer.Password!="")) {
+                        layerOld.Password= layer.Password;
+                    }
 
                     ChangeLog cl = new ChangeLog() { Log = "Changed Layer " + layer.Title, User = me };
                     ChangeLogLayer cll = new ChangeLogLayer() { ChangeLog = cl, Layer = layer };

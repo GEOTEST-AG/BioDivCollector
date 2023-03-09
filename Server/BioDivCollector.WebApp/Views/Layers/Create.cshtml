@@ -186,7 +186,7 @@
                                         load: function (query, callback) {
                                             //if (!query.length) return callback();
                                             $.ajax({
-                                                url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val()) +'&search=' + encodeURIComponent(query),
+                    url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val()) + '&username=' + $('#username').val() + '&password=' + $('#password').val() + '&search=' + encodeURIComponent(query),
                                                 type: 'GET',
                                                 error: function () {
                                                     callback();

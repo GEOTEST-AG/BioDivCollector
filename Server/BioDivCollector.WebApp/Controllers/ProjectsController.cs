@@ -1201,7 +1201,7 @@ namespace BioDivCollector.WebApp.Controllers
                                     Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + r.RecordId);
                                     foreach (BinaryData b in r.BinaryData)
                                     {
-                                        await bC.SaveBinaryAsync(b.Id, dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + r.RecordId + "//" + b.Value.OriginalFileName);
+                                        await bC.SaveBinaryAsync(b.Id, dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + r.RecordId + "//" + r.RecordId + "_" + b.Value.OriginalFileName);
                                     }
                                 }
                             }
@@ -1217,7 +1217,7 @@ namespace BioDivCollector.WebApp.Controllers
                                             Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId + "//" + r.RecordId);
                                         foreach (BinaryData b in r.BinaryData)
                                         {
-                                            await bC.SaveBinaryAsync(b.Id, dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId + "//" + r.RecordId + "//" + b.Value.OriginalFileName);
+                                            await bC.SaveBinaryAsync(b.Id, dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId + "//" + r.RecordId + "//" + r.RecordId + "_" + b.Value.OriginalFileName);
                                         }
 
                                     }
