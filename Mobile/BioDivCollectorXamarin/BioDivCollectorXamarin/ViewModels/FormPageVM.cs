@@ -110,8 +110,17 @@ namespace BioDivCollectorXamarin.ViewModels
             if (recId != null && recId != String.Empty)
             {
                 queriedrec = await Record.FetchRecord(recId);
-                ReadOnly = queriedrec.readOnly;
-                RecId = recId;
+                if (queriedrec == null)
+                {
+                    queriedrec = await Record.CreateRecord(formId, geomId);
+                    RecId = queriedrec.recordId;
+                    NewRecord = true;
+                }
+                else
+                {
+                    ReadOnly = queriedrec.readOnly;
+                    RecId = recId;
+                }
             }
             else
             {
