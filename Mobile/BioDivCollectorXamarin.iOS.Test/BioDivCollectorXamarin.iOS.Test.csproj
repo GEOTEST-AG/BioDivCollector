@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Xamarin.Forms.5.0.0.2578\build\Xamarin.Forms.props" Condition="Exists('..\packages\Xamarin.Forms.5.0.0.2578\build\Xamarin.Forms.props')" />
   <PropertyGroup>
@@ -187,15 +187,6 @@
     </Reference>
     <Reference Include="Xamarin.CommunityToolkit">
       <HintPath>..\packages\Xamarin.CommunityToolkit.2.0.5\lib\xamarinios10\Xamarin.CommunityToolkit.dll</HintPath>
-    </Reference>
-    <Reference Include="Mapsui">
-      <HintPath>..\packages\Mapsui.3.0.2\lib\netstandard2.0\Mapsui.dll</HintPath>
-    </Reference>
-    <Reference Include="Mapsui.Geometries">
-      <HintPath>..\packages\Mapsui.3.0.2\lib\netstandard2.0\Mapsui.Geometries.dll</HintPath>
-    </Reference>
-    <Reference Include="Mapsui.Rendering.Skia">
-      <HintPath>..\packages\Mapsui.3.0.2\lib\netstandard2.0\Mapsui.Rendering.Skia.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
