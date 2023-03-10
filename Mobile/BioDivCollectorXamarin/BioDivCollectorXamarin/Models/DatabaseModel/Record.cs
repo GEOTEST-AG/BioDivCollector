@@ -195,7 +195,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             {
                 var conn = App.ActiveDatabaseConnection;
                 var record = await conn.Table<Record>().Where(Record => Record.recordId == recordId).FirstOrDefaultAsync();
-                if (record.status > -1)
+                if (record != null && record.status > -1)
                 {
                     record.status = 3;
                     record.timestamp = DateTime.Now;
@@ -210,7 +210,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             }
             catch (Exception e)
             {
-                Console.WriteLine("Could not delete record");
+
             }
         }
 
@@ -449,14 +449,14 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 binaryIds.AddRange(binarys.Select(f => f.binaryId));
 
 
-                if (binarys == null || binarys == new List<BinaryData>())
+                /*if (binarys == null || binarys == new List<BinaryData>())
                 {
                     BinaryData binDat = new BinaryData();
                     binaryIds = new List<string>() { binDat.binaryId }; //Give the new ID back to the current code
                     binDat.record_fk = recordId;
                     binDat.formFieldId = formFieldId;
                     await conn.InsertOrReplaceAsync(binDat);
-                }
+                }*/
                 //else
                 //{
                 //    binaryIds = conn.Table<BinaryData>().Where(r => r.record_fk == recordId).Where(r2 => r2.formFieldId == formFieldId).Where(r3 => r3.binaryId).ToList();
@@ -555,9 +555,13 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
 
         public static void DeleteBinaryFile(string binaryId)
         {
-            var directory = DependencyService.Get<FileInterface>().GetImagePath();
-            string filepath = Path.Combine(directory, binaryId + ".jpg");
-            File.Delete(filepath);
+            try
+            {
+                var directory = DependencyService.Get<FileInterface>().GetImagePath();
+                string filepath = Path.Combine(directory, binaryId + ".jpg");
+                File.Delete(filepath);
+            }
+            catch { }
         }
     }
 }
