@@ -163,10 +163,10 @@ namespace BioDivCollectorXamarin.Views
             });
         }
 
-        protected override void OnDisappearing()
+        protected async override void OnDisappearing()
         {
             base.OnDisappearing();
-            ViewModel.OnDisappearing();
+            await ViewModel.OnDisappearing();
         }
 
         /// <summary>

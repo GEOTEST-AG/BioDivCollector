@@ -455,6 +455,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             dropField.DropDownItemHeight = 50;
                             dropField.MaximumSuggestion = 50;
                             dropField.EnableSelectionIndicator = true;
+                            dropField.SuggestionBoxPlacement = SuggestionBoxPlacement.Auto;
                             dropField.LoadMoreText = "WEITERE ERGEBNISSE";
                             dropField.MaximumDropDownHeight = 150;
                             dropField.WatermarkColor = Color.Gray;
@@ -784,7 +785,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// Carry out tasks on leaving the view
         /// </summary>
-        public async void OnDisappearing()
+        public async Task OnDisappearing()
         {
             if (NewRecord && !GoingToImageEditor)
             {
