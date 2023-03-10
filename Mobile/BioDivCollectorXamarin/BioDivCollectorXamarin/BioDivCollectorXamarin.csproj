@@ -46,7 +46,7 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="NetTopologySuite" Version="2.5.0" />
     <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="3.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SQLiteNetExtensionsAsyncUpdate" Version="2.1.2" />
     <PackageReference Include="SQLiteNetExtensionsUpdate" Version="2.1.2" />
     <PackageReference Include="Syncfusion.Xamarin.SfAutoComplete" Version="20.4.0.53" />
