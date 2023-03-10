@@ -389,7 +389,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>13.0.1</Version>
+      <Version>13.0.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Auth.Extensions">
       <Version>1.7.0</Version>
@@ -400,18 +400,18 @@
     <PackageReference Include="Xamarin.CommunityToolkit">
       <Version>2.0.5</Version>
     </PackageReference>
-    <PackageReference Include="Xamarin.Essentials" Version="1.7.3" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.7.5" />
     <PackageReference Include="Mapsui">
       <Version>3.0.2</Version>
     </PackageReference>
     <PackageReference Include="Syncfusion.Xamarin.Core">
-      <Version>20.3.0.50</Version>
+      <Version>20.4.0.53</Version>
     </PackageReference>
     <PackageReference Include="Syncfusion.Licensing">
-      <Version>20.3.0.50</Version>
+      <Version>20.4.0.53</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Forms">
-      <Version>5.0.0.2515</Version>
+      <Version>5.0.0.2578</Version>
     </PackageReference>
     <PackageReference Include="Mapsui.Forms">
       <Version>3.0.2</Version>
