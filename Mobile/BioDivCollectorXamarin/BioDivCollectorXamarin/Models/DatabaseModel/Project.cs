@@ -1,14 +1,12 @@
-﻿using BioDivCollectorXamarin.Models.LoginModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
+using BioDivCollectorXamarin.Models.LoginModel;
 using SQLite;
 using SQLiteNetExtensions.Attributes;
-using SQLiteNetExtensions.Extensions;
-using Xamarin.Forms;
-using System.Threading.Tasks;
-using Xamarin.Essentials;
 using SQLiteNetExtensionsAsync.Extensions;
+using Xamarin.Essentials;
+using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {

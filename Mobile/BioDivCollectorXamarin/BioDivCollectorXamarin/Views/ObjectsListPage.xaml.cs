@@ -1,5 +1,4 @@
-﻿using BioDivCollectorXamarin.Models;
-using BioDivCollectorXamarin.Models.DatabaseModel;
+﻿using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.ViewModels;
 
 using Xamarin.Forms;

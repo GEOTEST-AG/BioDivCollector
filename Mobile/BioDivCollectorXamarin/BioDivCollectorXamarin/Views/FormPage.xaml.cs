@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.ComponentModel;
-using System.Threading.Tasks;
-using BioDivCollectorXamarin.Models.DatabaseModel;
-using BioDivCollectorXamarin.Models.LoginModel;
 using BioDivCollectorXamarin.ViewModels;
-using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 

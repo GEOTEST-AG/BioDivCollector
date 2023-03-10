@@ -1,29 +1,25 @@
-﻿using BioDivCollectorXamarin.Models.Wms;
-using BioDivCollectorXamarin.ViewModels;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.MBTiles;
+using BioDivCollectorXamarin.Models.Wms;
+using BioDivCollectorXamarin.ViewModels;
 using BruTile;
 using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Projection;
 using Mapsui.Providers;
 using Mapsui.Styles;
+using Mapsui.Utilities;
 using NetTopologySuite.IO;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using Xamarin.Essentials;
 using Xamarin.Forms;
-using static BioDivCollectorXamarin.Models.DataDAO;
-using System.Threading.Tasks;
-using Mapsui.Utilities;
-using System.Net.Http;
-using System.Net;
-using SQLite;
-using BioDivCollectorXamarin.Models.DatabaseModel;
 using static BioDivCollectorXamarin.Helpers.Interfaces;
+using static BioDivCollectorXamarin.Models.DataDAO;
 
 namespace BioDivCollectorXamarin.Models
 {

@@ -1,18 +1,12 @@
-using SQLite;
-using SQLiteNetExtensions.Attributes;
-using SQLiteNetExtensions.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using Xamarin.Forms;
-using BioDivCollectorXamarin.Controls;
-using BioDivCollectorXamarin.Models;
-using Xamarin.Essentials;
 using System.Threading.Tasks;
+using BioDivCollectorXamarin.Controls;
+using SQLite;
+using SQLiteNetExtensions.Attributes;
 using SQLiteNetExtensionsAsync.Extensions;
-using System.Drawing.Printing;
-using static System.Net.Mime.MediaTypeNames;
+using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {

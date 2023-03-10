@@ -1,18 +1,12 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 using BioDivCollectorXamarin.Models;
-using BioDivCollectorXamarin.Views;
-using BioDivCollectorXamarin.ViewModels;
 using BioDivCollectorXamarin.Models.DatabaseModel;
-using System.Globalization;
+using BioDivCollectorXamarin.ViewModels;
 using Xamarin.Essentials;
-using NetTopologySuite.Index.HPRtree;
+using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Views
 {

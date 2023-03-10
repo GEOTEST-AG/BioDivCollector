@@ -1,8 +1,8 @@
-﻿using Xamarin.Forms;
-using BioDivCollectorXamarin.Models.LoginModel;
-using System;
-using Xamarin.Essentials;
+﻿using System;
 using System.Threading.Tasks;
+using BioDivCollectorXamarin.Models.LoginModel;
+using Xamarin.Essentials;
+using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.ViewModels
 {

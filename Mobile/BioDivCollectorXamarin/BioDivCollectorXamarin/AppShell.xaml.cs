@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using BioDivCollectorXamarin.ViewModels;
+﻿using System.Runtime.CompilerServices;
 using BioDivCollectorXamarin.Views;
-using Syncfusion.SfImageEditor.XForms;
 using Xamarin.Forms;
-using Xamarin.Forms.PlatformConfiguration;
-using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
 
 namespace BioDivCollectorXamarin
 {

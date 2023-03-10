@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.DatabaseModel;
-using BioDivCollectorXamarin.Models.Wms;
 using BioDivCollectorXamarin.Views;
 using BruTile;
 using Mapsui;
@@ -22,8 +18,6 @@ using Mapsui.UI;
 using Mapsui.Utilities;
 using Xamarin.Essentials;
 using Xamarin.Forms;
-using Xamarin.Forms.Internals;
-using static Mapsui.Providers.ArcGIS.TileInfo;
 using Exception = System.Exception;
 
 namespace BioDivCollectorXamarin.ViewModels

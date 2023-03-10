@@ -1,20 +1,14 @@
-﻿using NetTopologySuite.Geometries;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using NetTopologySuite.Geometries;
+using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
 using SQLite;
 using SQLiteNetExtensions.Attributes;
-using SQLiteNetExtensions.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Xamarin.Essentials;
-using Xamarin.Forms;
-using NetTopologySuite.IO;
-using Mapsui.Projection;
-using Mapsui.Geometries;
-using ProjNet.CoordinateSystems;
-using System.Threading.Tasks;
 using SQLiteNetExtensionsAsync.Extensions;
+using Xamarin.Forms;
 
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel

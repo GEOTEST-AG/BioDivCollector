@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BioDivCollectorXamarin.Models
+﻿namespace BioDivCollectorXamarin.Models
 {
     /// <summary>
     /// An object created to allow the list of records to be filtered

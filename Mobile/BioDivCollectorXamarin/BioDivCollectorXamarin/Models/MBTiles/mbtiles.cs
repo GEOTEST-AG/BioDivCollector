@@ -1,13 +1,8 @@
-﻿using BioDivCollectorXamarin.Models.DatabaseModel;
+﻿using System;
+using System.Linq;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 using BruTile;
 using SQLite;
-using SQLiteNetExtensions.Attributes;
-using SQLiteNetExtensions.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models.MBTiles
 {

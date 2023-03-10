@@ -27,10 +27,10 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Mapsui;
 using Mapsui.Geometries;
 using Mapsui.Providers;
 using Mapsui.Rendering;
-using Mapsui;
 
 namespace BioDivCollectorXamarin.Models.Wms
 {
