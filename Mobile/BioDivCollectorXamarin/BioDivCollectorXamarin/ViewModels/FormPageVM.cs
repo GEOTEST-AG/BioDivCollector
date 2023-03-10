@@ -1,20 +1,14 @@
-﻿using System;
+﻿using BioDivCollectorXamarin.Controls;
+using BioDivCollectorXamarin.Models.DatabaseModel;
+using BioDivCollectorXamarin.Views;
+using SQLiteNetExtensionsAsync.Extensions;
+using Syncfusion.SfAutoComplete.XForms;
+using System;
 using System.Collections.Generic;
-using System.Drawing.Printing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using BioDivCollectorXamarin.Controls;
-using BioDivCollectorXamarin.Models.DatabaseModel;
-using BioDivCollectorXamarin.Views;
-using Mapsui.UI.Forms;
-using NativeMedia;
-using Plugin.Media;
-using SQLite;
-using SQLiteNetExtensions.Extensions;
-using SQLiteNetExtensionsAsync.Extensions;
-using Syncfusion.SfAutoComplete.XForms;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using static BioDivCollectorXamarin.Helpers.Interfaces;
@@ -43,6 +37,21 @@ namespace BioDivCollectorXamarin.ViewModels
         public int FormId;
         public int? GeomId;
         private bool NewRecord;
+        private bool GoingToImageEditor;
+
+        /// <summary>
+        /// A bool used as an activity indicator
+        /// </summary>
+        private bool activity;
+        public bool Activity
+        {
+            get { return activity; }
+            set
+            {
+                activity = value;
+                OnPropertyChanged("Activity");
+            }
+        }
         public Record queriedrec { get; set; }
         public Form formType { get; set; }
         private string BDCGUIDtext;
@@ -50,6 +59,7 @@ namespace BioDivCollectorXamarin.ViewModels
         private CustomAutoComplete AssociatedGeometry;
         public bool ReadOnly = false;
         private Dictionary<int, bool> Validation = new Dictionary<int, bool>();
+        
 
         //Commands
         public Command SaveCommand { get; }
@@ -85,16 +95,16 @@ namespace BioDivCollectorXamarin.ViewModels
             GUIDCommand = new Command(CopyGUID);
             SaveCommand = new Command(OnSave, ValidateSave);
             CancelCommand = new Command(OnCancel);
+            Activity = true;
 
             if (FormId != 0)
             {
                 //Task.Run(async () =>
-                    Device.BeginInvokeOnMainThread(async () =>
+                Device.BeginInvokeOnMainThread(async () =>
                 {
                     await CreateForm(RecId, FormId, GeomId);
-                    //{
-                        DataFormFinished = true; 
-                    //});
+                    DataFormFinished = true;
+                    Activity = false;
                 });
             }
         }
@@ -763,12 +773,20 @@ namespace BioDivCollectorXamarin.ViewModels
         }
 
 
+        public async void OnAppearing()
+        {
+            //Check if it was a new record when the new image button was pressed
+            var newRecPrefs = Preferences.Get("newrecord", false);
+            if (newRecPrefs || NewRecord) { NewRecord = true; }
+            Preferences.Set("newrecord", false);
+        }
+
         /// <summary>
         /// Carry out tasks on leaving the view
         /// </summary>
         public async void OnDisappearing()
         {
-            if (NewRecord)
+            if (NewRecord && !GoingToImageEditor)
             {
                 await Record.DeleteRecord(RecId); //Delete any temporary record
             }
@@ -851,7 +869,7 @@ namespace BioDivCollectorXamarin.ViewModels
         private async Task UpdateAssociatedGeometry(SfAutoComplete choice)
         {
             var proj = await Project.FetchCurrentProject();
-            if (choice.SelectedIndex > 0)
+            if (choice?.SelectedIndex > 0)
             {
                 var source = (List<ReferenceGeometry>)choice.ItemsSource;
                 var geom = source[(int)choice.SelectedIndex] as ReferenceGeometry;
@@ -1106,11 +1124,16 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             var rec = await Record.FetchRecord(RecId);
             var binaryIds = await BinaryData.GetBinaryDataIds(rec.recordId, fieldId);
-            if (binaryIds == null || binaryIds.Count == 0)
-            { binaryIds = new List<string>() { Guid.NewGuid().ToString() }; }
+//            if (binaryIds == null || binaryIds.Count == 0)
+//            { binaryIds = new List<string>() { Guid.NewGuid().ToString() }; }
             var images = new List<Image>();
             foreach (var binaryId in binaryIds)
             {
+                if (!GoingToImageEditor)
+                {
+                    NewRecord = false;
+                }
+                
                 var image = new BioDivImage();
                 image.BinaryId = binaryId;
                 image.HorizontalOptions = LayoutOptions.Start;
@@ -1178,7 +1201,8 @@ namespace BioDivCollectorXamarin.ViewModels
 
         private async void New_Image_Button_Clicked(object sender, EventArgs e)
         {
-            NewRecord = false;
+            GoingToImageEditor = true;
+            if (NewRecord) { Preferences.Set("newrecord",true); }
             var button = sender as CameraButton;
             var rec = await Record.FetchRecord(RecId);
 
@@ -1190,7 +1214,6 @@ namespace BioDivCollectorXamarin.ViewModels
             Device.BeginInvokeOnMainThread(async () =>
             {
                 await Shell.Current.Navigation.PushAsync(new SfImageEditorPage(button.FormFieldId, null, RecId), true);
-                //await Shell.Current.Navigation.PushAsync(new SfImageEditorPage(button.FormFieldId, null, RecId), true);
             });
         }
     }

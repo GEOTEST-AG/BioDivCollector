@@ -106,16 +106,16 @@ namespace BioDivCollectorXamarin.Views
                 //var form = await Form.FetchFormOfType(FormId);
                 //if (form != null)
                 //{
-                    var makeFormTask = Task.Run(() =>
-                    {
+                    //var makeFormTask = Task.Run(() =>
+                    //{
                         ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
                         Device.BeginInvokeOnMainThread(() =>
                         {
                             BindingContext = ViewModel;
                         });
-                    });
+                    //});
 
-                    await makeFormTask;
+                   // await makeFormTask;
 
 
                 //}
@@ -144,6 +144,7 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         protected override void OnAppearing()
         {
+            ViewModel.OnAppearing();
         }
 
         private void UpdateFormView()

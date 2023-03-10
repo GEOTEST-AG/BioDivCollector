@@ -120,13 +120,14 @@ namespace BioDivCollectorXamarin.ViewModels
                 });
                 Editor.ToolbarSettings.ToolbarItems.Insert(0, new HeaderToolbarItem
                 {
-                    Name = "SaveButton",
-                    Text = "Speichern",
+
+                    Name = "ResetButton",
+                    Text = "Zurücksetzen",
                 });
                 Editor.ToolbarSettings.ToolbarItems.Add( new HeaderToolbarItem
                 {
-                        Name = "ResetButton",
-                        Text = "Zurücksetzen",
+                    Name = "SaveButton",
+                    Text = "Speichern",
                 });
                 Editor.ToolbarSettings.ToolbarItemSelected -= ToolbarSettings_ToolbarItemSelected;
                 Editor.ToolbarSettings.ToolbarItemSelected += ToolbarSettings_ToolbarItemSelected;
@@ -404,6 +405,28 @@ namespace BioDivCollectorXamarin.ViewModels
         private void UpdateRoute()
         {
             App.CurrentRoute = $"//Records/Form/ImageEditor?formid={FormFieldId}&recid={RecordId}&binaryid={BinaryDataId}";
+        }
+
+        public void OnDisappearing()
+        {
+            Task.Run(async() =>
+            {
+                try
+                {
+                    var directory = DependencyService.Get<FileInterface>().GetImagePath();
+                    string filepath = Path.Combine(directory, BinaryDataId + ".jpg");
+
+                    App.CurrentRoute = $"//Records/Form/ImageEditor?formid={FormFieldId}&recid={RecordId}&binaryid={BinaryDataId}";
+                    if (!System.IO.File.Exists(filepath))
+                    {
+                        await BinaryData.DeleteBinary(BinaryDataId);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            });
         }
     }
 }
