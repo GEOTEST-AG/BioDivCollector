@@ -23,6 +23,8 @@ namespace BioDivCollectorXamarin.Models
 
         public Mapsui.UI.Forms.Position CurrentPosition;
 
+        public bool GetPermissionsInProgress { get; set; }
+
         /// <summary>
         /// Retrieve and request permissions for GPS use
         /// </summary>
@@ -31,8 +33,9 @@ namespace BioDivCollectorXamarin.Models
             try
             {
                 var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
-                if (status != Xamarin.Essentials.PermissionStatus.Granted)
+                if (status != Xamarin.Essentials.PermissionStatus.Granted && GetPermissionsInProgress == false)
                 {
+                    GetPermissionsInProgress = true;
                     Device.BeginInvokeOnMainThread(async() => {
                         if (Device.RuntimePlatform == "Android")
                         {
@@ -42,12 +45,14 @@ namespace BioDivCollectorXamarin.Models
                                 Device.BeginInvokeOnMainThread(async () =>
                                 {
                                     status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                                    GetPermissionsInProgress = false;
                                 });
                             });
                         }
                         else
                         {
                             status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                            GetPermissionsInProgress = false;
                         }
                     });
                 }
