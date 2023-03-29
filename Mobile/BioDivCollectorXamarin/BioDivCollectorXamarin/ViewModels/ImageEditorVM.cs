@@ -400,6 +400,11 @@ namespace BioDivCollectorXamarin.ViewModels
                 await binDat.SaveBinaryRecord();
                 BinaryDataId = binDat.binaryId;
             }
+            else
+            {
+                var binDat = await BinaryData.FetchBinaryData(BinaryDataId);
+                await Record.UpdateRecord(binDat.record_fk);
+            }
         }
 
         private void UpdateRoute()
