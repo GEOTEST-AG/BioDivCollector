@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Reset" xml:space="preserve">
+        <value>Zurücksetzen</value>
+     </data>
+    <data name="Save" xml:space="preserve">
+        <value>Speichern</value>
+    </data>
+    <data name="Cancel" xml:space="preserve">
+        <value>Abbrechen</value>
+    </data>
+    <data name="Saving" xml:space="preserve">
+        <value>Wird gespeichert...</value>
+    </data>
+    <data name="Outline" xml:space="preserve">
+        <value>Rahmen</value>
+    </data>
+    <data name="Done" xml:space="preserve">
+         <value>Erledigt</value>
+    </data>
+    <data name="OK" xml:space="preserve">
+         <value>OK</value>
+    </data>
+    <data name="EditText" xml:space="preserve">
+        <value>Text bearbeiten</value>
+    </data>
+    <data name="Fill" xml:space="preserve">
+        <value>Füllen</value>
+    </data>
+    <data name="Crop" xml:space="preserve">
+        <value>Schneiden</value>
+    </data>
+    <data name="Free" xml:space="preserve">
+        <value>Frei</value>
+    </data>
+    <data name="Original" xml:space="preserve">
+        <value>Original</value>
+    </data>
+    <data name="Square" xml:space="preserve">
+        <value>Quadrat</value>
+    </data>
+    <data name="EnterText" xml:space="preserve">
+        <value>Text eingeben</value>
+    </data>
+     <data name="Add" xml:space="preserve">
+        <value>Hinzufügen</value>
+    </data>
+	<data name="Hue" xml:space="preserve">
+        <value>Farbton</value>
+    </data>
+    <data name="Saturation" xml:space="preserve">
+        <value>Sättigung</value>
+    </data>
+	<data name="Contrast" xml:space="preserve">
+        <value>Kontrast</value>
+    </data>
+    <data name="Blur" xml:space="preserve">
+        <value>Verwischen</value>
+    </data>
+	 <data name="Brightness" xml:space="preserve">
+        <value>Helligkeit</value>
+    </data>
+    <data name="Sharpen" xml:space="preserve">
+        <value>Schärfen</value>
+    </data>
+    <data name="Circular" xml:space="preserve">
+        <value>Kreisförmig</value>
+    </data>
+    <data name="Ellipse" xml:space="preserve">
+        <value>Ellipse</value>
+    </data>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+</root>

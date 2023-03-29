@@ -22,6 +22,11 @@ namespace BioDivCollectorXamarin.Helpers
             void DownloadFileAsync(string url, string folder, string documentName);
             event EventHandler OnFileDownloaded;
         }
+
+        public interface ILocalize
+        {
+            void SetLocale(string language);
+        }
     }
 
     public class DownloadEventArgs : EventArgs

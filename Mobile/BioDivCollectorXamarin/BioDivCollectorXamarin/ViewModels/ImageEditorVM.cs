@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.DatabaseModel;
@@ -22,7 +24,6 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public ImageEditorViewModel()
         {
-
         }
 
 
@@ -360,7 +361,7 @@ namespace BioDivCollectorXamarin.ViewModels
             }
             catch
             {
-                await App.Current.MainPage.DisplayAlert("Das Foto konnte nicht als Datei gespeichert werden", String.Empty, "OK");
+                await App.Current.MainPage.DisplayAlert("Speichern fehlgeschlagen", "Das Foto/Die Notiz konnte nicht als Datei gespeichert werden", "OK");
                 return false;
             }
         }
@@ -378,11 +379,12 @@ namespace BioDivCollectorXamarin.ViewModels
                 await WriteBinaryRecord();
                 BinaryData.SaveData(stream, BinaryDataId);
                 UpdateRoute();
+                await App.Current.MainPage.DisplayAlert("Foto/Notiz gespeichert", "Das Foto/Die Notiz wurde auf dem Gerät gespeichert", "OK");
                 return true;
             }
             catch
             {
-                await App.Current.MainPage.DisplayAlert("Das Foto konnte nicht als Datei gespeichert werden", String.Empty, "OK");
+                await App.Current.MainPage.DisplayAlert("Speichern fehlgeschlagen", "Das Foto/Die Notiz konnte nicht als Datei gespeichert werden", "OK");
                 return false;
             }
         }

@@ -80,6 +80,7 @@
     <AppExtensionDebugBundleId />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="LocalizationService.cs" />
     <Compile Include="MultilineButtonRenderer.cs" />
     <Compile Include="EntryRenderer.cs" />
     <Compile Include="Main.cs" />

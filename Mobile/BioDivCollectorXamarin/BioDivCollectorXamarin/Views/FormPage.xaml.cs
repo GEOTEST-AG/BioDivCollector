@@ -124,11 +124,12 @@ namespace BioDivCollectorXamarin.Views
             {
                 Command = new Command(() =>
                 {
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        App.CurrentRoute = "//Records";
-                        Shell.Current.GoToAsync(App.CurrentRoute, true);
-                    });
+                    MessagingCenter.Send<Application>(App.Current, "BackButtonPressed");
+                    //Device.BeginInvokeOnMainThread(() =>
+                    //{
+                    //    App.CurrentRoute = "//Records";
+                    //    Shell.Current.GoToAsync(App.CurrentRoute, true);
+                    //});
                 })
             });
         }
