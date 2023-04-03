@@ -324,6 +324,12 @@ namespace BioDivCollectorXamarin.ViewModels
                 TempCoordinates = coordList; //Not initially assigned to tempCoordinates, as we need to first know GeometryType to decide whether the save command can run
             });
 
+            MessagingCenter.Unsubscribe<Application>(App.Current, "StopGPS");
+            MessagingCenter.Subscribe<Application>(App.Current, "StopGPS", (sender) =>{
+                StopShowingPosition();
+            });
+
+
             DeviceDisplay.MainDisplayInfoChanged += HandleRotationChange;
 
             InitialiseGPS();
@@ -550,7 +556,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         var newLayerZ = MapLayers.Count - newZ;
                         if (newLayerZ < MapLayers.Count && newLayerZ >= 0)
                         {
-                            RefreshAllLayers();
+                            RenewAllLayers();
                         }
                         InitialiseGPS();
                     });
@@ -1531,7 +1537,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 GeomToEdit = 0;
                 AllowAddNewGeom();
                 RemoveTempGeometry();
-                await RefreshShapes();
+                await NewShapes();
             }
             else
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BioDivCollectorXamarin.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -127,27 +128,31 @@ namespace BioDivCollectorXamarin.Models
                                 Device.BeginInvokeOnMainThread(async() => {
                                     await App.Current.MainPage.DisplayAlert("GPS wird nicht unterstützt", "Dieses Gerät unterstützt GPS nicht", "OK");
                                 });
+                                MessagingCenter.Send<Application>(App.Current, "StopGPS");
                             }
                             catch (FeatureNotEnabledException fneEx)
                             {
                                 Device.BeginInvokeOnMainThread(async () => {
                                     await App.Current.MainPage.DisplayAlert("GPS nicht aktiviert", "GPS ist für diese App nicht aktiviert", "OK");
                                 });
-                                
+                                MessagingCenter.Send<Application>(App.Current, "StopGPS");
+                                break;
                             }
                             catch (PermissionException pEx)
                             {
                                 Device.BeginInvokeOnMainThread(async () => {
                                     await App.Current.MainPage.DisplayAlert("GPS nicht zugelassen", "Bitte erlauben Sie die GPS-Aktivierung in den Einstellungen der App", "OK");
                                 });
-                                
+                                MessagingCenter.Send<Application>(App.Current, "StopGPS");
+                                break;
                             }
                             catch (Exception ex)
                             {
                                 Device.BeginInvokeOnMainThread(async () => {
                                     await App.Current.MainPage.DisplayAlert("GPS nicht erreichbar", "Die App konnte nicht auf das GPS zugreifen", "OK");
                                 });
-                                
+                                MessagingCenter.Send<Application>(App.Current, "StopGPS");
+                                break;
                             }
 
                             Device.BeginInvokeOnMainThread(() =>
