@@ -1045,16 +1045,6 @@ namespace BioDivCollectorXamarin.ViewModels
                     };
                     var medianLon = lonArray.Median();
 
-                    if (medianLat != 0 && medianLon != 0)
-                    {
-                        Preferences.Set("MedianPositionLatitude", medianLat);
-                        Preferences.Set("MedianPositionLongitude", medianLon);
-                    }
-                    else
-                    {
-                        Preferences.Set("MedianPositionLatitude", lat);
-                        Preferences.Set("MedianPositionLongitude", lon);
-                    }
 
                     try
                     {

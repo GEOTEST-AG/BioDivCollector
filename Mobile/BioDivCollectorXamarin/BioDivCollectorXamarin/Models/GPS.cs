@@ -90,7 +90,7 @@ namespace BioDivCollectorXamarin.Models
                 {
                     while (Preferences.Get("GPS", false))
                     {
-                        Task.Delay(500).Wait();
+                        //Task.Delay(500).Wait();
                         if (HasLocationPermission)
                         {
                             try
@@ -118,8 +118,9 @@ namespace BioDivCollectorXamarin.Models
                                             Dictionary<string, double> dic = new Dictionary<string, double>();
                                             dic.Add("latitude", location.Latitude);
                                             dic.Add("longitude", location.Longitude);
+                                            Console.WriteLine(location.Latitude.ToString() + ", " + location.Longitude.ToString() + " +/- " + location.Accuracy);
                                             dic.Add("accuracy", (int)location.Accuracy);
-                                            Preferences.Set("LastPositionAccuracy", accuracy);
+                                            Preferences.Set("LastPositionAccuracy", (int)location.Accuracy);
 
                                             MessagingCenter.Send<GPS>(this, "GPSPositionUpdate");
                                         }
