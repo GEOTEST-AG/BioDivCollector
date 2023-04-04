@@ -1,4 +1,5 @@
 ﻿using BioDivCollectorXamarin.ViewModels;
+using FeldAppX.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -25,6 +26,8 @@ namespace BioDivCollectorXamarin.Models
         public Mapsui.UI.Forms.Position CurrentPosition;
 
         public bool GetPermissionsInProgress { get; set; }
+
+        public KalmanLatLong Filter { get; set; } = new KalmanLatLong(3);
 
         /// <summary>
         /// Retrieve and request permissions for GPS use
@@ -87,7 +90,7 @@ namespace BioDivCollectorXamarin.Models
                 {
                     while (Preferences.Get("GPS", false))
                     {
-                        Task.Delay(2000).Wait();
+                        Task.Delay(500).Wait();
                         if (HasLocationPermission)
                         {
                             try
@@ -99,20 +102,24 @@ namespace BioDivCollectorXamarin.Models
 
                                 if (location != null)
                                 {
+                                    Filter.Process(location.Latitude, location.Longitude, (float)location.Accuracy, DateTimeOffset.Now.ToUnixTimeMilliseconds());
+                                    var lat = Filter.get_lat();
+                                    var lon = Filter.get_lng();
+                                    var accuracy = (int)Filter.get_accuracy();
+
                                     Console.WriteLine($"Latitude: {location.Latitude}, Longitude: {location.Longitude}, Altitude: {location.Altitude}");
 
                                     try
                                     {
                                         if (location.Accuracy != null && location.Accuracy < 10000)
                                         {
-                                            Preferences.Set("LastPositionLatitude", location.Latitude);
-                                            Preferences.Set("LastPositionLongitude", location.Longitude);
+                                            Preferences.Set("LastPositionLatitude", lat);
+                                            Preferences.Set("LastPositionLongitude", lon);
                                             Dictionary<string, double> dic = new Dictionary<string, double>();
                                             dic.Add("latitude", location.Latitude);
                                             dic.Add("longitude", location.Longitude);
-                                            Console.WriteLine(location.Latitude.ToString() + ", " + location.Longitude.ToString() + " +/- " + location.Accuracy);
                                             dic.Add("accuracy", (int)location.Accuracy);
-                                            Preferences.Set("LastPositionAccuracy", (int)location.Accuracy);
+                                            Preferences.Set("LastPositionAccuracy", accuracy);
 
                                             MessagingCenter.Send<GPS>(this, "GPSPositionUpdate");
                                         }

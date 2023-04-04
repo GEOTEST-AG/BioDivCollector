@@ -16,6 +16,7 @@ using Mapsui.Providers;
 using Mapsui.Styles;
 using Mapsui.UI;
 using Mapsui.Utilities;
+using MathNet.Numerics.Statistics;
 using Plugin.Geolocator;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -196,6 +197,12 @@ namespace BioDivCollectorXamarin.ViewModels
         /// An observable collection of map layers available within the current project.
         /// </summary>
         public ObservableCollection<MapLayer> MapLayers { get; set; }
+
+        public static Queue<(double, double)> GPSPointsQueue { get; set; } = new Queue<(double, double)>(
+            new (double, double)[]
+            {
+                (0.0,0.0),(0.0,0.0),(0.0,0.0),(0.0,0.0),(0.0,0.0),(0.0,0.0),(0.0,0.0),(0.0,0.0),(0.0,0.0),(0.0,0.0),(0.0,0.0)
+            });
 
         /// <summary>
         /// 
@@ -989,6 +996,13 @@ namespace BioDivCollectorXamarin.ViewModels
             var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
             var centred = Preferences.Get("GPS_Centred", false);
 
+            if (GPSPointsQueue.Count > 10)
+            {
+                GPSPointsQueue.Dequeue();
+            }
+
+            (double, double) newCoords = (lat, lon);
+            GPSPointsQueue.Enqueue(newCoords);
 
             if (lat != 0 && lon != 0)
             {
@@ -999,9 +1013,52 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (((Single)lat != (Single)prevlat || (Single)lon != (Single)prevlon || accuracy != prevaccuracy || layerCount < 2) && IsGeneratingLayer == false && Preferences.Get("GPS", false))
                 {
                     IsGeneratingLayer = true;
+
+                    double[] latArray = new double[]
+                        {
+                            lon,
+                            GPSPointsQueue.ElementAt(1).Item1,
+                            GPSPointsQueue.ElementAt(2).Item1,
+                            GPSPointsQueue.ElementAt(3).Item1,
+                            GPSPointsQueue.ElementAt(4).Item1,
+                            GPSPointsQueue.ElementAt(5).Item1,
+                            GPSPointsQueue.ElementAt(6).Item1,
+                            GPSPointsQueue.ElementAt(7).Item1,
+                            GPSPointsQueue.ElementAt(8).Item1,
+                            GPSPointsQueue.ElementAt(9).Item1,
+                            GPSPointsQueue.ElementAt(10).Item1,
+                        };
+                    var medianLat = latArray.Median();
+                    double[] lonArray = new double[]
+                    {
+                            lon,
+                            GPSPointsQueue.ElementAt(1).Item2,
+                            GPSPointsQueue.ElementAt(2).Item2,
+                            GPSPointsQueue.ElementAt(3).Item2,
+                            GPSPointsQueue.ElementAt(4).Item2,
+                            GPSPointsQueue.ElementAt(5).Item2,
+                            GPSPointsQueue.ElementAt(6).Item2,
+                            GPSPointsQueue.ElementAt(7).Item2,
+                            GPSPointsQueue.ElementAt(8).Item2,
+                            GPSPointsQueue.ElementAt(9).Item2,
+                            GPSPointsQueue.ElementAt(10).Item2,
+                    };
+                    var medianLon = lonArray.Median();
+
+                    if (medianLat != 0 && medianLon != 0)
+                    {
+                        Preferences.Set("MedianPositionLatitude", medianLat);
+                        Preferences.Set("MedianPositionLongitude", medianLon);
+                    }
+                    else
+                    {
+                        Preferences.Set("MedianPositionLatitude", lat);
+                        Preferences.Set("MedianPositionLongitude", lon);
+                    }
+
                     try
                     {
-                        await AddGPSLayer(lat, lon, accuracy, heading);
+                        await AddGPSLayer(lat, lon, accuracy, heading, medianLat, medianLon);
                     }
                     catch (Exception ex)
                     {
@@ -1064,19 +1121,40 @@ namespace BioDivCollectorXamarin.ViewModels
 
         }
 
-        private async Task AddGPSLayer(double latitude, double longitude, int accuracy, int heading)
+        private async Task AddGPSLayer(double latitude, double longitude, int accuracy, int heading, double medianLat, double medianLon)
         {
-            GPSLayer = CreateGPSLayer(latitude, longitude, accuracy, heading);
-            GPSPointLayer = CreateGPSPointLayer(latitude, longitude, accuracy, heading);
-            
             var newLayers = new List<ILayer>();
+            if (medianLat != 0)
+            {
+                GPSLayer = CreateGPSLayer(medianLat, medianLon, accuracy, heading);
+            }
+            else
+            {
+                GPSLayer = CreateGPSLayer(latitude, longitude, accuracy, heading);
+            }
             newLayers.Add(GPSLayer);
-            newLayers.Add(GPSPointLayer);
             if (Device.RuntimePlatform == "iOS")
             {
-                BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
+                if (medianLat != 0)
+                {
+                    BearingLayer = CreateBearingLayer(medianLat, medianLon, accuracy, heading);
+                }
+                else
+                {
+                    BearingLayer = CreateBearingLayer(latitude, longitude, accuracy, heading);
+                }
                 newLayers.Add(BearingLayer);
             }
+            if (medianLat != 0)
+            {
+                GPSPointLayer = CreateGPSPointLayer(medianLat, medianLon, accuracy, heading);
+            }
+            else
+            {
+                GPSPointLayer = CreateGPSPointLayer(latitude, longitude, accuracy, heading);
+            }
+            newLayers.Add(GPSPointLayer);
+            
             
             try
             {
