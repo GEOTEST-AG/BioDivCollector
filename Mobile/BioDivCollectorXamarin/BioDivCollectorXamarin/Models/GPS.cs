@@ -1,8 +1,9 @@
-﻿using BioDivCollectorXamarin.ViewModels;
-using FeldAppX.Helpers;
+﻿using FeldAppX.Helpers;
+using Plugin.Geolocator;
+using Plugin.Geolocator.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -28,6 +29,8 @@ namespace BioDivCollectorXamarin.Models
         public bool GetPermissionsInProgress { get; set; }
 
         public KalmanLatLong Filter { get; set; } = new KalmanLatLong(3);
+        public Queue<double> AccuracyQueue { get; set; }
+
 
         /// <summary>
         /// Retrieve and request permissions for GPS use
@@ -82,85 +85,73 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         public void StartGPSAsync()
         {
-            //Wait to get permission before starting GPS
             if (!App.GpsIsRunning)
             {
                 App.GpsIsRunning = true;
                 Task.Run(async () =>
                 {
-                    while (Preferences.Get("GPS", false))
+                    var tryStartGPS = Preferences.Get("GPS", false);
+                    while (tryStartGPS)
                     {
-                        //Task.Delay(500).Wait();
+                        Task.Delay(3000).Wait();
                         if (HasLocationPermission)
                         {
                             try
                             {
-
-                                App.GPSCancellationToken = new CancellationTokenSource();
-                                var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(10));
-                                var location = await Geolocation.GetLocationAsync(request, App.GPSCancellationToken.Token);
-
-                                if (location != null)
+                                var locator = CrossGeolocator.Current;
+                                locator.PositionChanged += Locator_PositionChanged;
+                                locator.DesiredAccuracy = 1;
+                                if (!locator.IsListening)
                                 {
-                                    Filter.Process(location.Latitude, location.Longitude, (float)location.Accuracy, DateTimeOffset.Now.ToUnixTimeMilliseconds());
-                                    var lat = Filter.get_lat();
-                                    var lon = Filter.get_lng();
-                                    var accuracy = (int)Filter.get_accuracy();
 
-                                    Console.WriteLine($"Latitude: {location.Latitude}, Longitude: {location.Longitude}, Altitude: {location.Altitude}");
-
-                                    try
-                                    {
-                                        if (location.Accuracy != null && location.Accuracy < 10000)
+                                    await CrossGeolocator.Current.StartListeningAsync(TimeSpan.FromSeconds(1), 1, true,
+                                        new ListenerSettings
                                         {
-                                            Preferences.Set("LastPositionLatitude", lat);
-                                            Preferences.Set("LastPositionLongitude", lon);
-                                            Dictionary<string, double> dic = new Dictionary<string, double>();
-                                            dic.Add("latitude", location.Latitude);
-                                            dic.Add("longitude", location.Longitude);
-                                            Console.WriteLine(location.Latitude.ToString() + ", " + location.Longitude.ToString() + " +/- " + location.Accuracy);
-                                            dic.Add("accuracy", (int)location.Accuracy);
-                                            Preferences.Set("LastPositionAccuracy", (int)location.Accuracy);
-
-                                            MessagingCenter.Send<GPS>(this, "GPSPositionUpdate");
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine(ex);
-                                    }
+                                            ActivityType = ActivityType.Fitness,
+                                            AllowBackgroundUpdates = false,
+                                            DeferLocationUpdates = false,
+                                            DeferralDistanceMeters = 1,
+                                            DeferralTime = TimeSpan.FromSeconds(0.5),
+                                            ListenForSignificantChanges = false,
+                                            PauseLocationUpdatesAutomatically = false
+                                        });
+                                    AccuracyQueue = new Queue<double>();
+                                    break;
                                 }
                             }
                             catch (FeatureNotSupportedException fnsEx)
                             {
-                                Device.BeginInvokeOnMainThread(async() => {
+                                Device.BeginInvokeOnMainThread(async () =>
+                                {
                                     await App.Current.MainPage.DisplayAlert("GPS wird nicht unterstützt", "Dieses Gerät unterstützt GPS nicht", "OK");
                                 });
-                                MessagingCenter.Send<Application>(App.Current, "StopGPS");
+                                tryStartGPS = false;
+                                MessagingCenter.Send<Application>(App.Current, "StopGPSandRemoveLayer");
                             }
                             catch (FeatureNotEnabledException fneEx)
                             {
-                                Device.BeginInvokeOnMainThread(async () => {
+                                Device.BeginInvokeOnMainThread(async () =>
+                                {
                                     await App.Current.MainPage.DisplayAlert("GPS nicht aktiviert", "GPS ist für diese App nicht aktiviert", "OK");
                                 });
-                                MessagingCenter.Send<Application>(App.Current, "StopGPS");
-                                break;
+                                tryStartGPS = false;
+                                MessagingCenter.Send<Application>(App.Current, "StopGPSandRemoveLayer");
                             }
                             catch (PermissionException pEx)
                             {
-                                Device.BeginInvokeOnMainThread(async () => {
+                                Device.BeginInvokeOnMainThread(async () =>
+                                {
                                     await App.Current.MainPage.DisplayAlert("GPS nicht zugelassen", "Bitte erlauben Sie die GPS-Aktivierung in den Einstellungen der App", "OK");
                                 });
-                                MessagingCenter.Send<Application>(App.Current, "StopGPS");
-                                break;
+                                tryStartGPS = false;
                             }
                             catch (Exception ex)
                             {
-                                Device.BeginInvokeOnMainThread(async () => {
+                                Device.BeginInvokeOnMainThread(async () =>
+                                {
                                     await App.Current.MainPage.DisplayAlert("GPS nicht erreichbar", "Die App konnte nicht auf das GPS zugreifen", "OK");
                                 });
-                                MessagingCenter.Send<Application>(App.Current, "StopGPS");
-                                break;
+                                tryStartGPS = false;
                             }
 
                             Device.BeginInvokeOnMainThread(() =>
@@ -181,6 +172,7 @@ namespace BioDivCollectorXamarin.Models
                     }
                 });
             }
+
         }
 
         private void Compass_ReadingChanged(object sender, CompassChangedEventArgs e)
@@ -194,6 +186,48 @@ namespace BioDivCollectorXamarin.Models
         }
 
         /// <summary>
+        /// React to an update in the GPS position
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Locator_PositionChanged(object sender, Plugin.Geolocator.Abstractions.PositionEventArgs e)
+        {
+            var location = e.Position;
+            if (location != null)
+            {
+                Filter.Process(location.Latitude, location.Longitude, (float)location.Accuracy, DateTimeOffset.Now.ToUnixTimeMilliseconds());
+                var lat = Filter.get_lat();
+                var lon = Filter.get_lng();
+
+                Console.WriteLine($"Latitude: {location.Latitude}, Longitude: {location.Longitude}, Altitude: {location.Altitude}");
+                Console.WriteLine($"Latitude: {lat}, Longitude: {lon}");
+
+                try
+                {
+                    if (location.Accuracy != null && location.Accuracy < 10000)
+                    {
+                        AccuracyQueue.Enqueue(location.Accuracy);
+                        if (AccuracyQueue.Count > 10)
+                        {
+                            AccuracyQueue.Dequeue();
+                        }
+                        //get the median
+                        var accuracy = AccuracyQueue.Min();
+                        Preferences.Set("LastPositionLatitude", lat);
+                        Preferences.Set("LastPositionLongitude", lon);
+                        Preferences.Set("LastPositionAccuracy", (int)accuracy);
+
+                        MessagingCenter.Send<GPS>(this, "GPSPositionUpdate");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+        }
+
+        /// <summary>
         /// Stop acquisition using the GPS
         /// </summary>
         public static void StopGPSAsync()
@@ -203,8 +237,7 @@ namespace BioDivCollectorXamarin.Models
                 Compass.Stop();
             }
             App.GpsIsRunning = false;
-            if (App.GPSCancellationToken != null && !App.GPSCancellationToken.IsCancellationRequested)
-                App.GPSCancellationToken.Cancel();
+            CrossGeolocator.Current.StopListeningAsync();
         }
 
     }
