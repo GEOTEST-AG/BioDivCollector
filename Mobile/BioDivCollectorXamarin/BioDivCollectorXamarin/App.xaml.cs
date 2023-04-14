@@ -10,6 +10,8 @@ using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.IEssentials;
 using BioDivCollectorXamarin.Models.LoginModel;
+using BioDivCollectorXamarin.ViewModels;
+using BioDivCollectorXamarin.Views;
 using SQLite;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -323,6 +325,11 @@ namespace BioDivCollectorXamarin
             this.StopListening();
             ShowLogin = true;
             GPS.StopGPSAsync();
+
+            Task.Run(async () =>
+            {
+                await ActiveDatabaseConnection.CloseAsync();
+            });
         }
 
         /// <summary>
@@ -330,6 +337,12 @@ namespace BioDivCollectorXamarin
         /// </summary>
         protected override void OnResume()
         {
+            //Reopen connection
+            Task.Run(async () =>
+            {
+                ActiveDatabaseConnection = await DatabaseConnection.Instance;
+            });
+
             Login.CheckLogin();
             this.StartListening();
         }
