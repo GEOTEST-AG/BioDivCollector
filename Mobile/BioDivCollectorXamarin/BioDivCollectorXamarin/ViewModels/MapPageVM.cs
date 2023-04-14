@@ -1072,7 +1072,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         IsGeneratingLayer = false;
                     }
                 }
-                else if (Math.Abs(prevheading - heading) > 0 && (Single)lat == (Single)prevlat && (Single)lon == (Single)prevlon && accuracy == prevaccuracy /*&& IsGeneratingLayer == false*/ && Preferences.Get("GPS", false) && Device.RuntimePlatform == "iOS")
+                else if (Math.Abs(prevheading - heading) > 0 && (Single)lat == (Single)prevlat && (Single)lon == (Single)prevlon && accuracy == prevaccuracy && IsGeneratingLayer == false && Preferences.Get("GPS", false) && Device.RuntimePlatform == "iOS")
                 {
                     //IsGeneratingLayer = true;
                     try
