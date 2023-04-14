@@ -394,41 +394,47 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <param name="e"></param>
         public void HandleRotationChange(object sender, DisplayInfoChangedEventArgs e)
         {
-            var lat = Preferences.Get("LastPositionLatitude", 0.0);
-            var lon = Preferences.Get("LastPositionLongitude", 0.0);
-            var accuracy = Preferences.Get("LastPositionAccuracy", 0.0);
-            var heading = Preferences.Get("LastPositionHeading", 0.0);
-            var speed = Preferences.Get("LastPositionSpeed", 0.0);
-            Dictionary<string, double> dic = new Dictionary<string, double>();
-            dic.Add("latitude", lat);
-            dic.Add("longitude", lon);
-            Console.WriteLine(lat + ", " + lon + " +/- " + accuracy);
-            dic.Add("accuracy", accuracy);
-
-            var deviceRotation = 0;
-
-            switch (DeviceDisplay.MainDisplayInfo.Rotation.ToString())
+            try
             {
-                case "Rotation0":
-                    deviceRotation = 0;
-                    break;
-                case "Rotation90":
-                    deviceRotation = 90;
-                    break;
-                case "Rotation180":
-                    deviceRotation = 180;
-                    break;
-                case "Rotation270":
-                    deviceRotation = 270;
-                    break;
-                default:
-                    break;
-            }
+                var lat = Preferences.Get("LastPositionLatitude", 0.0);
+                var lon = Preferences.Get("LastPositionLongitude", 0.0);
+                var accuracy = Preferences.Get("LastPositionAccuracy", 0.0);
+                var heading = Preferences.Get("LastPositionHeading", 0.0);
+                var speed = Preferences.Get("LastPositionSpeed", 0.0);
+                Dictionary<string, double> dic = new Dictionary<string, double>();
+                dic.Add("latitude", lat);
+                dic.Add("longitude", lon);
+                Console.WriteLine(lat + ", " + lon + " +/- " + accuracy);
+                dic.Add("accuracy", accuracy);
 
-            var actualHeading = Math.Abs((heading + deviceRotation) % 360);
-            dic.Add("heading", actualHeading);
-            dic.Add("speed", speed);
-            MessagingCenter.Send<GPS>(App.Gps, "GPSPositionUpdate");
+                var deviceRotation = 0;
+
+                switch (DeviceDisplay.MainDisplayInfo.Rotation.ToString())
+                {
+                    case "Rotation0":
+                        deviceRotation = 0;
+                        break;
+                    case "Rotation90":
+                        deviceRotation = 90;
+                        break;
+                    case "Rotation180":
+                        deviceRotation = 180;
+                        break;
+                    case "Rotation270":
+                        deviceRotation = 270;
+                        break;
+                    default:
+                        break;
+                }
+
+                var actualHeading = Math.Abs((heading + deviceRotation) % 360);
+                dic.Add("heading", actualHeading);
+                dic.Add("speed", speed);
+                MessagingCenter.Send<GPS>(App.Gps, "GPSPositionUpdate");
+            }
+            catch
+            {
+            }
         }
 
 
