@@ -17,6 +17,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             // create the database if it doesn't exist
             SQLite.SQLiteOpenFlags.Create |
             // enable multi-threaded database access
+            SQLiteOpenFlags.NoMutex |
+            // enable multi-threaded database access
             SQLite.SQLiteOpenFlags.SharedCache;
 
         public static string DatabasePath
