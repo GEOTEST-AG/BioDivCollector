@@ -116,8 +116,17 @@ namespace BioDivCollectorXamarin.Models
                                             PauseLocationUpdatesAutomatically = false
                                         });
                                     AccuracyQueue = new Queue<double>();
-                                    break;
                                 }
+
+                                Device.BeginInvokeOnMainThread(() =>
+                                {
+                                    if (!Compass.IsMonitoring && Device.RuntimePlatform == "iOS")
+                                    {
+                                        Compass.ReadingChanged += Compass_ReadingChanged;
+                                        Compass.Start(SensorSpeed.UI, true);
+                                    }
+                                });
+                                break;
                             }
                             catch (FeatureNotSupportedException fnsEx)
                             {
@@ -144,6 +153,7 @@ namespace BioDivCollectorXamarin.Models
                                     await App.Current.MainPage.DisplayAlert("GPS nicht zugelassen", "Bitte erlauben Sie die GPS-Aktivierung in den Einstellungen der App", "OK");
                                 });
                                 tryStartGPS = false;
+                                MessagingCenter.Send<Application>(App.Current, "StopGPSandRemoveLayer");
                             }
                             catch (Exception ex)
                             {
@@ -152,17 +162,8 @@ namespace BioDivCollectorXamarin.Models
                                     await App.Current.MainPage.DisplayAlert("GPS nicht erreichbar", "Die App konnte nicht auf das GPS zugreifen", "OK");
                                 });
                                 tryStartGPS = false;
+                                MessagingCenter.Send<Application>(App.Current, "StopGPSandRemoveLayer");
                             }
-
-                            Device.BeginInvokeOnMainThread(() =>
-                            {
-                                if (!Compass.IsMonitoring && Device.RuntimePlatform == "iOS")
-                                {
-                                    Compass.ReadingChanged += Compass_ReadingChanged;
-                                    Compass.Start(SensorSpeed.UI, true);
-                                }
-                            });
-
                         }
                         else
                         {
