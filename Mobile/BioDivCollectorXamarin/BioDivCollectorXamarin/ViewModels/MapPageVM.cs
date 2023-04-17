@@ -987,38 +987,40 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             if (!IsGeneratingLayer)
             {
-            IsGeneratingLayer = true;
-            var lat = Preferences.Get("LastPositionLatitude", 0.0);
-            var lon = Preferences.Get("LastPositionLongitude", 0.0);
-            var accuracy = (int)Preferences.Get("LastPositionAccuracy", 0);
-            var heading = (int)Preferences.Get("LastPositionHeading", 0);
-            var prevlat = Preferences.Get("PrevLastPositionLatitude", 0.0);
-            var prevlon = Preferences.Get("PrevLastPositionLongitude", 0.0);
-            var prevaccuracy = Preferences.Get("PrevLastPositionAccuracy", 0);
-            var prevheading = Preferences.Get("PrevLastPositionHeading", 0);
-            var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
-            var centred = Preferences.Get("GPS_Centred", false);
-
-            if (GPSPointsQueue.Count > 10)
-            {
-                GPSPointsQueue.Dequeue();
-            }
-
-            (double, double) newCoords = (lat, lon);
-            GPSPointsQueue.Enqueue(newCoords);
-
-            if (lat != 0 && lon != 0)
-            {
-                    
-                if (centred)
+                IsGeneratingLayer = true;
+                try
                 {
-                    CentreOnPoint(lon, lat);
-                }
-                if (((Single)lat != (Single)prevlat || (Single)lon != (Single)prevlon || accuracy != prevaccuracy || layerCount < 2) /*&& IsGeneratingLayer == false*/ && Preferences.Get("GPS", false))
-                {
+                    var lat = Preferences.Get("LastPositionLatitude", 0.0);
+                    var lon = Preferences.Get("LastPositionLongitude", 0.0);
+                    var accuracy = (int)Preferences.Get("LastPositionAccuracy", 0);
+                    var heading = (int)Preferences.Get("LastPositionHeading", 0);
+                    var prevlat = Preferences.Get("PrevLastPositionLatitude", 0.0);
+                    var prevlon = Preferences.Get("PrevLastPositionLongitude", 0.0);
+                    var prevaccuracy = Preferences.Get("PrevLastPositionAccuracy", 0);
+                    var prevheading = Preferences.Get("PrevLastPositionHeading", 0);
+                    var layerCount = VMMapView.Map.Layers.Where(l => l.Name == "GPS" || l.Name == "Bearing").Count();
+                    var centred = Preferences.Get("GPS_Centred", false);
 
-                    double[] latArray = new double[]
+                    if (GPSPointsQueue.Count > 10)
+                    {
+                        GPSPointsQueue.Dequeue();
+                    }
+
+                    (double, double) newCoords = (lat, lon);
+                    GPSPointsQueue.Enqueue(newCoords);
+
+                    if (lat != 0 && lon != 0)
+                    {
+
+                        if (centred)
                         {
+                            CentreOnPoint(lon, lat);
+                        }
+                        if (((Single)lat != (Single)prevlat || (Single)lon != (Single)prevlon || accuracy != prevaccuracy || layerCount < 2) /*&& IsGeneratingLayer == false*/ && Preferences.Get("GPS", false))
+                        {
+
+                            double[] latArray = new double[]
+                                {
                             lon,
                             GPSPointsQueue.ElementAt(1).Item1,
                             GPSPointsQueue.ElementAt(2).Item1,
@@ -1030,10 +1032,10 @@ namespace BioDivCollectorXamarin.ViewModels
                             GPSPointsQueue.ElementAt(8).Item1,
                             GPSPointsQueue.ElementAt(9).Item1,
                             GPSPointsQueue.ElementAt(10).Item1,
-                        };
-                    var medianLat = latArray.Median();
-                    double[] lonArray = new double[]
-                    {
+                                };
+                            var medianLat = latArray.Median();
+                            double[] lonArray = new double[]
+                            {
                             lon,
                             GPSPointsQueue.ElementAt(1).Item2,
                             GPSPointsQueue.ElementAt(2).Item2,
@@ -1045,53 +1047,63 @@ namespace BioDivCollectorXamarin.ViewModels
                             GPSPointsQueue.ElementAt(8).Item2,
                             GPSPointsQueue.ElementAt(9).Item2,
                             GPSPointsQueue.ElementAt(10).Item2,
-                    };
-                    var medianLon = lonArray.Median();
+                            };
+                            var medianLon = lonArray.Median();
 
-                    if (medianLat != 0 && medianLon != 0)
-                    {
-                        Preferences.Set("MedianPositionLatitude", medianLat);
-                        Preferences.Set("MedianPositionLongitude", medianLon);
+                            if (medianLat != 0 && medianLon != 0)
+                            {
+                                Preferences.Set("MedianPositionLatitude", medianLat);
+                                Preferences.Set("MedianPositionLongitude", medianLon);
+                            }
+                            else
+                            {
+                                Preferences.Set("MedianPositionLatitude", lat);
+                                Preferences.Set("MedianPositionLongitude", lon);
+                            }
+
+                            try
+                            {
+                                await AddGPSLayer(lat, lon, accuracy, heading, medianLat, medianLon);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex);
+                                Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
+                                Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
+                                Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0));
+                                IsGeneratingLayer = false;
+                            }
+                        }
+                        else if (Math.Abs(prevheading - heading) > 0 && (Single)lat == (Single)prevlat && (Single)lon == (Single)prevlon && accuracy == prevaccuracy /*&& IsGeneratingLayer == false*/ && Preferences.Get("GPS", false) && Device.RuntimePlatform == "iOS")
+                        {
+                            //IsGeneratingLayer = true;
+                            try
+                            {
+                                await AddBearingLayer(Preferences.Get("MedianPositionLatitude", lat), Preferences.Get("MedianPositionLongitude", lon), accuracy, heading);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex);
+                                Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0));
+                                IsGeneratingLayer = false;
+                            }
+                        }
+                        else
+                        {
+                            IsGeneratingLayer = false;
+                        }
+                        //IsGeneratingLayer = false;
                     }
                     else
                     {
-                        Preferences.Set("MedianPositionLatitude", lat);
-                        Preferences.Set("MedianPositionLongitude", lon);
-                    }
-
-                    try
-                    {
-                        await AddGPSLayer(lat, lon, accuracy, heading, medianLat, medianLon);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                        Preferences.Set("LastPositionLatitude", Preferences.Get("PrevLastPositionLatitude", 0.0));
-                        Preferences.Set("LastPositionLongitude", Preferences.Get("PrevLastPositionLongitude", 0.0));
-                        Preferences.Set("LastPositionAccuracy", Preferences.Get("PrevLastPositionAccuracy", 0));
                         IsGeneratingLayer = false;
                     }
                 }
-                else if (Math.Abs(prevheading - heading) > 0 && (Single)lat == (Single)prevlat && (Single)lon == (Single)prevlon && accuracy == prevaccuracy /*&& IsGeneratingLayer == false*/ && Preferences.Get("GPS", false) && Device.RuntimePlatform == "iOS")
+                catch (Exception e)
                 {
-                    //IsGeneratingLayer = true;
-                    try
-                    {
-                        await AddBearingLayer(Preferences.Get("MedianPositionLatitude", lat), Preferences.Get("MedianPositionLongitude", lon), accuracy, heading);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                        Preferences.Set("LastPositionHeading", Preferences.Get("PrevLastPositionHeading", 0));
-                        IsGeneratingLayer = false;
-                    }
-                }
-                else
-                {
+                    Console.WriteLine(e);
                     IsGeneratingLayer = false;
                 }
-                //IsGeneratingLayer = false;
-            }
             }
         }
 
