@@ -30,6 +30,8 @@
     <MtouchDebug>true</MtouchDebug>
     <!-- <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey> -->
     <!-- <CodesignProvision>Wildcard</CodesignProvision> -->
+    <CodesignProvision>Wildcard</CodesignProvision>
+    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>none</DebugType>
@@ -41,6 +43,8 @@
     <MtouchArch>x86_64</MtouchArch>
     <!-- <CodesignKey>Apple Development: Nicholas Dawes (KL9HLGYN6R)</CodesignKey> -->
     <!-- <CodesignProvision>VS: WildCard Development</CodesignProvision> -->
+    <CodesignProvision>Automatic</CodesignProvision>
+    <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,12 +55,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchArch>ARM64</MtouchArch>
-    <CodesignKey>Apple Development: Oliver Frey (S2KS4AY53J)</CodesignKey>
+    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
     <MtouchDebug>true</MtouchDebug>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <MtouchLink>None</MtouchLink>
     <MtouchInterpreter>-all</MtouchInterpreter>
-    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <CodesignProvision>Wildcard</CodesignProvision>
     <IOSDebugOverWiFi>true</IOSDebugOverWiFi>
     <MtouchProfiling>true</MtouchProfiling>
   </PropertyGroup>
@@ -73,7 +77,9 @@
     <IOSDebugOverWiFi>false</IOSDebugOverWiFi>
     <MtouchProfiling>false</MtouchProfiling>
     <MtouchLink>SdkOnly</MtouchLink>
-    <CodesignProvision>BioDiv Store</CodesignProvision>
+    <CodesignProvision>BioDiv</CodesignProvision>
+    <MtouchUseLlvm>true</MtouchUseLlvm>
+    <MtouchFloat32>true</MtouchFloat32>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
     <AppExtensionDebugBundleId />
