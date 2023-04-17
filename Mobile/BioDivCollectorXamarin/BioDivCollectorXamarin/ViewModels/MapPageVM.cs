@@ -999,7 +999,11 @@ namespace BioDivCollectorXamarin.ViewModels
                     var lat = Preferences.Get("LastPositionLatitude", 0.0);
                     var lon = Preferences.Get("LastPositionLongitude", 0.0);
                     var accuracy = (int)Preferences.Get("LastPositionAccuracy", 0);
-                    var heading = (int)Preferences.Get("LastPositionHeading", 0);
+                    var heading = 0;
+                    if (Device.RuntimePlatform == Device.iOS)
+                    {
+                        heading = (int)Preferences.Get("LastPositionHeading", 0);
+                    }
                     var prevlat = Preferences.Get("PrevLastPositionLatitude", 0.0);
                     var prevlon = Preferences.Get("PrevLastPositionLongitude", 0.0);
                     var prevaccuracy = Preferences.Get("PrevLastPositionAccuracy", 0);
