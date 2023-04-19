@@ -13,6 +13,7 @@ using System.Xml;
 using AspNetCore;
 using BioDivCollector.DB.Models.Domain;
 using BioDivCollector.WebApp.Helpers;
+using FormFactory;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -1267,7 +1268,7 @@ namespace BioDivCollector.WebApp.Controllers
 
 
 
-            List<FormField> ffs = db.FormFields.Include(m=>m.FormFieldForms).ThenInclude(m=>m.Form).Where(m=>m.FieldTypeId == FieldTypeEnum.Choice && m.PublicMotherFormFieldFormFieldId == null).ToList();
+            List<FormField> ffs = db.FormFields.Include(m=>m.FormFieldForms).ThenInclude(m=>m.Form).Where(m=>m.FieldTypeId == FieldTypeEnum.Choice).ToList();
             foreach (FormField ff in ffs)
             {
                 if (ff.FormFieldForms.Where(m => fps.Contains(m.Form)).Any())
@@ -1312,8 +1313,21 @@ namespace BioDivCollector.WebApp.Controllers
 
             string pgstring = " PG:\"dbname = '" + db + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
 
-            
-            psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " -sql \"select fieldchoiceid, formfieldid, text, \\\"order\\\" from fieldchoices where \\\"formfieldid\\\" = " + fieldchoice +"\"";
+            string sql_command = @"
+select fc2.fieldchoiceid, ff.formfieldid, 'nein' as kanntexteditieren, fc2.\""text\"", fc2.\""order\"" reihenfolge, case when h.hiddenfieldchoiceid is not null then 0 else 1 end sichtbar from formfields ff 
+left outer join formfields mother on (ff.publicmotherformfieldformfieldid = mother.formfieldid)
+inner join fieldchoices fc2 on (fc2.formfieldid = mother.formfieldid) 
+left outer join hiddenfieldchoices h on (h.fieldchoiceid = fc2.fieldchoiceid and h.formfieldid = ff.formfieldid)
+where ff.formfieldid = " + fieldchoice + @"
+union
+select fc.fieldchoiceid, fc.formfieldid, 'ja', text, \""order\"" reihenfolge, case when h.hiddenfieldchoiceid is not null then 0 else 1 end sicthbar from fieldchoices fc 
+left outer join hiddenfieldchoices h on (h.fieldchoiceid = fc.fieldchoiceid and h.formfieldid = fc.formfieldid)
+where fc.\""formfieldid\"" = " + fieldchoice + @"
+order by \""reihenfolge\""
+";
+
+
+            psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " -sql \""+ sql_command +"\"";
 
             var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
             if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
@@ -1409,7 +1423,8 @@ namespace BioDivCollector.WebApp.Controllers
                             int fieldchoiceid = names.IndexOf("fieldchoiceid");
                             int formfieldid = names.IndexOf("formfieldid");
                             int text = names.IndexOf("text");
-                            int order = names.IndexOf("order");
+                            int order = names.IndexOf("reihenfolge");
+                            int visibility = names.IndexOf("sichtbar");
 
                             FormField? lastFF = null;
 
@@ -1421,7 +1436,7 @@ namespace BioDivCollector.WebApp.Controllers
                                     try
                                     {
                                         int newId = Int16.Parse(result.GetString(fieldchoiceid));
-                                        fc = db.FieldChoices.Include(m => m.FormField).Where(m => m.FieldChoiceId == newId).FirstOrDefault();
+                                        fc = db.FieldChoices.Include(m => m.FormField).ThenInclude(m=>m.HiddenFieldChoices).Where(m => m.FieldChoiceId == newId).FirstOrDefault();
                                         string content = result.GetString(text);
 
                                         if (fc.FormField.FormFieldId == Int16.Parse(result.GetString(formfieldid)))
@@ -1441,6 +1456,63 @@ namespace BioDivCollector.WebApp.Controllers
 
                                                 db.Entry(fc).State = EntityState.Modified;
                                                 returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + ") angepasst mit neuem Text " + fc.Text + "</li>";
+                                            }
+
+                                            int visibilityId = Int16.Parse(result.GetString(visibility));
+                                            if (visibilityId == 0)
+                                            {
+                                                if (!fc.FormField.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
+                                                {
+                                                    HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = fc, FormField = fc.FormField };
+                                                    db.HiddenFieldChoices.Add(hfc);
+                                                    db.Entry(hfc).State = EntityState.Added;
+
+                                                    returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + "): Sichtbarkeit auf nicht sichtbar gestellt</li>";
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (fc.FormField.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
+                                                {
+                                                    HiddenFieldChoice hfc = fc.FormField.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).First();
+                                                    db.HiddenFieldChoices.Remove(hfc);
+                                                    db.Entry(hfc).State = EntityState.Deleted;
+                                                    returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + "): Sichtbarkeit auf sichtbar gestellt</li>";
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Only changes the visibility --> fc is from publicmotherformfield
+                                            FormField ff = db.FormFields.Include(m => m.PublicMotherFormField).ThenInclude(m=>m.FieldChoices).Include(m=>m.HiddenFieldChoices).ThenInclude(m=>m.FieldChoice).Where(m => m.FormFieldId == Int16.Parse(result.GetString(formfieldid))).FirstOrDefault();
+                                            if (ff != null)
+                                            {
+                                                if ((ff.PublicMotherFormField!=null) && (ff.PublicMotherFormField.FieldChoices!=null) && (ff.PublicMotherFormField.FieldChoices.Contains(fc)))
+                                                {
+                                                    int visibilityId = Int16.Parse(result.GetString(visibility));
+                                                    if (visibilityId==0)
+                                                    {
+                                                        if (!ff.HiddenFieldChoices.Where(m=>m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
+                                                        {
+                                                            HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = fc, FormField = ff };
+                                                            db.HiddenFieldChoices.Add(hfc);
+                                                            db.Entry(hfc).State = EntityState.Added;
+                                                            returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + "): Sichtbarkeit auf nicht sichtbar gestellt</li>";
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (ff.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
+                                                        {
+                                                            HiddenFieldChoice hfc = ff.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).First();
+                                                            db.HiddenFieldChoices.Remove(hfc);
+                                                            db.Entry(hfc).State = EntityState.Deleted;
+                                                            returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + "): Sichtbarkeit auf sichtbar gestellt</li>";
+                                                        }
+
+
+                                                    }
+                                                }
                                             }
                                         }
 
