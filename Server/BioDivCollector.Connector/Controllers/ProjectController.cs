@@ -42,7 +42,7 @@ namespace BioDivCollector.Connector.Controllers
         /// <param name="startDateTime">optional datetime, e.g. 2020-10-29T15:30:12 or 2020-10-29T15:30:12Z (for explicit Utc time) -> if provided: deleted objects included</param>
         /// <returns></returns>
         [HttpGet("{id}/{startDateTime?}")]
-        public async Task<ActionResult<ProjectDTO>> GetProject(Guid id, DateTime? startDateTime)
+        public async Task<ActionResult<ProjectDTO>> GetProject(Guid id, DateTime? startDateTime, int version = 3)
         {
             string userName = string.Empty;
 
@@ -220,7 +220,7 @@ namespace BioDivCollector.Connector.Controllers
 
                 //-------------------------------------------------------------------------------------------------------------------------------------------------
                 //add geometry records to projectDto
-                var geometryRecordDtos = Records2Dto(geometryRecords.Where(r => r.Geometry.GeometryId == geom.GeometryId), userName, startDateTime);
+                var geometryRecordDtos = Records2Dto(geometryRecords.Where(r => r.Geometry.GeometryId == geom.GeometryId), userName, startDateTime, version);
                 geomDto.records.AddRange(geometryRecordDtos);
 
                 if (geomDto.records.Any() || (startDateTime != null && geomDto.timestamp > startDateTime) || startDateTime == null)
@@ -237,7 +237,7 @@ namespace BioDivCollector.Connector.Controllers
             //-------------------------------------------------------------------------------------------------------------------------------------------------
             // add project records to projectDto
 
-            var recordDtos = Records2Dto(records, userName, startDateTime);
+            var recordDtos = Records2Dto(records, userName, startDateTime, version);
             projectDto.records.AddRange(recordDtos);
 
             //-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -279,9 +279,13 @@ namespace BioDivCollector.Connector.Controllers
                     order = layerOrder,
                     visible = projectLayer.Visible,
                     opacity = projectLayer.Transparency,
-                    username = layer.Username,
-                    password = layer.Password
                 };
+                if (version > 3)
+                {
+
+                    layerDto.username = layer.Username;
+                    layerDto.password = layer.Password;
+                }
                 projectDto.layers.Add(layerDto);
                 layerOrder++;
             }
@@ -379,7 +383,7 @@ namespace BioDivCollector.Connector.Controllers
         /// <param name="records"></param>
         /// <param name="userName"></param>
         /// <returns></returns>
-        private List<RecordDTO> Records2Dto(IQueryable<Record> records, string userName, DateTime? startDateTime)
+        private List<RecordDTO> Records2Dto(IQueryable<Record> records, string userName, DateTime? startDateTime, int version = 0)
         {
             List<RecordDTO> recordDtos = new List<RecordDTO>();
 
@@ -458,14 +462,17 @@ namespace BioDivCollector.Connector.Controllers
                     };
                     recDto.booleans.Add(booleanDto);
                 }
-                foreach (BinaryData binaryData in rec.BinaryData)
+                if (version >= 3)
                 {
-                    BinaryDataDTO binaryDTO = new BinaryDataDTO()
+                    foreach (BinaryData binaryData in rec.BinaryData)
                     {
-                        binaryId = binaryData.Id,
-                        formFieldId = binaryData.FormField?.FormFieldId
-                    };
-                    recDto.binaries.Add(binaryDTO);
+                        BinaryDataDTO binaryDTO = new BinaryDataDTO()
+                        {
+                            binaryId = binaryData.Id,
+                            formFieldId = binaryData.FormField?.FormFieldId
+                        };
+                        recDto.binaries.Add(binaryDTO);
+                    }
                 }
 
                 recordDtos.Add(recDto);
