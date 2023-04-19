@@ -1,4 +1,5 @@
 ﻿using System;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.ViewModels;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -19,7 +20,10 @@ namespace BioDivCollectorXamarin.Views
                 //int.TryParse(value, out int parsedValue);
                 RecId = value;
                 Initialise();
-                if (ViewModel != null) { ViewModel.RecId = value; }
+                if (ViewModel != null) 
+                { 
+                    ViewModel.RecId = value; 
+                }
             }
         }
         public string FormIdString
@@ -97,6 +101,11 @@ namespace BioDivCollectorXamarin.Views
         {
             if (FormId != 0 && RecId != null && GeomId != null && FormId != null)
             {
+                if (RecId == "" || RecId == String.Empty)
+                {
+                    var rec = await Record.CreateRecord(FormId, GeomId);
+                    RecId = rec.recordId;
+                }
                 //var form = await Form.FetchFormOfType(FormId);
                 //if (form != null)
                 //{
