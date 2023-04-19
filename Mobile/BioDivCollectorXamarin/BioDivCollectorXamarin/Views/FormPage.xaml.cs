@@ -101,17 +101,13 @@ namespace BioDivCollectorXamarin.Views
         {
             if (FormId != 0 && RecId != null && GeomId != null && FormId != null)
             {
-                if (RecId == "" || RecId == String.Empty)
-                {
-                    var rec = await Record.CreateRecord(FormId, GeomId);
-                    RecId = rec.recordId;
-                }
+                
                 //var form = await Form.FetchFormOfType(FormId);
                 //if (form != null)
                 //{
-                    //var makeFormTask = Task.Run(() =>
-                    //{
-                        ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
+                //var makeFormTask = Task.Run(() =>
+                //{
+                ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
                         Device.BeginInvokeOnMainThread(() =>
                         {
                             BindingContext = ViewModel;

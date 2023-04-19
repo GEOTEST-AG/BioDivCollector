@@ -49,14 +49,15 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void FormListView_ItemTapped(object sender, ItemTappedEventArgs e)
+        private async void FormListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
             var form = e.Item as Form;
+            var rec = await Record.CreateRecord(form.formId, (int?)ViewModel.Object_pk);
             //var rec = Record.CreateRecord(form.formId, (int?)ViewModel.Object_pk);
             //if (rec != null)
             //{
             //Navigation.PushAsync(new FormPage(null, form.formId, (int?)ViewModel.Object_pk),true);
-            Shell.Current.GoToAsync($"Form?formid={form.formId}&geomid={(int?)ViewModel.Object_pk}&recid=", true);
+            Shell.Current.GoToAsync($"Form?formid={form.formId}&geomid={(int?)ViewModel.Object_pk}&recid={rec.recordId}", true);
 
             //}
         }
