@@ -1035,7 +1035,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
                             double[] latArray = new double[]
                                 {
-                            lon,
+                            lat,
                             GPSPointsQueue.ElementAt(1).Item1,
                             GPSPointsQueue.ElementAt(2).Item1,
                             GPSPointsQueue.ElementAt(3).Item1,
