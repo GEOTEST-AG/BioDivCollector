@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models;
@@ -7,6 +8,10 @@ using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.ViewModels;
 using Xamarin.Essentials;
 using Xamarin.Forms;
+using static System.Net.Mime.MediaTypeNames;
+using static BioDivCollectorXamarin.Helpers.Interfaces;
+using static PInvoke.Kernel32;
+using Application = Xamarin.Forms.Application;
 
 namespace BioDivCollectorXamarin.Views
 {
@@ -110,6 +115,8 @@ namespace BioDivCollectorXamarin.Views
             {
                 FiltrierenButton.Text = "Gefiltert nach " + ViewModel.FilterBy;
             }
+
+            SaveDebuggerMessage();
         }
 
         /// <summary>
@@ -389,6 +396,33 @@ namespace BioDivCollectorXamarin.Views
                 else
                 {
                     Navigation.PushAsync(new FormSelectionPage(geomId2), true);
+                }
+            }
+        }
+
+        private async Task SaveDebuggerMessage()
+        {
+            if (App.DebuggMessage != String.Empty && App.DebuggMessage != null)
+            {
+                var date = DateTime.Now.Date;
+                var dateOnly = date.Year + "-" + date.Month + "-" + date.Day;
+                var pathToDownloads = "";
+                if (Device.RuntimePlatform == "Android")
+                {
+                    pathToDownloads = Path.Combine(DependencyService.Get<FileInterface>().GetPathToDownloads() + "/DebuggMessage_" + dateOnly + ".txt");
+                }
+                if (File.Exists(pathToDownloads))
+                {
+                    string text = File.ReadAllText(pathToDownloads);
+                    text = text + Environment.NewLine + Environment.NewLine + App.DebuggMessage;
+                    File.Delete(pathToDownloads);
+                    File.WriteAllText(pathToDownloads, text);
+                    App.DebuggMessage = "";
+                }
+                else
+                {
+                    File.WriteAllText(pathToDownloads, App.DebuggMessage);
+                    App.DebuggMessage = "";
                 }
             }
         }

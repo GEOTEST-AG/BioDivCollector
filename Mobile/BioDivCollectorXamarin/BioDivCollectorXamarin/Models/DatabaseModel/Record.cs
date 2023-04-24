@@ -59,7 +59,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// <param name="formId"></param>
         /// <param name="geomId"></param>
         /// <returns>The created record</returns>
-        public static async Task<Record> CreateRecord(int formId, int? geomId)
+        public static async Task<Record> CreateRecord(int formId, int? geomId, string message)
         {
             Project proj = await Project.FetchProjectWithChildren(App.CurrentProjectId);
             Record rec = new Record();
@@ -90,6 +90,9 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     geom.records = recs;
                     await conn.UpdateWithChildrenAsync(geom);
                 }
+
+                App.DebuggMessage = DateTime.Now.ToString() + Environment.NewLine + App.DebuggMessage + "Record " + rec.recordId + " (FormId " + rec.formId + ") zur Geometrie " + rec.geometry_fk + " erstellt." + Environment.NewLine + message + Environment.NewLine;
+
                 return rec;
             }
             return null;
