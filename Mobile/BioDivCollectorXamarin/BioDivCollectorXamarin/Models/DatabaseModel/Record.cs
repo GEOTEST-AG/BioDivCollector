@@ -91,7 +91,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     await conn.UpdateWithChildrenAsync(geom);
                 }
 
-                App.DebuggMessage = DateTime.Now.ToString() + Environment.NewLine + App.DebuggMessage + "Record " + rec.recordId + " (FormId " + rec.formId + ") zur Geometrie " + rec.geometry_fk + " erstellt." + Environment.NewLine + message + Environment.NewLine;
+                App.DebuggMessage = App.DebuggMessage + "DebuggMessage3" + DateTime.Now.ToString() + Environment.NewLine + "Record " + rec.recordId + " (FormId " + rec.formId + ") zur Geometrie " + rec.geometry_fk + " erstellt." + Environment.NewLine + message + Environment.NewLine;
 
                 return rec;
             }

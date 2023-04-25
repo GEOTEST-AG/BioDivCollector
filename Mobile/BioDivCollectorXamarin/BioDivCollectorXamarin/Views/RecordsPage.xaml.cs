@@ -380,11 +380,11 @@ namespace BioDivCollectorXamarin.Views
             {
                 var formid = formList.FirstOrDefault().formId;
 
-
                 if (formid != null)
                 {
+                    App.DebuggMessage = App.DebuggMessage + "DebugMessage1 - AddFormToNewGeometry - FormId " + formid + ", GeomId: " + geomId2 + Environment.NewLine;
                     //Navigation.PushAsync(new FormPage(null, formid, geomId2), true);
-                    Shell.Current.GoToAsync($"Form?recid=&formid={formid}&geomid={geomId2}", true);
+                    Shell.Current.GoToAsync($"Form?recid=&formid={formid}&geomid={geomId2}&recid=", true);
                 }
             }
             else
@@ -407,10 +407,7 @@ namespace BioDivCollectorXamarin.Views
                 var date = DateTime.Now.Date;
                 var dateOnly = date.Year + "-" + date.Month + "-" + date.Day;
                 var pathToDownloads = "";
-                if (Device.RuntimePlatform == "Android")
-                {
-                    pathToDownloads = Path.Combine(DependencyService.Get<FileInterface>().GetPathToDownloads() + "/DebuggMessage_" + dateOnly + ".txt");
-                }
+                pathToDownloads = Path.Combine(DependencyService.Get<FileInterface>().GetPathToDownloads() + "/DebuggMessage_" + dateOnly + ".txt");
                 if (File.Exists(pathToDownloads))
                 {
                     string text = File.ReadAllText(pathToDownloads);
