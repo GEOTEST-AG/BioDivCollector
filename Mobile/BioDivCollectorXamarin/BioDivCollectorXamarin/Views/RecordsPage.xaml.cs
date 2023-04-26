@@ -65,15 +65,17 @@ namespace BioDivCollectorXamarin.Views
                 await DisplayAlert("BDC GUID kopiert", String.Empty, "OK");
             });
 
+            MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
             MessagingCenter.Subscribe<MapPageVM, string>(this, "GenerateNewForm", async (sender, geomId) =>
             {
-                var formList = await Form.FetchFormsForProject();
-                int i = formList.Count;
+                App.DebuggMessage = App.DebuggMessage + "DebugMessage5 - MessagingCenter \"GenerateNewForm\" - GeomId: " + geomId + Environment.NewLine;
 
-                var geom = await ReferenceGeometry.GetGeometry(geomId);
+                //var formList = await Form.FetchFormsForProject();
+                //int i = formList.Count;
 
-                AddFormToNewGeometry(i, formList, geom, geomId);
-                MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
+                //var geom = await ReferenceGeometry.GetGeometry(geomId);
+
+                AddFormToNewGeometry(geomId);
             });
 
             MessagingCenter.Unsubscribe<Application>(App.Current, "SetBackSortBy");
@@ -91,7 +93,7 @@ namespace BioDivCollectorXamarin.Views
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            MessagingCenter.Send<Application>(App.Current, "RecordsPageReady"); //Tell the map page that this page exists
+            //MessagingCenter.Send<Application>(App.Current, "RecordsPageReady"); //Tell the map page that this page exists
             if (App.CurrentRoute.Length < 11 || App.CurrentRoute.Substring(0,10) != "///Records" )
             {
                 App.CurrentRoute = "//Records";
@@ -373,8 +375,13 @@ namespace BioDivCollectorXamarin.Views
         /// <param name="formList"></param>
         /// <param name="geom"></param>
         /// <param name="geomId"></param>
-        void AddFormToNewGeometry(int i, List<Form> formList, ReferenceGeometry geom, string geomId)
+        private async Task AddFormToNewGeometry(string geomId)
         {
+            var formList = await Form.FetchFormsForProject();
+            int i = formList.Count;
+
+            var geom = await ReferenceGeometry.GetGeometry(geomId);
+
             int geomId2 = geom.Id;
             if (i == 1)
             {
@@ -382,20 +389,20 @@ namespace BioDivCollectorXamarin.Views
 
                 if (formid != null)
                 {
-                    App.DebuggMessage = App.DebuggMessage + "DebugMessage1 - AddFormToNewGeometry - FormId " + formid + ", GeomId: " + geomId2 + Environment.NewLine;
+                    App.DebuggMessage = App.DebuggMessage + "DebugMessage1 - AddFormToNewGeometry - FormId " + formid + ", GeomId: " + geomId + ", GeomId2: " + geomId2 + Environment.NewLine;
                     //Navigation.PushAsync(new FormPage(null, formid, geomId2), true);
-                    Shell.Current.GoToAsync($"Form?recid=&formid={formid}&geomid={geomId2}&recid=", true);
+                    await Shell.Current.GoToAsync($"Form?recid=&formid={formid}&geomid={geomId2}&recid=", true);
                 }
             }
             else
             {
                 if (geomId == null)
                 {
-                    Navigation.PushAsync(new FormSelectionPage(null), true);
+                    await Navigation.PushAsync(new FormSelectionPage(null), true);
                 }
                 else
                 {
-                    Navigation.PushAsync(new FormSelectionPage(geomId2), true);
+                    await Navigation.PushAsync(new FormSelectionPage(geomId2), true);
                 }
             }
         }
