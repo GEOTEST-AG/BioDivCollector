@@ -65,7 +65,6 @@ namespace BioDivCollectorXamarin.Views
                 await DisplayAlert("BDC GUID kopiert", String.Empty, "OK");
             });
 
-            MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
             MessagingCenter.Subscribe<MapPageVM, string>(this, "GenerateNewForm", async (sender, geomId) =>
             {
                 App.DebuggMessage = App.DebuggMessage + "DebugMessage5 - MessagingCenter \"GenerateNewForm\" - GeomId: " + geomId + Environment.NewLine;
@@ -75,7 +74,8 @@ namespace BioDivCollectorXamarin.Views
 
                 //var geom = await ReferenceGeometry.GetGeometry(geomId);
 
-                AddFormToNewGeometry(geomId);
+                await AddFormToNewGeometry(geomId);
+                MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
             });
 
             MessagingCenter.Unsubscribe<Application>(App.Current, "SetBackSortBy");
@@ -93,7 +93,7 @@ namespace BioDivCollectorXamarin.Views
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            //MessagingCenter.Send<Application>(App.Current, "RecordsPageReady"); //Tell the map page that this page exists
+            MessagingCenter.Send<Application>(App.Current, "RecordsPageReady"); //Tell the map page that this page exists
             if (App.CurrentRoute.Length < 11 || App.CurrentRoute.Substring(0,10) != "///Records" )
             {
                 App.CurrentRoute = "//Records";
