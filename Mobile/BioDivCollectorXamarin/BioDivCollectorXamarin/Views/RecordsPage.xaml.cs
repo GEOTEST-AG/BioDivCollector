@@ -67,6 +67,7 @@ namespace BioDivCollectorXamarin.Views
 
             MessagingCenter.Subscribe<MapPageVM, string>(this, "GenerateNewForm", async (sender, geomId) =>
             {
+                MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
                 App.DebuggMessage = App.DebuggMessage + "DebugMessage5 - MessagingCenter \"GenerateNewForm\" - GeomId: " + geomId + Environment.NewLine;
 
                 //var formList = await Form.FetchFormsForProject();
@@ -75,7 +76,6 @@ namespace BioDivCollectorXamarin.Views
                 //var geom = await ReferenceGeometry.GetGeometry(geomId);
 
                 await AddFormToNewGeometry(geomId);
-                MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
             });
 
             MessagingCenter.Unsubscribe<Application>(App.Current, "SetBackSortBy");
