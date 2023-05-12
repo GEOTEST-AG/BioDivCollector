@@ -119,8 +119,6 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public async Task CreateForm(string recId, int formId, int? geomId)
         {
-            App.DebuggMessage = App.DebuggMessage + "DebugMessage2 - CreateForm - RecordId " + recId + ", FormId " + formId + ", GeomId " + geomId + Environment.NewLine;
-
             FormId = formId;
             GeomId = geomId;
             FormId = formId;

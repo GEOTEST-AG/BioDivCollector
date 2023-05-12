@@ -90,9 +90,6 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     geom.records = recs;
                     await conn.UpdateWithChildrenAsync(geom);
                 }
-
-                App.DebuggMessage = App.DebuggMessage + "DebugMessage3 - " + DateTime.Now.ToString() + Environment.NewLine + "Record " + rec.recordId + " (FormId " + rec.formId + ") zur Geometrie " + rec.geometry_fk + " erstellt." + Environment.NewLine + message + Environment.NewLine;
-
                 return rec;
             }
             return null;

@@ -53,9 +53,6 @@ namespace BioDivCollectorXamarin.Views
         {
             var form = e.Item as Form;
 
-            App.DebuggMessage = App.DebuggMessage + "DebugMessage4 - FormListView_ItemTapped - FormId " + form.formId + ", GeomId: " + (int?)ViewModel.Object_pk + Environment.NewLine;
-
-            //var message = "Der Record wurde aus der Methode \"FormListView_ItemTapped\" in der FormSelectionPage.xaml.cs erstellt.";
             //var rec = await Record.CreateRecord(form.formId, (int?)ViewModel.Object_pk, message);
             //var rec = Record.CreateRecord(form.formId, (int?)ViewModel.Object_pk);
             //if (rec != null)

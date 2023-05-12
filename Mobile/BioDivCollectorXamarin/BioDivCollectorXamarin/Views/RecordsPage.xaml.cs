@@ -68,7 +68,6 @@ namespace BioDivCollectorXamarin.Views
             MessagingCenter.Subscribe<MapPageVM, string>(this, "GenerateNewForm", async (sender, geomId) =>
             {
                 MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
-                App.DebuggMessage = App.DebuggMessage + "DebugMessage5 - MessagingCenter \"GenerateNewForm\" - GeomId: " + geomId + Environment.NewLine;
 
                 //var formList = await Form.FetchFormsForProject();
                 //int i = formList.Count;
@@ -117,8 +116,6 @@ namespace BioDivCollectorXamarin.Views
             {
                 FiltrierenButton.Text = "Gefiltert nach " + ViewModel.FilterBy;
             }
-
-            SaveDebuggerMessage();
         }
 
         /// <summary>
@@ -389,7 +386,6 @@ namespace BioDivCollectorXamarin.Views
 
                 if (formid != null)
                 {
-                    App.DebuggMessage = App.DebuggMessage + "DebugMessage1 - AddFormToNewGeometry - FormId " + formid + ", GeomId: " + geomId + ", GeomId2: " + geomId2 + Environment.NewLine;
                     //Navigation.PushAsync(new FormPage(null, formid, geomId2), true);
                     await Shell.Current.GoToAsync($"Form?recid=&formid={formid}&geomid={geomId2}&recid=", true);
                 }
@@ -403,30 +399,6 @@ namespace BioDivCollectorXamarin.Views
                 else
                 {
                     await Navigation.PushAsync(new FormSelectionPage(geomId2), true);
-                }
-            }
-        }
-
-        private async Task SaveDebuggerMessage()
-        {
-            if (App.DebuggMessage != String.Empty && App.DebuggMessage != null)
-            {
-                var date = DateTime.Now.Date;
-                var dateOnly = date.Year + "-" + date.Month + "-" + date.Day;
-                var pathToDownloads = "";
-                pathToDownloads = Path.Combine(DependencyService.Get<FileInterface>().GetPathToDownloads() + "/DebuggMessage_" + dateOnly + ".txt");
-                if (File.Exists(pathToDownloads))
-                {
-                    string text = File.ReadAllText(pathToDownloads);
-                    text = text + Environment.NewLine + Environment.NewLine + App.DebuggMessage;
-                    File.Delete(pathToDownloads);
-                    File.WriteAllText(pathToDownloads, text);
-                    App.DebuggMessage = "";
-                }
-                else
-                {
-                    File.WriteAllText(pathToDownloads, App.DebuggMessage);
-                    App.DebuggMessage = "";
                 }
             }
         }

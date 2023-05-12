@@ -184,8 +184,6 @@ namespace BioDivCollectorXamarin
             }
         }
 
-        public static string DebuggMessage { get; set; }
-
         /// <summary>
         /// Initialisation without further parameters
         /// </summary>
