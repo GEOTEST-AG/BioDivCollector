@@ -49,6 +49,16 @@ namespace BioDivCollectorXamarin.Droid
             return directory;
         }
 
+        /// <summary>
+        /// Holt den Pfad zum allgemeinen Downloadordner. Muss in Zukunft geändert werden, sollte irgendwie mit MedieaStore oder so gelöst werden.
+        /// </summary>
+        /// <returns>Pfad zum allgemeinen Downloadordner</returns>
+        public string GetPathToDownloads()
+        {
+            string path = Android.OS.Environment.DirectoryDownloads;
+            string pathToNewFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(path).ToString();
+            return pathToNewFolder;
+        }
     }
 }
 

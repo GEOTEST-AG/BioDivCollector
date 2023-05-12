@@ -130,7 +130,8 @@ namespace BioDivCollectorXamarin.ViewModels
                 queriedrec = await Record.FetchRecord(recId);
                 if (queriedrec == null)
                 {
-                    queriedrec = await Record.CreateRecord(formId, geomId);
+                    var message = "Der Record wurde aus der Methode \"CreateForm\" mit bereits bestehender RecordId in der FormPageVM.cs erstellt.";
+                    queriedrec = await Record.CreateRecord(formId, geomId, message);
                     RecId = queriedrec.recordId;
                     NewRecord = true;
                 }
@@ -142,7 +143,8 @@ namespace BioDivCollectorXamarin.ViewModels
             }
             else
             {
-                queriedrec = await Record.CreateRecord(formId, geomId);
+                var message = "Der Record wurde aus der Methode \"CreateForm\" ohne bereits bestehender RecordId in der FormPageVM.cs erstellt.";
+                queriedrec = await Record.CreateRecord(formId, geomId, message);
                 RecId = queriedrec.recordId;
                 NewRecord = true;
             }
@@ -1216,8 +1218,9 @@ namespace BioDivCollectorXamarin.ViewModels
             var rec = await Record.FetchRecord(RecId);
 
             if (rec == null) 
-            { 
-                rec = await Record.CreateRecord(FormId, GeomId); 
+            {
+                var message = "Der Record wurde aus der Methode \"New_Image_Button_Clicked\" in der FormPageVM.cs erstellt.";
+                rec = await Record.CreateRecord(FormId, GeomId, message); 
             }
 
             Device.BeginInvokeOnMainThread(async () =>

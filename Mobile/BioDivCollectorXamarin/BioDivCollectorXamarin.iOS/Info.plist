@@ -22,13 +22,13 @@
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
 	<key>MinimumOSVersion</key>
-	<string>8.0</string>
+	<string>9.0</string>
 	<key>CFBundleDisplayName</key>
 	<string>BioDiv</string>
 	<key>CFBundleIdentifier</key>
 	<string>ch.geotest.BioDivCollector</string>
 	<key>CFBundleVersion</key>
-	<string>65</string>
+	<string>70</string>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>CFBundleName</key>

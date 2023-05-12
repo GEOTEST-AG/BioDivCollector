@@ -15,6 +15,7 @@ namespace BioDivCollectorXamarin.Helpers
         {
             string GetMbTilesPath();
             string GetImagePath();
+            string GetPathToDownloads();
         }
 
         public interface IDownloader
