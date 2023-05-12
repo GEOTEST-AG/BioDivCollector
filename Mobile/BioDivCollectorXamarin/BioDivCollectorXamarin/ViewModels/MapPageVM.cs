@@ -263,7 +263,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
             VMMapView = mapView;
             VMMapView.TouchMove += MapView_TouchMove;
-            VMMapView.ViewportInitialized += VMMapView_ViewportInitialized;
+            //VMMapView.ViewportInitialized += VMMapView_ViewportInitialized;
 
             TempCoordinates = new List<Mapsui.Geometries.Point>();
 
@@ -559,21 +559,20 @@ namespace BioDivCollectorXamarin.ViewModels
 
             MessagingCenter.Subscribe<MapLayer, Dictionary<string, int>>(this, "LayerOrderChanged", (sender, arg) =>
             {
-
-                    Device.BeginInvokeOnMainThread(() =>
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    var dic = arg;
+                    dic.TryGetValue("oldZ", out int oldZ);
+                    dic.TryGetValue("newZ", out int newZ);
+                    var oldLayerZ = MapLayers.Count - oldZ;
+                    var newLayerZ = MapLayers.Count - newZ;
+                    if (newLayerZ < MapLayers.Count && newLayerZ >= 0)
                     {
-                        var dic = arg;
-                        dic.TryGetValue("oldZ", out int oldZ);
-                        dic.TryGetValue("newZ", out int newZ);
-                        var oldLayerZ = MapLayers.Count - oldZ;
-                        var newLayerZ = MapLayers.Count - newZ;
-                        if (newLayerZ < MapLayers.Count && newLayerZ >= 0)
-                        {
-                            RenewAllLayers();
-                        }
-                        InitialiseGPS();
-                    });
+                        RenewAllLayers();
+                    }
+                    InitialiseGPS();
                 });
+            });
 
             if (App.ZoomMapOut)
             {
@@ -695,39 +694,39 @@ namespace BioDivCollectorXamarin.ViewModels
                 await ConfigureGeometryForEditing();
             }
 
-            var filterGeom = Preferences.Get("FilterGeometry", String.Empty);
-            if (filterGeom != String.Empty)
-            {
-                int geomId;
-                int.TryParse(filterGeom, out geomId);
-                if (geomId != 0)
-                {
-                    try
-                    {
-                        Device.BeginInvokeOnMainThread(async () =>
-                        {
-                            var centre = await MapModel.GetCentreOfGeometry(geomId);
-                            if (centre != null)
-                            {
-                                VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
-                            }
-                            else
-                            {
-                                ReCentreMap();
-                            }
-                        });
-                    }
-                    catch
-                    {
+            //var filterGeom = Preferences.Get("FilterGeometry", String.Empty);
+            //if (filterGeom != String.Empty)
+            //{
+            //    int geomId;
+            //    int.TryParse(filterGeom, out geomId);
+            //    if (geomId != 0)
+            //    {
+            //        try
+            //        {
+            //            Device.BeginInvokeOnMainThread(async () =>
+            //            {
+            //                var centre = await MapModel.GetCentreOfGeometry(geomId);
+            //                if (centre != null)
+            //                {
+            //                    //VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
+            //                }
+            //                else
+            //                {
+            //                    ReCentreMap();
+            //                }
+            //            });
+            //        }
+            //        catch
+            //        {
 
-                    }
-                }
-                Preferences.Set("FilterGeometry", String.Empty); //Only centre once. After this, forget the filter, and don't keep returning to this position
-            }
-            else
-            {
+            //        }
+            //    }
+            //    Preferences.Set("FilterGeometry", String.Empty); //Only centre once. After this, forget the filter, and don't keep returning to this position
+            //}
+            //else
+            //{
                 ReCentreMap();
-            }
+            //}
         }
 
         /// <summary>
@@ -823,7 +822,6 @@ namespace BioDivCollectorXamarin.ViewModels
                 var sphericalMercatorCoordinateUR = SphericalMercator.FromLonLat(UR.X, UR.Y);
                 VMMapView.Navigator.NavigateTo(new BoundingBox(sphericalMercatorCoordinateLL, sphericalMercatorCoordinateUR), Mapsui.Utilities.ScaleMethod.Fit);
             }
-
         }
 
         private BoundingBox GetBoundingBoxWithBuffer(ILayer layer)
