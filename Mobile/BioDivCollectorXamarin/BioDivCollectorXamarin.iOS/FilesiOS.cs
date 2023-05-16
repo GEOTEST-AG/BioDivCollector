@@ -29,5 +29,10 @@ namespace BioDivCollectorXamarin.iOS
             }
             return directory;
         }
+
+        public string GetPathToDownloads()
+        {
+            return String.Empty;
+        }
     }
 }
