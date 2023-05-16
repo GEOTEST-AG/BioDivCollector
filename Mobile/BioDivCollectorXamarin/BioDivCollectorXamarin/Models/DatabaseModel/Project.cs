@@ -333,5 +333,17 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 return false;
             }
         }
+
+        public static async Task<List<string>> GetLocalProjects()
+        {
+            var returnList = new List<string>();
+            var conn = App.ActiveDatabaseConnection;
+            var projectList = await conn.Table<Project>().ToListAsync();
+            foreach ( var proj in projectList)
+            {
+                returnList.Add(proj.projectId.ToString());
+            }
+            return returnList;
+        }
     }
 }

@@ -205,6 +205,35 @@ namespace BioDivCollectorXamarin.ViewModels
             });
 
         /// <summary>
+        /// The text indicating that the geometries are sill loading
+        /// </summary>
+        private string geomsLoadingText;
+        public string GeomsLoadingText
+        {
+            get { return geomsLoadingText; }
+            set
+            {
+                geomsLoadingText = value;
+                if (value == String.Empty)
+                    IsLoading = false;
+                else
+                    IsLoading = true;
+                OnPropertyChanged("GeomsLoadingText");
+            }
+        }
+
+        private bool isLoading;
+        public bool IsLoading
+        {
+            get { return isLoading; }
+            set
+            {
+                isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         public MapPageVM()
@@ -285,6 +314,27 @@ namespace BioDivCollectorXamarin.ViewModels
                 Map.Widgets.Add(new Mapsui.Widgets.ScaleBar.ScaleBarWidget(Map) { TextAlignment = Mapsui.Widgets.Alignment.Center, HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left, VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom });
             });
 
+            //var firstLaunchCurrent = true;
+            var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
+            //var firstLaunchCurrent = true;
+            if (firstLaunchCurrent)
+            {
+                Task.Run(async () =>
+                {
+                    MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Fotos werden heruntergeladen");
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        await App.Current.MainPage.DisplayAlert("Fotos werden heruntergeladen. Die App kann normal weiterverwendet werden", "", "OK");
+                    });
+
+                    var projectList = await Project.GetLocalProjects();
+                    foreach (var project in projectList)
+                    {
+                        await DataDAO.GetBinaryOnlyJsonString(project, null);
+                    }
+                });
+            }
+
             //try
             //{
             //    Task.Run(async () => { MapLayers = await MapModel.MakeArrayOfLayers(); });
@@ -336,6 +386,11 @@ namespace BioDivCollectorXamarin.ViewModels
                 StopShowingPosition();
             });
 
+            MessagingCenter.Unsubscribe<Application, string>(App.Current, "SyncMessage");
+            MessagingCenter.Subscribe<Application, string>(App.Current, "SyncMessage", (sender, arg) =>
+            {
+                GeomsLoadingText = arg;
+            });
 
             DeviceDisplay.MainDisplayInfoChanged += HandleRotationChange;
 

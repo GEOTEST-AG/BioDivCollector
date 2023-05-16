@@ -184,6 +184,8 @@ namespace BioDivCollectorXamarin
             }
         }
 
+
+
         /// <summary>
         /// Initialisation without further parameters
         /// </summary>
@@ -230,6 +232,7 @@ namespace BioDivCollectorXamarin
                 if (firstLaunchCurrent)
                 {
                     await DataDAO.PerformRecordMigration();
+
                 }
             });
 
