@@ -232,7 +232,6 @@ namespace BioDivCollectorXamarin
                 if (firstLaunchCurrent)
                 {
                     await DataDAO.PerformRecordMigration();
-
                 }
             });
 

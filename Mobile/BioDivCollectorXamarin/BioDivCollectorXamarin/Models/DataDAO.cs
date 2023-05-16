@@ -1030,7 +1030,7 @@ namespace BioDivCollectorXamarin.Models
         }
 
         /// <summary>
-        /// Downloads the json from the connector for a particular project id. Includes authorisation.
+        /// Downloads the json from the connector for a project, saves the binaryIds only and downloads the photos. Includes authorisation.
         /// </summary>
         /// <param name="projectId">Specifies project</param>
         /// <param name="time">Specifies the earliest time from which the changes should be downloaded</param>

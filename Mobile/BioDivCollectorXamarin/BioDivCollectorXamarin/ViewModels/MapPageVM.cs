@@ -314,17 +314,16 @@ namespace BioDivCollectorXamarin.ViewModels
                 Map.Widgets.Add(new Mapsui.Widgets.ScaleBar.ScaleBarWidget(Map) { TextAlignment = Mapsui.Widgets.Alignment.Center, HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left, VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom });
             });
 
-            //var firstLaunchCurrent = true;
             var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
-            //var firstLaunchCurrent = true;
             if (firstLaunchCurrent)
             {
+                //On first launch, we need to download all the photos for the local projects to avoid data loss. Only runs once.
                 Task.Run(async () =>
                 {
                     MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Fotos werden heruntergeladen");
                     Device.BeginInvokeOnMainThread(async () =>
                     {
-                        await App.Current.MainPage.DisplayAlert("Fotos werden heruntergeladen. Die App kann normal weiterverwendet werden", "", "OK");
+                        await App.Current.MainPage.DisplayAlert("Fotos werden heruntergeladen", "Die Fotos aller lokal gespeicherten Projekte werden heruntergeladen. Die App kann normal weiterverwendet werden", "OK");
                     });
 
                     var projectList = await Project.GetLocalProjects();
