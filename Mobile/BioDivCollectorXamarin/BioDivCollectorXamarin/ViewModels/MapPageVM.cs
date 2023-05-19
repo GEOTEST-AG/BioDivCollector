@@ -352,6 +352,11 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 SaveCountText = (string)arg1;
             });
+            MessagingCenter.Subscribe<Application, string>(App.Current, "DownloadComplete", (sender, arg1) =>
+            {
+                Preferences.Set("FilterGeometry", String.Empty);
+            });
+            
             SaveCountText = String.Empty;
 
             MessagingCenter.Subscribe<Application>(App.Current, "PermissionsChanged", (sender) =>
@@ -579,7 +584,7 @@ namespace BioDivCollectorXamarin.ViewModels
                     var bbox = new Mapsui.Geometries.BoundingBox(BBLLx, BBLLy, BBURx, BBURy);
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        VMMapView.Navigator.NavigateTo(bbox, ScaleMethod.Fit);
+                        VMMapView.Navigator.NavigateTo(bbox, ScaleMethod.Fill);
                     });
                 }
                 var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(centre.X, centre.Y);
@@ -748,39 +753,43 @@ namespace BioDivCollectorXamarin.ViewModels
                 await ConfigureGeometryForEditing();
             }
 
-            //var filterGeom = Preferences.Get("FilterGeometry", String.Empty);
-            //if (filterGeom != String.Empty)
-            //{
-            //    int geomId;
-            //    int.TryParse(filterGeom, out geomId);
-            //    if (geomId != 0)
-            //    {
-            //        try
-            //        {
-            //            Device.BeginInvokeOnMainThread(async () =>
-            //            {
-            //                var centre = await MapModel.GetCentreOfGeometry(geomId);
-            //                if (centre != null)
-            //                {
-            //                    //VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
-            //                }
-            //                else
-            //                {
-            //                    ReCentreMap();
-            //                }
-            //            });
-            //        }
-            //        catch
-            //        {
+            var filterGeom = Preferences.Get("FilterGeometry", String.Empty);
+            if (filterGeom != String.Empty)
+            {
+                int geomId;
+                int.TryParse(filterGeom, out geomId);
+                if (geomId != 0)
+                {
+                    try
+                    {
+                        Device.BeginInvokeOnMainThread(async () =>
+                        {
+                            var centre = await MapModel.GetCentreOfGeometry(geomId);
+                            if (centre != null)
+                            {
+                                VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
+                                SetBoundingBox();
+                            }
+                            else
+                            {
+                                ReCentreMap();
+                            }
+                        });
+                    }
+                    catch
+                    {
 
-            //        }
-            //    }
-            //    Preferences.Set("FilterGeometry", String.Empty); //Only centre once. After this, forget the filter, and don't keep returning to this position
-            //}
-            //else
-            //{
-                ReCentreMap();
-            //}
+                    }
+                }
+                Preferences.Set("FilterGeometry", String.Empty); //Only centre once. After this, forget the filter, and don't keep returning to this position
+            }
+            else
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    ReCentreMap();
+                });
+            }
         }
 
         /// <summary>
