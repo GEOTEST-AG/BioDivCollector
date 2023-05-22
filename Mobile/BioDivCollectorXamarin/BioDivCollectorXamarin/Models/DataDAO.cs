@@ -1489,6 +1489,32 @@ namespace BioDivCollectorXamarin.Models
                 });
             }
         }
+
+        public static void MigratePhotos()
+        {
+            var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
+            var previousBuild = VersionTracking.PreviousBuild;
+            int.TryParse(previousBuild, out int previousBuildInt);
+            if (firstLaunchCurrent && !VersionTracking.IsFirstLaunchEver && previousBuildInt < 70 && !App.MigrationsCompleted && App.IsConnected)
+            {
+                //On first launch, we need to download all the photos for the local projects to avoid data loss. Only runs once.
+                Task.Run(async () =>
+                {
+                    MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Fotos werden heruntergeladen");
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        await App.Current.MainPage.DisplayAlert("Fotos werden heruntergeladen", "Die Fotos aller lokal gespeicherten Projekte werden heruntergeladen. Die App kann normal weiterverwendet werden", "OK");
+                    });
+
+                    var projectList = await Project.GetLocalProjects();
+                    foreach (var project in projectList)
+                    {
+                        await DataDAO.GetBinaryOnlyJsonString(project, null);
+                    }
+                    App.MigrationsCompleted = true;
+                });
+            }
+        }
     }
 
     /// <summary>

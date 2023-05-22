@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.LoginModel;
+using BioDivCollectorXamarin.Views;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 
@@ -62,7 +63,6 @@ namespace BioDivCollectorXamarin.ViewModels
             DidStart = App.AppDidStart;
             LoginCommand = new Command(Login, ValidateLogin);
             RegisterCommand = new Command(Register, ValidateTrue);
-            PasswordCommand = new Command(ChangePassword, ValidateTrue);
         }
 
         public void OnAppearing()
@@ -118,12 +118,8 @@ namespace BioDivCollectorXamarin.ViewModels
 
         public void Register()
         {
-            Device.OpenUri(new Uri("https://id.biodivcollector.ch/auth/realms/BioDivCollector/login-actions/registration?client_id=BioDivCollector&tab_id=PPOcNlpFwpI"));
-        }
+            App.Current.MainPage =  new RegistrationPage();
+         }
 
-        public void ChangePassword()
-        {
-            Device.OpenUri(new Uri("https://id.biodivcollector.ch/auth/realms/BioDivCollector/login-actions/authenticate?client_id=BioDivCollector&tab_id=1uPJiY4Fhyw"));
-        }
     }
 }
