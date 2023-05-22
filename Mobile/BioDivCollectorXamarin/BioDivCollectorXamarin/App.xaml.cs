@@ -95,6 +95,11 @@ namespace BioDivCollectorXamarin
         public static SQLiteAsyncConnection ActiveDatabaseConnection;
 
         /// <summary>
+        /// Bool to indicate if migrations have been completed since the app last started. This prevents migrations from occurring when the app goes into the background and comes back
+        /// </summary>
+        public static bool MigrationsCompleted;
+
+        /// <summary>
         /// Configure the app to the test or prod connector
         /// </summary>
         private static string serverURL;
@@ -268,14 +273,13 @@ namespace BioDivCollectorXamarin
                     }
                     
                 });
+                DataDAO.MigratePhotos();
             });
 
             MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "RefreshSuccessful", (sender) =>
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    
-
                     MainPage = new AppShell();
                     if (CurrentRoute != null && CurrentRoute != String.Empty)
                     {
@@ -290,6 +294,7 @@ namespace BioDivCollectorXamarin
                     }
 
                 });
+                DataDAO.MigratePhotos();
             });
 
             MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful", (sender) =>
@@ -302,6 +307,15 @@ namespace BioDivCollectorXamarin
                 });
             });
 
+            MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "ReturnToLogin", (sender) =>
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+
+                    MainPage = Login.GetPageToView();
+
+                });
+            });
         }
 
         /// <summary>

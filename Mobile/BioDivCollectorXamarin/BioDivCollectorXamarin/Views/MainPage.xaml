@@ -60,8 +60,7 @@
                 </StackLayout>
                 <Button Command="{Binding LoginCommand}" Text="Anmelden" TextTransform="Uppercase" BackgroundColor="{StaticResource BioDivGreen}" FontAttributes="Bold"/>
                 <FlexLayout Direction="row" HorizontalOptions="CenterAndExpand">
-                    <Button Text="Passwort vergessen" Command="{Binding RegisterCommand}" BackgroundColor="Transparent" TextColor="{StaticResource BioDivGreen}" FlexLayout.Grow="50"/>
-                    <Button Text="Registrieren" Command="{Binding PasswordCommand}" BackgroundColor="Transparent" TextColor="{StaticResource BioDivGreen}" FlexLayout.Grow="50"/>
+                    <Button Text="Registrieren" Command="{Binding RegisterCommand}" BackgroundColor="Transparent" TextColor="{StaticResource BioDivGreen}" FlexLayout.Grow="50"/>
                 </FlexLayout>    
             </StackLayout>  
         </Grid>
