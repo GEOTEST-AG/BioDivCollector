@@ -410,7 +410,15 @@ namespace BioDivCollector.WebApp.Controllers
                     polygonSwissGrid = simplG;
                 }*/
 
-                if (!polygonSwissGrid.IsValid) return null;
+                if (!polygonSwissGrid.IsValid)
+                {
+
+                    //polygonSwissGrid = polygonSwissGrid.Buffer(0);
+                    var pm = new NetTopologySuite.Geometries.PrecisionModel(1e10);
+                    polygonSwissGrid = new NetTopologySuite.Precision.GeometryPrecisionReducer(pm).Reduce(polygonSwissGrid);
+
+                    if (!polygonSwissGrid.IsValid) return null;
+                }
 
                 NetTopologySuite.Features.Feature i = new NetTopologySuite.Features.Feature(polygonSwissGrid, attribute);
                 

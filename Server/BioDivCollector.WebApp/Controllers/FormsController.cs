@@ -72,9 +72,11 @@ namespace BioDivCollector.WebApp.Controllers
             if ((!User.IsInRole("DM")) && (!User.IsInRole("PL")) && (!User.IsInRole("PK"))) return RedirectToAction("NotAllowed", "Home");
 
 
-            FormField ff = await db.FormFields.Include(m => m.FieldChoices).ThenInclude(u => u.HiddenFieldChoices)
-                .Include(m=>m.PublicMotherFormField).ThenInclude(zz=>zz.FieldChoices).Include(m=>m.HiddenFieldChoices)              
+            FormField ff = await db.FormFields.Include(m => m.FieldChoices)
+                .Include(m=>m.PublicMotherFormField).ThenInclude(zz=>zz.FieldChoices)              
                 .Where(m => m.FormFieldId == id).FirstOrDefaultAsync();
+
+            await db.Entry(ff).Collection(m => m.HiddenFieldChoices).LoadAsync();
 
             List<BigFieldChoice> bfcs = new List<BigFieldChoice>();
             foreach (FieldChoice fc in ff.FieldChoices)
@@ -592,17 +594,19 @@ namespace BioDivCollector.WebApp.Controllers
             }
 
             Form f = await db.Forms.
-                Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.FieldChoices).Where(m => m.FormId == id)
-                .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).ThenInclude(mo => mo.FieldChoices).FirstOrDefaultAsync();
+                Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m=>m.FieldChoices)
+                .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).Where(m => m.FormId == id).FirstOrDefaultAsync();
             if (f == null) return NotFound();
             if (fps.Where(m => m.Form.FormId == f.FormId && m.Editable == true).Count() == 0) return RedirectToAction("NotAllowed", "Home");
 
 
             // create list of public form fields
-            List<FormField> ffs = await db.FormFields.Include(m => m.FieldChoices).Include(h => h.HiddenFieldChoices).Where(m => m.Public == true && m.PublicMotherFormField == null).ToListAsync();
+            List<FormField> ffs = await db.FormFields.Include(m => m.FieldChoices).Where(m => m.Public == true && m.PublicMotherFormField == null).ToListAsync();
             List<FormFieldPoco> pffps = new List<FormFieldPoco>();
             foreach (FormField ff in ffs.OrderBy(m => m.Title))
             {
+                await db.Entry(ff).Collection(m => m.HiddenFieldChoices).LoadAsync();
+
                 FormFieldPoco pffp = CreateFormFieldPocosFormField(ff);
                 // get first Form -> This is the owner
                 FormFormField firstFormFormField = await db.FormsFormFields.
@@ -1435,11 +1439,11 @@ order by \""reihenfolge\""
                                     FieldChoice fc = null;
                                     try
                                     {
-                                        int newId = Int16.Parse(result.GetString(fieldchoiceid));
+                                        int newId = Int32.Parse(result.GetString(fieldchoiceid));
                                         fc = db.FieldChoices.Include(m => m.FormField).ThenInclude(m=>m.HiddenFieldChoices).Where(m => m.FieldChoiceId == newId).FirstOrDefault();
                                         string content = result.GetString(text);
 
-                                        if (fc.FormField.FormFieldId == Int16.Parse(result.GetString(formfieldid)))
+                                        if (fc.FormField.FormFieldId == Int32.Parse(result.GetString(formfieldid)))
                                         {
                                             lastFF = fc.FormField;
 
@@ -1449,16 +1453,16 @@ order by \""reihenfolge\""
                                                 db.Entry(fc).State = EntityState.Deleted;
                                                 returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + ") gelöscht</li>";
                                             }
-                                            else if ((fc.Text != content) || (fc.Order != Int16.Parse(result.GetString(order))))
+                                            else if ((fc.Text != content) || (fc.Order != Int32.Parse(result.GetString(order))))
                                             {
                                                 fc.Text = content;
-                                                fc.Order = Int16.Parse(result.GetString(order));
+                                                fc.Order = Int32.Parse(result.GetString(order));
 
                                                 db.Entry(fc).State = EntityState.Modified;
                                                 returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + ") angepasst mit neuem Text " + fc.Text + "</li>";
                                             }
 
-                                            int visibilityId = Int16.Parse(result.GetString(visibility));
+                                            int visibilityId = Int32.Parse(result.GetString(visibility));
                                             if (visibilityId == 0)
                                             {
                                                 if (!fc.FormField.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
@@ -1484,12 +1488,12 @@ order by \""reihenfolge\""
                                         else
                                         {
                                             // Only changes the visibility --> fc is from publicmotherformfield
-                                            FormField ff = db.FormFields.Include(m => m.PublicMotherFormField).ThenInclude(m=>m.FieldChoices).Include(m=>m.HiddenFieldChoices).ThenInclude(m=>m.FieldChoice).Where(m => m.FormFieldId == Int16.Parse(result.GetString(formfieldid))).FirstOrDefault();
+                                            FormField ff = db.FormFields.Include(m => m.PublicMotherFormField).ThenInclude(m=>m.FieldChoices).Include(m=>m.HiddenFieldChoices).ThenInclude(m=>m.FieldChoice).Where(m => m.FormFieldId == Int32.Parse(result.GetString(formfieldid))).FirstOrDefault();
                                             if (ff != null)
                                             {
                                                 if ((ff.PublicMotherFormField!=null) && (ff.PublicMotherFormField.FieldChoices!=null) && (ff.PublicMotherFormField.FieldChoices.Contains(fc)))
                                                 {
-                                                    int visibilityId = Int16.Parse(result.GetString(visibility));
+                                                    int visibilityId = Int32.Parse(result.GetString(visibility));
                                                     if (visibilityId==0)
                                                     {
                                                         if (!ff.HiddenFieldChoices.Where(m=>m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
@@ -1519,14 +1523,14 @@ order by \""reihenfolge\""
                                     }
                                     catch (Exception ex)
                                     {
-                                        int ffid = Int16.Parse(result.GetString(formfieldid));
+                                        int ffid = Int32.Parse(result.GetString(formfieldid));
                                         FormField ff = await db.FormFields.Where(m => m.FormFieldId == ffid).SingleOrDefaultAsync();
                                         if ((fc == null) && (ff != null))
                                         {
                                             fc = new FieldChoice();
                                             fc.FormField = ff;
                                             fc.Text = result.GetString(text);
-                                            fc.Order = Int16.Parse(result.GetString(order));
+                                            fc.Order = Int32.Parse(result.GetString(order));
                                             db.Entry(fc).State = EntityState.Added;
                                             returnMessage += "<li>Neue Auswahlmöglichkeit erstellt</li>";
                                         }

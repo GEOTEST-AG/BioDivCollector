@@ -48,7 +48,7 @@ namespace BioDivCollector.WebApp.Controllers
 
                 string newAccessToken = json.access_token.Value;
 
-                var imageDownload = new RestClient(String.Format("https://testconnector.biodivcollector.ch/api/Binary/{0}/{1}", binaryid, thumbnail));
+                var imageDownload = new RestClient(String.Format("https://connector.biodivcollector.ch/api/Binary/{0}/{1}", binaryid, thumbnail));
                 var imageRequest = new RestRequest(Method.GET);
                 imageRequest.AddHeader("Authorization", "Bearer " + newAccessToken);
                 return imageDownload.Execute(imageRequest);
@@ -78,7 +78,7 @@ namespace BioDivCollector.WebApp.Controllers
                 IRestResponse response = client.Execute(request);
                 dynamic json = Newtonsoft.Json.Linq.JObject.Parse(response.Content);
                 string newAccessToken = json.access_token.Value;
-                var imageDownload = new RestClient(String.Format("https://testconnector.biodivcollector.ch/api/Binary/{0}", binaryid));
+                var imageDownload = new RestClient(String.Format("https://connector.biodivcollector.ch/api/Binary/{0}", binaryid));
                 var imageRequest = new RestRequest(Method.DELETE);
                 imageRequest.AddHeader("Authorization", "Bearer " + newAccessToken);
                 return imageDownload.Execute(imageRequest);
@@ -184,7 +184,7 @@ namespace BioDivCollector.WebApp.Controllers
            
             //await file.CopyToAsync(ms);
 
-                client = new RestClient("https://testconnector.biodivcollector.ch/api/Binary/" + bd.Id);
+                client = new RestClient("https://connector.biodivcollector.ch/api/Binary/" + bd.Id);
                 client.Timeout = -1;
                 request = new RestRequest(Method.POST);
                 request.AddHeader("Authorization", "Bearer " + newAccessToken);
