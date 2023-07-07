@@ -1531,6 +1531,16 @@ order by \""reihenfolge\""
                                             fc.FormField = ff;
                                             fc.Text = result.GetString(text);
                                             fc.Order = Int32.Parse(result.GetString(order));
+
+                                            int visibilityId = Int32.Parse(result.GetString(visibility));
+                                            if (visibilityId == 0)
+                                            {
+                                                HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = fc, FormField = ff };
+                                                db.HiddenFieldChoices.Add(hfc);
+                                                db.Entry(hfc).State = EntityState.Added;
+                                            }
+
+
                                             db.Entry(fc).State = EntityState.Added;
                                             returnMessage += "<li>Neue Auswahlmöglichkeit erstellt</li>";
                                         }
