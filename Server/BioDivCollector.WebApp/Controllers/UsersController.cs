@@ -594,6 +594,33 @@ namespace BioDivCollector.WebApp.Controllers
 
 
         }
+
+        /// <summary>
+        /// Sends an information mail to all DM's with info about the new User
+        /// </summary>
+        /// <param name="newUser"></param>
+        /// <returns></returns>
+        public async Task SendNewUserMailToDM(User newUser)
+        {
+            List<UserPoco> allUsers = await GetAllUsers();
+            foreach (UserPoco up in allUsers.Where(m=>m.roles.Contains("DM")))
+            {
+                MailMessage mail = new MailMessage();
+                SmtpClient SmtpServer = new SmtpClient("localhost");
+
+                mail.From = new MailAddress("registration@biodivcollector.ch", "BioDivCollector");
+                mail.To.Add(up.email);
+                mail.Subject = "Neuer Benutzer "+ newUser.FirstName + " " + newUser.Name + " auf biodivcollector.ch";
+                mail.Body = "Hallo " + up.firstName + " " + up.lastName + "\n\nEs wurde ein neuer Benutzer auf https://www.biodivcollector.ch erstellt und die erste Anmeldung damit ist erfolgt. Der Benutzer lautet: " + newUser.FirstName + " " + newUser.Name + " mit Benutzername " + newUser.UserId + " und email " + newUser.Email + "."; 
+
+                SmtpServer.Port = 25;
+                SmtpServer.Credentials = new System.Net.NetworkCredential(Configuration["Environment:RegisterEmail"], Configuration["Environment:RegisterEmailPassword"]);
+
+                SmtpServer.Send(mail);
+            }
+
+        }
+
         #endregion
 
     }

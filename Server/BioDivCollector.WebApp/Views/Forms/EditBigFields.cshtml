@@ -1,0 +1,244 @@
+﻿@using System.Security.Claims
+@using BioDivCollector.DB.Models.Domain
+
+@model IEnumerable<BioDivCollector.WebApp.Controllers.BigFieldChoice>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Formulare";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Optionen anzeigen / verbergen
+                    <small>Liste der verfügbaren Optionen</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item">Formulare</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card height-equal" style="min-height: 685px;">
+                <div class="card-header">
+                    <h5>Verfügbare Optionen</h5>
+
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-primary" style="margin-top:20px;" onclick="window.history.back();">Zurück zum Formular</button>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="alert alert-info dark" role="alert">
+                                Alle Änderungen an dieser Liste wirken sich sofort auf ALLE Formulare aus, die das Allgemeine Feld mit dieser Optionenliste verwenden. Es gibt keine 'Zurück' Funktion oder 'Abbrechenfunktion'.<br />
+                                Einzig die Auswahl der Sichtbarkeit einer Option wirkt sich nur auf das EINE Formular aus, aus dem die Liste geöffnet wurde.
+                            </div>
+                            
+                        </div>
+                    </div>
+
+                    <div class="row">
+
+
+                        @if (!(bool)ViewData["readonly"])
+                        {
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="newField" class="control-label"></label>
+                                    <input type="text" id="newField" required class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <button type="button" class="btn btn-primary" style="margin-top:20px;" onclick="addNewField()">Option hinzufügen</button>
+                            </div>
+
+                            <script>
+                            function addNewField() {
+                                window.location.href = '@Url.Action("EditBigFieldsAdd", "Forms")/@ViewData["FormFieldId"]?text='+$('#newField').val();
+                            }
+                            </script>
+                        }
+                        </div>
+
+                        <div class="user-status table-responsive product-chart">
+                            <table id="grouplist" class="table table-bordernone">
+                                <thead>
+                                    <tr>
+                                        <th style="width:20px;">
+                                            Sortierung
+                                        </th>
+                                        <th>
+                                            ID
+                                        </th>
+                                        <th>
+                                            Sichtbar
+                                        </th>
+                                        <th>
+                                            Wert
+                                        </th>
+                                        <th>
+                                            Aktion (Sortierung editieren)
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (BioDivCollector.WebApp.Controllers.BigFieldChoice bfc in Model.OrderBy(m => m.FieldChoice.Order))
+                                    {
+                                        <tr>
+                                            <td>
+                                                @bfc.FieldChoice.Order
+                                                
+                                            </td>
+                                            <td>
+                                                @bfc.FieldChoice.FieldChoiceId
+                                            </td>
+                                            <td>
+
+                                                <div class="form-check">
+                                                    @if (bfc.isHidden == true)
+                                                    {
+                                                        <input type="checkbox" checked class="form-check-input myselectobox" id="@bfc.FieldChoice.FieldChoiceId">
+                                                        <label for="id_@bfc.FieldChoice.FieldChoiceId" class="mb-0 form-check-label"></label>
+                                                    }
+                                                    else
+                                                    {
+                                                        <input type="checkbox" class="form-check-input myselectobox" id="@bfc.FieldChoice.FieldChoiceId">
+                                                        <label for="id_@bfc.FieldChoice.FieldChoiceId" class="mb-0 form-check-label"></label>
+                                                    }
+
+                                                </div>
+
+                                            </td>
+                                            <td>
+                                                <div class="form-group">
+                                                    <label for="text_@bfc.FieldChoice.FieldChoiceId" class="control-label"></label>
+                                                    @if (!(bool)ViewData["readonly"])
+                                                    {
+                                                        <input type="text" id="text_@bfc.FieldChoice.FieldChoiceId" class="form-control mytextbox" value="@bfc.FieldChoice.Text" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <input type="text" id="text_@bfc.FieldChoice.FieldChoiceId" class="form-control mytextbox" value="@bfc.FieldChoice.Text" disabled />
+                                                    }
+                                                </div>
+
+                                            </td>
+                                            <td>
+                                                @if (!(bool)ViewData["readonly"])
+                                                {
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <button type="button" onclick="deleteOption('@bfc.FieldChoice.FieldChoiceId')" class="btn btn-danger" style="width:auto;"><i class="icofont-ui-delete"></i></button>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <input type="text" id="order_@bfc.FieldChoice.FieldChoiceId" class="form-control myordertextbox" value="@bfc.FieldChoice.Order" />
+                                                        </div>
+                                                    </div>
+                                                }
+
+                                            </td>
+                                        </tr>
+
+                                    }
+
+
+
+                                </tbody>
+                            </table>
+
+                            <script>
+                            $(document).ready(function () {
+                                var ffid = @ViewData["FormFieldId"]
+                                $('.myselectobox').change(function () {
+                                    $.ajax({
+                                        url: "@Url.Action("EditBigFieldsState", "Forms")/" + ffid + "?fieldchoice=" + this.id + "&state=" + $(this).prop('checked'),
+                                        cache: false
+                                    });
+                                });
+
+
+
+                                $('.mytextbox').bind('input propertychange', function () {
+                                    $.ajax({
+                                        url: "@Url.Action("EditBigFieldsText", "Forms")/" + ffid + "?fieldchoice=" + this.id.replace('text_','') + "&text=" + $(this).val(),
+                                        cache: false
+                                    });
+                                });
+
+
+                                $('.myordertextbox').bind('input propertychange', function () {
+                                    $.ajax({
+                                        url: "@Url.Action("EditBigFieldsOrder", "Forms")/" + ffid + "?fieldchoice=" + this.id.replace('order_','') + "&order=" + $(this).val(),
+                                        cache: false
+                                    });
+                                });
+                            });
+
+                                function deleteOption(id) {
+                                    window.location.href = '@Url.Action("EditBigFieldsRemove", "Forms")/@ViewData["FormFieldId"]?fieldchoice='+id;
+                                }
+                            </script>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        var mytable = $('#grouplist').DataTable({
+            "rowReorder": true,
+            "columnDefs": [
+                { orderable: true, className: 'reorder', targets: 0 },
+                { orderable: false, targets: '_all' },
+                {
+                    "targets": [1],
+                    "visible": false,
+                    "searchable": false
+                }
+            ],
+            "language": {
+                "url": "/js/datatables/datatables.german.lang.json"
+            },
+            paging: false
+        });
+
+        var ffid2 = @ViewData["FormFieldId"]
+
+        mytable.on('row-reorder', function (e, diff, edit) {
+            for (var i = 0, ien = diff.length; i < ien; i++) {
+                var rowData = mytable.row(diff[i].node).data();
+
+
+                $.ajax({
+                    url: "@Url.Action("EditBigFieldsOrder", "Forms")/" + ffid2 + "?fieldchoice=" + rowData[1] + "&order=" + diff[i].newData,
+                    cache: false
+                });
+
+                console.log(rowData[1]);
+                console.log(diff[i].newData);
+                console.log(diff[i].oldData)
+            }
+        });
+
+    });
+</script>
+
+

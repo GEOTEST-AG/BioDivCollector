@@ -54,6 +54,22 @@
                                 </div>
                             </div>
 
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Username" class="control-label"></label>
+                                    <input asp-for="Username" class="form-control" id="username" />
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Password" class="control-label"></label>
+                                    <input asp-for="Password" class="form-control" id="password" />
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+                            </div>
+
                             <div class="col-md-2">
                                 <label class="col-form-label">GetCapabilities-URL: </label>
                             </div>
@@ -140,7 +156,7 @@
 <script>
     function loadWMS() {
         $.ajax({
-            url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val()) +'&search=',
+            url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val()) +'&username=' + $('#username').val() + '&password=' + $('#password').val() + '&search=',
             type: 'GET',
             error: function () {
                 callback();
@@ -173,7 +189,7 @@
                                         load: function (query, callback) {
                                             //if (!query.length) return callback();
                                             $.ajax({
-                                                url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val()) +'&search=' + encodeURIComponent(query),
+                    url: '@Url.Action("GetWMSLayers", "Layers")?wmsurl=' + encodeURIComponent($('#wmsurl').val())+'&username=' + $('#username').val() + '&password=' + $('#password').val() + '&search=' + encodeURIComponent(query),
                                                 type: 'GET',
                                                 error: function () {
                                                     callback();

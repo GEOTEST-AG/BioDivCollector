@@ -1,0 +1,79 @@
+﻿
+@{
+    ViewData["Title"] = "Projekt importieren";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Daten importieren
+                    <small></small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Auswahlfelder</li>
+                    <li class="breadcrumb-item active">Importieren</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Importdatei hochladen</h5>
+                </div>
+                <form method="post" enctype="multipart/form-data" asp-action="Import">
+                    <div class="card-body">
+                        <p>Importdatei hochladen. Möglich sind csv. Für ein valides Datenmodell wird empfohlen, zuerst einen Export des Auswahlfeldes zu machen und diese Daten zu bearbeiten bzw. zu ergänzen</p>
+                        <input type="file" name="file" />
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary" onclick="doImport();">Importieren</button>
+                        <button class="btn btn-secondary" onclick="location.href = '@Url.Action("Index","Forms")'; return false;">Abbrechen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="waitImportModal" tabindex="-1" role="dialog" aria-labelledby="changeProjectStateLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeProjectStateLabel">Import wird vorbereitet</h5>
+            </div>
+            <div class="modal-body">
+                <i class="fa fa-spinner fa-spin" style="font-size:25px;text-align:center;margin-top:50px;"></i> Bitte warten, die Daten werden importiert. Dieser Prozess kann mehrere Minuten dauern.
+                <p></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function doImport() {
+        $('#waitImportModal').modal('show');
+    }
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

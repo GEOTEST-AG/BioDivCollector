@@ -22,6 +22,43 @@ namespace BioDivCollector.DB.Migrations
                 .HasAnnotation("ProductVersion", "3.1.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            modelBuilder.Entity("BioDivCollector.DB.Models.Domain.BinaryData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnName("id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("FormFieldId")
+                        .HasColumnName("formfieldid")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("RecordId")
+                        .HasColumnName("recordid")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .HasColumnName("title")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ValueId")
+                        .HasColumnName("objectstorageid")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id")
+                        .HasName("pk_binarydata");
+
+                    b.HasIndex("FormFieldId")
+                        .HasName("ix_binarydata_formfieldid");
+
+                    b.HasIndex("RecordId")
+                        .HasName("ix_binarydata_recordid");
+
+                    b.HasIndex("ValueId")
+                        .HasName("ix_binarydata_objectstorageid");
+
+                    b.ToTable("binarydata");
+                });
+
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.BooleanData", b =>
                 {
                     b.Property<Guid>("Id")
@@ -277,6 +314,16 @@ namespace BioDivCollector.DB.Migrations
                         {
                             Id = 61,
                             Description = "Guid"
+                        },
+                        new
+                        {
+                            Id = 71,
+                            Description = "Header"
+                        },
+                        new
+                        {
+                            Id = 81,
+                            Description = "Binary"
                         });
                 });
 
@@ -332,6 +379,10 @@ namespace BioDivCollector.DB.Migrations
 
                     b.Property<string>("Source")
                         .HasColumnName("source")
+                        .HasColumnType("text");
+
+                    b.Property<string>("StandardValue")
+                        .HasColumnName("standardvalue")
                         .HasColumnType("text");
 
                     b.Property<string>("Title")
@@ -481,6 +532,34 @@ namespace BioDivCollector.DB.Migrations
                     b.ToTable("groupsusers");
                 });
 
+            modelBuilder.Entity("BioDivCollector.DB.Models.Domain.HiddenFieldChoice", b =>
+                {
+                    b.Property<int>("HiddenFieldChoiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("hiddenfieldchoiceid")
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int?>("FieldChoiceId")
+                        .HasColumnName("fieldchoiceid")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FormFieldId")
+                        .HasColumnName("formfieldid")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HiddenFieldChoiceId")
+                        .HasName("pk_hiddenfieldchoices");
+
+                    b.HasIndex("FieldChoiceId")
+                        .HasName("ix_hiddenfieldchoices_fieldchoiceid");
+
+                    b.HasIndex("FormFieldId")
+                        .HasName("ix_hiddenfieldchoices_formfieldid");
+
+                    b.ToTable("hiddenfieldchoices");
+                });
+
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.Layer", b =>
                 {
                     b.Property<int>("LayerId")
@@ -488,6 +567,10 @@ namespace BioDivCollector.DB.Migrations
                         .HasColumnName("layerid")
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Password")
+                        .HasColumnName("password")
+                        .HasColumnType("text");
 
                     b.Property<bool>("Public")
                         .HasColumnName("public")
@@ -499,6 +582,10 @@ namespace BioDivCollector.DB.Migrations
 
                     b.Property<string>("Url")
                         .HasColumnName("url")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .HasColumnName("username")
                         .HasColumnType("text");
 
                     b.Property<string>("WMSLayer")
@@ -543,6 +630,35 @@ namespace BioDivCollector.DB.Migrations
                         .HasName("ix_numericdata_recordid");
 
                     b.ToTable("numericdata");
+                });
+
+            modelBuilder.Entity("BioDivCollector.DB.Models.Domain.ObjectStorage", b =>
+                {
+                    b.Property<Guid>("ObjectStorageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("objectstorageid")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnName("metadata")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OriginalFileName")
+                        .HasColumnName("originalfilename")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SavedFileName")
+                        .HasColumnName("savedfilename")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SavedFilePath")
+                        .HasColumnName("savedfilepath")
+                        .HasColumnType("text");
+
+                    b.HasKey("ObjectStorageId")
+                        .HasName("pk_objectstorage");
+
+                    b.ToTable("objectstorage");
                 });
 
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.Project", b =>
@@ -711,6 +827,34 @@ namespace BioDivCollector.DB.Migrations
                             Id = 3,
                             Description = "Projekt gültig"
                         });
+                });
+
+            modelBuilder.Entity("BioDivCollector.DB.Models.Domain.ProjectThirdPartyTool", b =>
+                {
+                    b.Property<int>("ProjectThirdPartyToolId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("projectthirdpartytoolid")
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnName("projectid")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("ThirdPartyToolId")
+                        .HasColumnName("thirdpartytoolid")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ProjectThirdPartyToolId")
+                        .HasName("pk_projectsthirdpartytools");
+
+                    b.HasIndex("ProjectId")
+                        .HasName("ix_projectsthirdpartytools_projectid");
+
+                    b.HasIndex("ThirdPartyToolId")
+                        .HasName("ix_projectsthirdpartytools_thirdpartytoolid");
+
+                    b.ToTable("projectsthirdpartytools");
                 });
 
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.Record", b =>
@@ -888,6 +1032,24 @@ namespace BioDivCollector.DB.Migrations
                     b.ToTable("textdata");
                 });
 
+            modelBuilder.Entity("BioDivCollector.DB.Models.Domain.ThirdPartyTool", b =>
+                {
+                    b.Property<int>("ThirdPartyToolId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("thirdpartytoolid")
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Name")
+                        .HasColumnName("name")
+                        .HasColumnType("text");
+
+                    b.HasKey("ThirdPartyToolId")
+                        .HasName("pk_thirdpartytools");
+
+                    b.ToTable("thirdpartytools");
+                });
+
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.User", b =>
                 {
                     b.Property<string>("UserId")
@@ -974,6 +1136,24 @@ namespace BioDivCollector.DB.Migrations
                         .HasName("ix_userslayers_layerid");
 
                     b.ToTable("userslayers");
+                });
+
+            modelBuilder.Entity("BioDivCollector.DB.Models.Domain.BinaryData", b =>
+                {
+                    b.HasOne("BioDivCollector.DB.Models.Domain.FormField", "FormField")
+                        .WithMany()
+                        .HasForeignKey("FormFieldId")
+                        .HasConstraintName("fk_binarydata_formfields_formfieldid");
+
+                    b.HasOne("BioDivCollector.DB.Models.Domain.Record", "Record")
+                        .WithMany("BinaryData")
+                        .HasForeignKey("RecordId")
+                        .HasConstraintName("fk_binarydata_records_recordid");
+
+                    b.HasOne("BioDivCollector.DB.Models.Domain.ObjectStorage", "Value")
+                        .WithMany()
+                        .HasForeignKey("ValueId")
+                        .HasConstraintName("fk_binarydata_objectstorage_objectstorageid");
                 });
 
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.BooleanData", b =>
@@ -1180,6 +1360,19 @@ namespace BioDivCollector.DB.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("BioDivCollector.DB.Models.Domain.HiddenFieldChoice", b =>
+                {
+                    b.HasOne("BioDivCollector.DB.Models.Domain.FieldChoice", "FieldChoice")
+                        .WithMany("HiddenFieldChoices")
+                        .HasForeignKey("FieldChoiceId")
+                        .HasConstraintName("fk_hiddenfieldchoices_fieldchoices_fieldchoiceid");
+
+                    b.HasOne("BioDivCollector.DB.Models.Domain.FormField", "FormField")
+                        .WithMany("HiddenFieldChoices")
+                        .HasForeignKey("FormFieldId")
+                        .HasConstraintName("fk_hiddenfieldchoices_formfields_formfieldid");
+                });
+
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.NumericData", b =>
                 {
                     b.HasOne("BioDivCollector.DB.Models.Domain.FormField", "FormField")
@@ -1276,6 +1469,19 @@ namespace BioDivCollector.DB.Migrations
                         .HasConstraintName("fk_projectslayers_projects_projectid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("BioDivCollector.DB.Models.Domain.ProjectThirdPartyTool", b =>
+                {
+                    b.HasOne("BioDivCollector.DB.Models.Domain.Project", "Project")
+                        .WithMany("ProjectThirdPartyTools")
+                        .HasForeignKey("ProjectId")
+                        .HasConstraintName("fk_projectsthirdpartytools_projects_projectid");
+
+                    b.HasOne("BioDivCollector.DB.Models.Domain.ThirdPartyTool", "ThirdPartyTool")
+                        .WithMany("ThirdPartyToolProjects")
+                        .HasForeignKey("ThirdPartyToolId")
+                        .HasConstraintName("fk_projectsthirdpartytools_thirdpartytools_thirdpartytoolid");
                 });
 
             modelBuilder.Entity("BioDivCollector.DB.Models.Domain.Record", b =>

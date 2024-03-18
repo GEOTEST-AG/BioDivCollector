@@ -6,7 +6,7 @@
 }
 
 <style>
-    .formbuilder-icon-checkbox-group {
+    .formbuilder-icon-header {
         margin-bottom: 20px !important;
     }
 </style>
@@ -50,6 +50,31 @@
                                     <span asp-validation-for="Title" class="text-danger"></span>
                                 </div>
                             </div>
+
+                            <div class="col-md-12">
+                                <span style="margin-top:10px;font-weight:bold;">Auswahlfelder mit mehr als 50 Einträgen bitte hier editieren:</span>
+                                
+                                <ul style="padding-left: 20px; list-style-type: disc; padding-bottom:20px;">
+
+
+                                    @foreach (BioDivCollector.DB.Models.Domain.FormFormField fff in Model.FormFormFields)
+                                    {
+                                        if ((fff.FormField.FieldChoices != null) && (fff.FormField.FieldChoices.Count > 50))
+                                            {
+                                            <li>@Html.ActionLink(fff.FormField.Title, "EditBigFields", null, new { id = fff.FormField.FormFieldId }) </li>
+                                            }
+
+                                            if ((fff.FormField.PublicMotherFormField?.FieldChoices != null) && (fff.FormField.PublicMotherFormField.FieldChoices.Count > 50))
+                                            {
+                                            <li>@Html.ActionLink(fff.FormField.Title, "EditBigFields", null, new { id = fff.FormField.FormFieldId }) </li>
+                                            }
+                                        
+                                    }
+
+
+                                </ul>
+                            </div>
+
                             <hr />
                             <div class="col-md-12">
                                 Formular
@@ -73,6 +98,14 @@
 <style>
     .checkbox-group-field .field-label {
         display: none;
+    }
+
+    header {
+        height: 20px;
+        line-height: 20px;
+        text-align: left;
+        background: none;
+        font-weight: bold;
     }
 </style>
 
@@ -291,7 +324,7 @@
     function onAddOptionInput(fld) {
         selectOptions(fld);
         const observer = createObserver(fld);
-        console.log(observer)
+        //console.log(observer)
     }
     function onAddOptionInputCheckbox(fld) {
         fld.label = ``;
@@ -299,11 +332,20 @@
         const observer = createObserver(fld);
     }
 
+    function onAddTextInput(fld) {
+        const standardValueInputs = fld.querySelector(".fld-standardvalue");
+        if (standardValueInputs != null) {
+            console.log(standardValueInputs.value);
+            console.log(fld);
+            fld.value = "Hallo";
+        }
+    }
+
     var fb;
 
     jQuery($ => {
 
-        window.sessionStorage.setItem('fieldOrder', '["text","select","date","checkbox-group","number","radio-group"]');
+        window.sessionStorage.setItem('fieldOrder', '["text","select","date","checkbox-group","number","file","radio-group"]');
 
         var xx2 = window.sessionStorage.getItem('fieldOrder');
 
@@ -315,6 +357,10 @@
                 text: {
                     description: {
                         label: 'Beschreibung',
+                        value: ''
+                    },
+                    value: {
+                        label: 'Standardwert',
                         value: ''
                     },
                     source: {
@@ -364,6 +410,29 @@
                         label: 'Autor',
                         value: '',
                         disabled: true
+                    }
+                },
+                file: {
+                    description: {
+                        label: 'Beschreibung',
+                        value: ''
+                    },
+                    source: {
+                        label: 'Quelle',
+                        value: ''
+                    },
+                    mandatory: {
+                        label: 'Pflichtfeld',
+                        type: 'checkbox',
+                    },
+                    author: {
+                        label: 'Autor',
+                        value: '',
+                        disabled: true
+                    },
+                    ispublic: {
+                        label: 'Wiederverwendbar',
+                        type: 'checkbox',
                     }
                 },
                 date: {
@@ -423,8 +492,6 @@
 
             disableFields: ['autocomplete',
                 'button',
-                'file',
-                'header',
                 'hidden','number',
                 'paragraph',
                 'starRating', 'radio-group',
@@ -439,6 +506,9 @@
                 },
                 select: {
                     onadd: onAddOptionInput
+                },
+                text: {
+                    onadd: onAddTextInput
                 }
             },
             onAddField: function (fieldId) {

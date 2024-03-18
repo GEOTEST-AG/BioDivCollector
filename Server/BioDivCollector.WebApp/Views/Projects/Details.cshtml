@@ -82,6 +82,15 @@
                                 </div>
                             </div>
 
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Projektdaten mit GUID-Bezug zu Daten in folgenden Anwendungen</label>
+                                        <input asp-for="ProjectThirdPartyToolsString" class="form-control" placeholder="" id="thirdparty-select" />                                    
+                                    </div>
+                                </div>
+                            </div>
+
 
                             <div class="row">
                                 <div class="col-md-7">
@@ -461,6 +470,41 @@
             "language": {
                 "url": "/js/datatables/datatables.german.lang.json"
             }
+        });
+
+        $select2 = $('#thirdparty-select').selectize({
+                                        initItem: true,
+
+                                        // Need to preload, so that Selectize will go get the option
+                                        preload: true,
+                                        maxItems: null,
+                                        persist: false,
+                                        load: function (query, callback) {
+                                            //if (!query.length) return callback();
+                                            $.ajax({
+                                                url: '@Url.Action("GetThirdPartyTools", "Projects")?search=' + encodeURIComponent(query),
+                                                type: 'GET',
+                                                error: function () {
+                                                    callback();
+                                                },
+                                                success: function (res) {
+                                                    callback(res.slice(0, 10));
+                                                }
+                                            });
+            },
+                                        create: function (input, callback) {
+                                            $.ajax({
+                                                url: '@Url.Action("CreateThirdPartyTools", "Projects")',
+                                                data: { 'Name': input},
+                                                type: 'POST',
+                                                success: function (response) {
+                                                    callback({ ID: response.items[0].Name });
+                                                }
+                                            });
+                                        },
+                                        valueField: 'Name',
+                                        labelField: 'Name',
+                                        searchField: 'Name'
         });
 
         $select = $('#pk-select').selectize({

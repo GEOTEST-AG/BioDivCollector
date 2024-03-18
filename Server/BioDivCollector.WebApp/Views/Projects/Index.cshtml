@@ -37,6 +37,10 @@
 
                 </div>
                 <div class="card-body">
+
+                    <div style="float: right; margin-bottom: 20px;">
+                        <button type="button" class="btn btn-primary" data-original-title="btn btn-light" data-toggle="tooltip" data-placement="top" title="Projektliste als CSV exportieren" onclick="location.href='/Projects/ExportProjectList'"><i class="fa fa-download" aria-hidden="true"></i> Projektliste als CSV exportieren</button>
+                    </div>
                     <div class="user-status table-responsive product-chart">
                         <table id="projectlist" class="table table-bordernone">
                             <thead>
@@ -65,7 +69,7 @@
                                                 string editbuttonstyle = "primary";
                                                 string fontcolor = "";
                                                 string editfontcolor = "";
-                                                }
+                                            }
                                             @if (pp.IsReadOnly)
                                             {
                                                 buttonstyle = "light";
@@ -75,13 +79,13 @@
                                                 editfontcolor = " style=\"color:black;\" ";
 
                                             }
-                                             @if (pp.IsPKOrPLOrDM)
-                                             {
-                                                 editbuttonstyle = "primary";
+                                            @if (pp.IsPKOrPLOrDM)
+                                            {
+                                                editbuttonstyle = "primary";
 
-                                                 editfontcolor = "";
+                                                editfontcolor = "";
 
-                                             }
+                                            }
 
                                             <button type="button" class="btn btn-@editbuttonstyle" data-original-title="btn btn-light" data-toggle="tooltip" data-placement="top" title="Projekt konfigurieren" onclick="location.href='@Url.Action("Details", "Projects", new { id = pp.Project.ProjectId })'"><i class="fa fa-pencil-square-o" @Html.Raw(editfontcolor)></i></button>
                                             <button type="button" class="btn btn-@buttonstyle" data-original-title="btn btn-light" data-toggle="tooltip" data-placement="top" title="Projektdaten anzeigen und bearbeiten" onclick="location.href='@Url.Action("DetailsDataEdit", "Projects", new { id = pp.Project.ProjectId })'"><i class="fa fa-list-alt" @Html.Raw(fontcolor)></i></button>
@@ -107,7 +111,7 @@
                                             {
                                                 @pp.Project.Description
                                             }
-                                                                            </td>
+                                        </td>
                                         <td>
                                             @if (pp.Project.OGD)
                                             {

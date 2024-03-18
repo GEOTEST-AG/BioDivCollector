@@ -18,6 +18,10 @@ namespace BioDivCollector.DB.Models.Domain
         public string Title { get; set; }
         [DisplayName("URL")]
         public string Url { get; set; }
+        [DisplayName("Benutzername")]
+        public string Username { get; set; }
+        [DisplayName("Passwort")]
+        public string Password { get; set; }
 
         public List<ProjectLayer> LayerProjects { get; set; }
         public List<UserLayer> LayerUsers { get; set; }    //optional F14
@@ -30,6 +34,10 @@ namespace BioDivCollector.DB.Models.Domain
         public string OlCode { get
             {
                 string OLCodeString = "new ol.layer.Image({ source: new ol.source.ImageWMS({ ratio: 1, url: '"+ Url.Substring(0, Url.IndexOf("?")) +"',          params: { 'FORMAT': 'image/png', 'VERSION': '1.1.1', STYLES: '', LAYERS: '"+ WMSLayer+"', } }),		opacity: 1      });";
+                if (Username!=null)
+                {
+                    OLCodeString = "new ol.layer.Image({ source: new ol.source.ImageWMS({ ratio: 1, url: '/ProxyWMSSecure/"+ LayerId + "',          params: { 'FORMAT': 'image/png', 'VERSION': '1.1.1', STYLES: '', LAYERS: '" + WMSLayer + "', } }),		opacity: 1      });";
+                }
                 return OLCodeString;
 
             }} 

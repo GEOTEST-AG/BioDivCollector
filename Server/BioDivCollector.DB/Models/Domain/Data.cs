@@ -35,5 +35,19 @@ namespace BioDivCollector.DB.Models.Domain
         public FieldChoice FieldChoice { get; set; }
     }
 
+    public sealed class BinaryData : DataBase<ObjectStorage>
+    {
+        /// <summary>
+        /// object storage id
+        /// </summary>
+        [Column("objectstorageid")]
+        public Guid? ValueId { get; set; }
+        /// <summary>
+        /// File in object storage
+        /// </summary>
+        public new ObjectStorage Value { get; set; }
+
+    }
+
 
 }

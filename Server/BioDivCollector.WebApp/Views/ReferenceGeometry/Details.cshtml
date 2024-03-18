@@ -9,6 +9,55 @@
     ViewData["Title"] = Model.Geometry.GeometryName;
 }
 
+<svg display="none" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1140" height="20" viewBox="0 0 1140 20">	
+    <defs>	
+      <g id="ico-close">	
+        <polygon points="19.7,11.7 18.3,10.3 15,13.6 11.7,10.3 10.3,11.7 13.6,15 10.3,18.3 11.7,19.7 15,16.4 18.3,19.7 19.7,18.3	
+        16.4,15 "/>	
+      </g>	
+    </defs>	
+</svg>	
+<style>	
+.image-remover {	
+    position: relative;	
+    overflow: hidden;	
+}	
+.image-remover svg {	
+  position: absolute;	
+  top: -30px;	
+  left: 0;	
+  width: 20px;	
+  height: 20px;	
+  background: rgba(17, 17, 17, 0.4);	
+  fill: white;	
+  transition: top ease 200ms;	
+}	
+.image-remover:hover svg {	
+  top: 0;	
+  display: block;	
+}	
+.image-remover:hover svg:hover {	
+  cursor: pointer;	
+  background: red;	
+}	
+.image-remover:hover svg:active {	
+  background: #cc0000;	
+}	
+.dropzone	
+{	
+    min-height: 20px;	
+    border: 1px solid rgba(0,0,0,.3);	
+    background: #fff;	
+    padding: 10px 10px;	
+    margin-top: 20px;	
+    border-radius: 25px;	
+}	
+.dropzone .dz-message .dz-button	
+{	
+    text-align:center;	
+}	
+</style>
+
 <script>
      // add new Record
     function addRecord() {
@@ -137,7 +186,7 @@
             searchField: 'Title'
                                     });
 
-       
+
 
 
 
@@ -202,7 +251,8 @@
                 }
 
                 <div id="accordionoc" class="default-according style-1">
-                    @{ int i = 0;
+                    @{
+                        int i = 0;
                         bool first = true;
 
                         string showString = "";
@@ -231,9 +281,13 @@
                             <div class="card-header @background">
                                 <h5 class="mb-0">
                                     <button class="btn btn-link @fontcolor" data-toggle="collapse" data-target="#collapse_@i"
-                                            @if (i == 1) { <text> aria-expanded="true" </text>  } else { <text> aria-expanded="false" </text> }
+                                        @if (i == 1) {
+                                <text> aria-expanded="true" </text>
+  } else {
+                                <text> aria-expanded="false" </text>
+ }
                                             aria-controls="collapse_@i">
-                                        <i class="icofont-list"></i>
+                                            <i class="icofont-list"></i>
                                         @if (rvm.Record.Form.FormFormFields.Any(m => m.FormField.UseInRecordTitle == true))
                                         {
                                             string newTitle = "";
@@ -254,7 +308,7 @@
                                         {
                                             @rvm.Record.Form.Title
                                         }
-                                    </button>
+                                        </button>
                                 </h5>
                             </div>
                             <div id="collapse_@i" class="collapse @showString" aria-labelledby="collapseicon" data-parent="#accordionoc" style="">
@@ -280,88 +334,115 @@
                         </div>
 
                         <script>
-                            $(document).ready(function () {
-                                                        $('#Form_@rvm.Record.RecordId select').each(function () {
-                                                            $(this).selectize();
+
+                            function deleteImage(e, imageId) {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        modalokclick = false;
+                                                            $('#deleteImageModal').modal('show');
+                                                            $('#deleteImageModal').on('hide.bs.modal', function (event) {
+                                                                if (modalokclick) {
+                                                                    $.ajax({
+                                                                        type: "GET",
+                                                                        url: "@Url.Action("Delete", "Binary")/"+imageId,
+                                                                        success: function (data) {
+                                                                            if (data == "OK") {
+                                                                                $hidden = $('#BeobachtungUrl');
+                                                                                $hidden.trigger("click");
+                                                                            }
+                                                                        }
+                                                                        });
+                                                                }
+
+                                                                $(this).off('hide.bs.modal');
+                                                            });
+
+                                                            return false;
+                                                    }
+
+                                $(document).ready(function () {
+                                                            $('#Form_@rvm.Record.RecordId select').each(function () {
+                                                                $(this).selectize();
+                                                            });
+
                                                         });
-                                                    });
 
-                        $('#Form_@rvm.Record.RecordId').submit(function (e) {
+                            $('#Form_@rvm.Record.RecordId').submit(function (e) {
 
-                            e.preventDefault(); // avoid to execute the actual submit of the form.
+                                e.preventDefault(); // avoid to execute the actual submit of the form.
 
-                            var form = $(this);
-                            var url = form.attr('action');
+                                var form = $(this);
+                                var url = form.attr('action');
 
-                            $.ajax({
-                                type: "POST",
-                                url: url,
-                                data: form.serialize(), // serializes the form's elements.
-                                success: function (data) {
-                                    if (data == "OK") {
-                                        $.notify({
-                                            title: 'Speichern erfolgreich',
-                                            message: 'Der Eintrag wurde erfolgreich gespeichert.'
-                                        },
-                                            {
-                                                type: 'primary',
-                                                allow_dismiss: false,
-                                                newest_on_top: false,
-                                                mouse_over: false,
-                                                showProgressbar: false,
-                                                spacing: 10,
-                                                timer: 2000,
-                                                placement: {
-                                                    from: 'top',
-                                                    align: 'right'
-                                                },
-                                                offset: {
-                                                    x: 30,
-                                                    y: 100
-                                                },
-                                                delay: 1000,
-                                                z_index: 10000,
-                                                animate: {
-                                                    enter: 'animated fadeInDown',
-                                                    exit: 'animated bounceOutRight'
-                                                }
-                                            });
+                                $.ajax({
+                                    type: "POST",
+                                    url: url,
+                                    data: form.serialize(), // serializes the form's elements.
+                                    success: function (data) {
+                                        if (data == "OK") {
+                                            $.notify({
+                                                title: 'Speichern erfolgreich',
+                                                message: 'Der Eintrag wurde erfolgreich gespeichert.'
+                                            },
+                                                {
+                                                    type: 'primary',
+                                                    allow_dismiss: false,
+                                                    newest_on_top: false,
+                                                    mouse_over: false,
+                                                    showProgressbar: false,
+                                                    spacing: 10,
+                                                    timer: 2000,
+                                                    placement: {
+                                                        from: 'top',
+                                                        align: 'right'
+                                                    },
+                                                    offset: {
+                                                        x: 30,
+                                                        y: 100
+                                                    },
+                                                    delay: 1000,
+                                                    z_index: 10000,
+                                                    animate: {
+                                                        enter: 'animated fadeInDown',
+                                                        exit: 'animated bounceOutRight'
+                                                    }
+                                                });
+                                        }
+                                        else {
+                                            $.notify({
+                                                title: 'Es gab ein Problem',
+                                                message: 'Fehler beim Speichern: ' + data
+                                            },
+                                                {
+                                                    type: 'danger',
+                                                    allow_dismiss: false,
+                                                    newest_on_top: false,
+                                                    mouse_over: false,
+                                                    showProgressbar: false,
+                                                    spacing: 10,
+                                                    timer: 2000,
+                                                    placement: {
+                                                        from: 'top',
+                                                        align: 'right'
+                                                    },
+                                                    offset: {
+                                                        x: 30,
+                                                        y: 100
+                                                    },
+                                                    delay: 1000,
+                                                    z_index: 10000,
+                                                    animate: {
+                                                        enter: 'animated fadeInDown',
+                                                        exit: 'animated bounceOutRight'
+                                                    }
+                                                });
+                                        }
+
                                     }
-                                    else {
-                                        $.notify({
-                                            title: 'Es gab ein Problem',
-                                            message: 'Fehler beim Speichern: ' + data
-                                        },
-                                            {
-                                                type: 'danger',
-                                                allow_dismiss: false,
-                                                newest_on_top: false,
-                                                mouse_over: false,
-                                                showProgressbar: false,
-                                                spacing: 10,
-                                                timer: 2000,
-                                                placement: {
-                                                    from: 'top',
-                                                    align: 'right'
-                                                },
-                                                offset: {
-                                                    x: 30,
-                                                    y: 100
-                                                },
-                                                delay: 1000,
-                                                z_index: 10000,
-                                                animate: {
-                                                    enter: 'animated fadeInDown',
-                                                    exit: 'animated bounceOutRight'
-                                                }
-                                            });
-                                    }
+                                });
 
-                                }
+
                             });
-
-
-                        });
                         </script>
 
                     }
@@ -370,3 +451,16 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+
+                                                        // if no record exits, directly show the add beobachtung dialog
+    @if (Model.Records.Count == 0)
+    {
+        <text>console.log("Hallo"); addRecord();</text>
+    }
+
+
+                                                    });
+</script>

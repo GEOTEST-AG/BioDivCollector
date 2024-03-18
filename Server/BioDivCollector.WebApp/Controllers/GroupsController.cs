@@ -37,6 +37,9 @@ namespace BioDivCollector.WebApp.Controllers
                 .Include(p => p.GroupProjects).ThenInclude(pp => pp.Project)
                 .Include(p => p.Status);
 
+            // users pl and pm projects
+            List<Project> projects = await _context.Projects.Include(m => m.ProjectGroups).Where(m => m.ProjectManager == user || m.ProjectConfigurator == user).ToListAsync();
+
             List<GroupViewModel> groups = new List<GroupViewModel>();
             foreach (Group g in await bioDivContext.ToListAsync())
             {
@@ -61,6 +64,19 @@ namespace BioDivCollector.WebApp.Controllers
                     gvm.ShowOnly = false;
                     groups.Add(gvm);
                 }
+                else if ((User.IsInRole("PL")) || (User.IsInRole("PK")))
+                {
+                    GroupViewModel gvm = new GroupViewModel() { Group = g };
+                    gvm.Editable = false;
+
+                    if (projects.Where(m => m.ProjectGroups.Select(m => m.Group).Contains(g)).Any()) gvm.Editable = true;
+
+                    if (g.GroupUsers.Where(m=>m.UserId == user.UserId).Any()) gvm.Editable = true;
+
+                    gvm.ShowOnly = true;
+                    groups.Add(gvm);
+
+                }
                 // only readable
                 else if (g.GroupUsers.Any(m => m.UserId == user.UserId))
                 {
@@ -68,14 +84,6 @@ namespace BioDivCollector.WebApp.Controllers
                     gvm.Editable = false;
                     gvm.ShowOnly = false;
                     groups.Add(gvm);
-                }
-                else if ((User.IsInRole("PL")) || (User.IsInRole("PM")))
-                {
-                    GroupViewModel gvm = new GroupViewModel() { Group = g };
-                    gvm.Editable = false;
-                    gvm.ShowOnly = true;
-                    groups.Add(gvm);
-
                 }
             }
 

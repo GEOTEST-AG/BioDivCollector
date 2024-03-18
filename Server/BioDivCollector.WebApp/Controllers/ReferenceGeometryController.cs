@@ -23,10 +23,12 @@ namespace BioDivCollector.WebApp.Controllers
     {
         private BioDivContext db = new BioDivContext();
         private ReferenceGeometryExtension _referenceGeometryExtension;
+        private GeneralPluginExtension _generalPluginExtension;
 
-        public ReferenceGeometryController(ReferenceGeometryExtension referenceGeometryExtension)
+        public ReferenceGeometryController(ReferenceGeometryExtension referenceGeometryExtension, GeneralPluginExtension generalPluginExtension)
         {
             _referenceGeometryExtension = referenceGeometryExtension;
+            _generalPluginExtension = generalPluginExtension;
         }
 
         public IActionResult GetUserJson()
@@ -151,8 +153,10 @@ namespace BioDivCollector.WebApp.Controllers
                 .Include(m => m.Records).ThenInclude(u=>u.TextData).ThenInclude(td => td.FormField)
                 .Include(m => m.Records).ThenInclude(u => u.NumericData).ThenInclude(td => td.FormField)
                 .Include(m => m.Records).ThenInclude(u => u.BooleanData).ThenInclude(td => td.FormField)
+                .Include(m => m.Records).ThenInclude(u => u.BinaryData).ThenInclude(td => td.FormField)
                 .Include(m => m.Records).ThenInclude(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff=>fff.FormField)
                 .Include(m => m.Records).ThenInclude(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo=>mo.PublicMotherFormField)
+                .Include(m => m.Records).ThenInclude(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(h => h.HiddenFieldChoices)
                 .Include(m => m.Records).ThenInclude(u => u.ProjectGroup.Group)
                 .Include(m => m.Records).ThenInclude(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
                 .Where(m => m.GeometryId == id)
@@ -200,7 +204,7 @@ namespace BioDivCollector.WebApp.Controllers
             }
             else myGroups = await db.Groups.Where(m => m.GroupUsers.Any(u => u.UserId == user.UserId)).ToListAsync();
 
-            await RecordsController.CreateDynamicView(db, g, g.ProjectGroup, myGroups, gvm);
+            await RecordsController.CreateDynamicView(db, g, g.ProjectGroup, myGroups, gvm, _generalPluginExtension,user);
 
             List<string> pluginslist = new List<string>();
 
@@ -406,7 +410,15 @@ namespace BioDivCollector.WebApp.Controllers
                     polygonSwissGrid = simplG;
                 }*/
 
-                if (!polygonSwissGrid.IsValid) return null;
+                if (!polygonSwissGrid.IsValid)
+                {
+
+                    //polygonSwissGrid = polygonSwissGrid.Buffer(0);
+                    var pm = new NetTopologySuite.Geometries.PrecisionModel(1e10);
+                    polygonSwissGrid = new NetTopologySuite.Precision.GeometryPrecisionReducer(pm).Reduce(polygonSwissGrid);
+
+                    if (!polygonSwissGrid.IsValid) return null;
+                }
 
                 NetTopologySuite.Features.Feature i = new NetTopologySuite.Features.Feature(polygonSwissGrid, attribute);
                 

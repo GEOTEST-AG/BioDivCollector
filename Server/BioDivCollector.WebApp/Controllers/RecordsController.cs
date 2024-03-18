@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using BioDivCollector.DB.Models.Domain;
+using BioDivCollector.PluginContract;
 using BioDivCollector.WebApp.Helpers;
 using FormFactory;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +17,13 @@ namespace BioDivCollector.WebApp.Controllers
     public class RecordsController : Controller
     {
         private BioDivContext db = new BioDivContext();
-        
+        private GeneralPluginExtension _generalPluginExtension;
+
+        public RecordsController(GeneralPluginExtension generalPluginExtension)
+        {
+            _generalPluginExtension = generalPluginExtension;
+        }
+
         public async Task<IActionResult> Delete(Guid id)
         {
             User user = Helpers.UserHelper.GetCurrentUser(User, db);
@@ -56,6 +63,7 @@ namespace BioDivCollector.WebApp.Controllers
                     .Include(m => m.Record).ThenInclude(r => r.TextData)
                     .Include(m => m.Record).ThenInclude(r => r.NumericData)
                     .Include(m => m.Record).ThenInclude(r => r.BooleanData)
+                    .Include(m => m.Record).ThenInclude(r => r.BinaryData)
                     .Include(m => m.Record).ThenInclude(r => r.Form).ThenInclude(m => m.FormFormFields).ThenInclude(m => m.FormField)
                     .Where(m => m.ChangeLog.UserId == user.UserId && m.Record.FormId == form.FormId && m.ChangeLog.Log.Contains("created") && m.Record.StatusId != StatusEnum.deleted && m.Record != record).ToList();
                 if (lastRecordChangeLogs == null) return;
@@ -99,6 +107,7 @@ namespace BioDivCollector.WebApp.Controllers
                             db.Entry(tdCopy).State = EntityState.Added;
                         }
                     }
+                    // TODO: BinaryData
                 }
             }
             catch (Exception e)
@@ -225,6 +234,7 @@ namespace BioDivCollector.WebApp.Controllers
                     Record r = await db.Records.Include(m => m.TextData).ThenInclude(td => td.FormField)
                         .Include(u => u.NumericData).ThenInclude(td => td.FormField)
                         .Include(u => u.BooleanData).ThenInclude(td => td.FormField)
+                        .Include(u => u.BinaryData).ThenInclude(td => td.FormField) 
                         .Include(u => u.Form).ThenInclude(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
                         .Include(u => u.Form).ThenInclude(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo=>mo.PublicMotherFormField)
                         .Where(m => m.RecordId == new Guid(recordID)).FirstOrDefaultAsync();
@@ -236,7 +246,7 @@ namespace BioDivCollector.WebApp.Controllers
                             if (parameters.GetValue("Field_" + ff.FormFieldId) != null)
                             {
                                 string newValue = parameters.GetValue("Field_" + ff.FormFieldId).ToString();
-                                TextData td = r.TextData.Where(m => m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
+                                TextData td = r.TextData.Where(m => m.FormField!=null && m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
                                 if (td == null)
                                 {
                                     td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = newValue };
@@ -266,7 +276,7 @@ namespace BioDivCollector.WebApp.Controllers
                                         string zulu = myDT
                                  .ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
 
-                                        TextData td = r.TextData.Where(m => m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
+                                        TextData td = r.TextData.Where(m => m.FormField!=null && m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
                                         if (td == null)
                                         {
                                             td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = zulu };
@@ -295,7 +305,36 @@ namespace BioDivCollector.WebApp.Controllers
                                     await db.Entry(ff.PublicMotherFormField).Collection(m => m.FieldChoices).LoadAsync();
                                     fc = ff.PublicMotherFormField.FieldChoices.Where(m => m.Text == newValue).FirstOrDefault();
                                 }
-                                TextData td = r.TextData.Where(m => m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
+
+                                // do we have fieldchoices with option|label?
+                                if (fc==null)
+                                {if (ff.PublicMotherFormField != null)
+                                    {
+                                        foreach (FieldChoice fcSplit in ff.PublicMotherFormField.FieldChoices)
+                                        {
+
+                                            if ((fcSplit.Text.Contains("|" + newValue)) || (fcSplit.Text.Contains("| " + newValue)))
+                                            {
+                                                fc = fcSplit;
+                                                newValue = fcSplit.Text.Split('|')[0];
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        foreach (FieldChoice fcSplit in ff.FieldChoices)
+                                        {
+
+                                            if ((fcSplit.Text.Contains("|" + newValue)) || (fcSplit.Text.Contains("| " + newValue)))
+                                            {
+                                                fc = fcSplit;
+                                                newValue = fcSplit.Text.Split('|')[0];
+                                            }
+                                        }
+                                    }
+                                }
+
+                                TextData td = r.TextData.Where(m => m.FormField!=null && m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
                                 if (td == null)
                                 {
                                     td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = newValue, FieldChoice = fc };
@@ -434,6 +473,7 @@ namespace BioDivCollector.WebApp.Controllers
                     Include(u => u.TextData).ThenInclude(td => td.FormField).
                     Include(u => u.NumericData).ThenInclude(td => td.FormField).
                     Include(u => u.BooleanData).ThenInclude(td => td.FormField).
+                    Include(u => u.BinaryData).ThenInclude(td => td.FormField).
                     Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo => mo.PublicMotherFormField).
                     Include(u => u.ProjectGroup.Group).
                     Include(u => u.Geometry).
@@ -477,9 +517,37 @@ namespace BioDivCollector.WebApp.Controllers
                     if (!pvm.Forms.Any(m => m.FormId == r.FormId)) pvm.Forms.Add(r.Form);
                     pvm.Records.Add(rvm);
                 }
+
+                // add all geometries without records
+                List<ReferenceGeometry> geometries = g.Geometries.Where(m => m.Records.Count == 0 && m.StatusId != StatusEnum.deleted).ToList();
+                foreach (ReferenceGeometry rg in geometries)
+                {
+                    bool isReadOnly = true;
+                    if ((g.GroupStatusId != GroupStatusEnum.Gruppendaten_gueltig) && (g.GroupStatusId != GroupStatusEnum.Gruppendaten_erfasst))
+                        if (myGroups.Where(m => m.GroupId == g.GroupId).Count() > 0) isReadOnly = false;
+
+                    await db.Entry(rg).Collection(m => m.GeometryChangeLogs).Query().Include(u => u.ChangeLog).ThenInclude(usr=>usr.User).LoadAsync();
+                    ChangeLogGeometry lastChange = rg.GeometryChangeLogs.OrderBy(cl => cl.ChangeLogId).Last();
+
+                    Record rNew = new Record() { Geometry = rg };
+
+                    ChangeLog cl = new ChangeLog() { User = lastChange.ChangeLog.User, ChangeDate = lastChange.ChangeLog.ChangeDate };
+                    ChangeLogRecord clr = new ChangeLogRecord() { ChangeLog = cl, Record = rNew };
+                    rNew.RecordChangeLogs.Add(clr);
+
+                    RecordViewModel rvm = new RecordViewModel() { Record = rNew };
+                    rvm.Readonly = isReadOnly;
+                    pvm.Records.Add(rvm);
+                }
+
             }
             if (!erfassendeProjects.Contains(p)) ViewData["ReadOnly"] = true;
             else ViewData["ReadOnly"] = false;
+
+
+            if ((User.IsInRole("DM")) || (User.IsInRole("PK")) || (User.IsInRole("PL"))) ViewData["CanChangeGroup"] = true;
+            else ViewData["CanChangeGroup"] = false;
+
             return View(pvm);
         }
 
@@ -540,7 +608,9 @@ namespace BioDivCollector.WebApp.Controllers
                     Include(u => u.TextData).ThenInclude(td => td.FormField).
                     Include(u => u.NumericData).ThenInclude(td => td.FormField).
                     Include(u => u.BooleanData).ThenInclude(td => td.FormField).
+                    Include(u => u.BinaryData).ThenInclude(td => td.FormField).
                     Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo=>mo.PublicMotherFormField).
+                    Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(h => h.HiddenFieldChoices).
                     Include(u => u.ProjectGroup.Group).
                     Include(u => u.Geometry).
                     Include(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
@@ -603,6 +673,22 @@ namespace BioDivCollector.WebApp.Controllers
                                 TextData td = r.TextData.Where(m => m.FormField == ff).FirstOrDefault();
                                 if (td != null) dynamicField.Value = td.Value;
 
+                                // Check if there is a standardvalue plugin
+                                string standardValue = "";
+                                foreach (IPlugin plugin in _generalPluginExtension.Plugins)
+                                {
+                                    if (plugin is BaseStandardValueGenerator)
+                                    {
+                                        standardValue = ((BaseStandardValueGenerator)plugin).GetStandardValue(ff, null, r, user);
+                                    }
+                                }
+                                if (standardValue != "")
+                                {
+                                    dynamicField.Value = standardValue;
+                                    if (ff.StandardValue.StartsWith("="))
+                                        dynamicField.GetCustomAttributes = () => new object[] { new Helpers.FormFactory.StandardValueAttribute() };
+                                }
+
                                 dynamicField.NotOptional = ff.Mandatory;
                                 dynamicForm.Add(dynamicField);
                             }
@@ -626,19 +712,71 @@ namespace BioDivCollector.WebApp.Controllers
                                 dynamicField.NotOptional = ff.Mandatory;
                                 dynamicForm.Add(dynamicField);
                             }
+                            else if (origFormField.FieldTypeId == FieldTypeEnum.Binary)
+                            {
+                                if (r.BinaryData.Count() == 0)
+                                {
+                                    PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
+                                    dynamicField.DisplayName = origFormField.Title;
+                                    dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
+                                    dynamicField.NotOptional = ff.Mandatory;
+                                    dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                    dynamicForm.Add(dynamicField);
+                                }
+                                else
+                                {
+                                    PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
+                                    dynamicField.DisplayName = origFormField.Title;
+                                    dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
+                                    dynamicField.NotOptional = ff.Mandatory;
+                                    dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                    dynamicForm.Add(dynamicField);
+                                    List<Guid> guids = new List<Guid>();
+                                    foreach (BinaryData bd in r.BinaryData.Where(m => m.FormField == ff))
+                                    {
+                                        guids.Add(bd.Id);
+                                    }
+
+                                    dynamicField.Value = guids;
+                                }
+                            }
                             else if (origFormField.FieldTypeId == FieldTypeEnum.Choice)
                             {
                                 PropertyVm dynamicField = new PropertyVm(typeof(string), "Field_" + ff.FormFieldId.ToString());
                                 dynamicField.DisplayName = origFormField.Title;
                                 TextData td = r.TextData.Where(m => m.FormField == ff).FirstOrDefault();
-                                if (td != null) dynamicField.Value = td.Value;
                                 await db.Entry(origFormField).Collection(m => m.FieldChoices).LoadAsync();
+                                if (td != null)
+                                {
+                                    string text = td.Value;
+
+                                    // check if the choices have format value|label. Search for the label
+                                    foreach (FieldChoice fc in origFormField.FieldChoices.OrderBy(m => m.Order))
+                                    {
+                                        if (fc.Text.Contains("|"))
+                                        {
+                                            string[] value = fc.Text.Split("|");
+                                            if (value[0].TrimEnd(' ') == text) text = value[1];
+                                        }
+                                    }
+
+                                    dynamicField.Value = text;
+                                }
                                 if (origFormField.FieldChoices != null)
                                 {
                                     List<string> choices = new List<string>();
                                     foreach (FieldChoice fc in origFormField.FieldChoices.OrderBy(m => m.Order))
                                     {
-                                        choices.Add(fc.Text);
+                                        // only add the fieldchoice when it is not in the HiddenFieldChoiceList of the main formfield (not the public)
+                                        if (!ff.HiddenFieldChoices.Where(m => m.FieldChoice == fc && m.FormField == ff).Any())
+                                        {
+                                            // split by | for different value and text
+                                            string text = fc.Text;
+                                            string[] value = text.Split("|");
+                                            if (value.Length > 1) text = value[1].TrimStart(' ');
+                                            choices.Add(text);
+                                        }
+                                            
                                     }
                                     dynamicField.Choices = choices;
                                 }
@@ -653,6 +791,13 @@ namespace BioDivCollector.WebApp.Controllers
                                 if (bd != null) dynamicField.Value = bd.Value;
                                 dynamicField.NotOptional = ff.Mandatory;
                                 dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                dynamicForm.Add(dynamicField);
+                            }
+                            else if (origFormField.FieldTypeId == FieldTypeEnum.Header)
+                            {
+                                PropertyVm dynamicField = new PropertyVm(typeof(string), "Field_" + ff.FormFieldId.ToString());
+                                dynamicField.DisplayName = origFormField.Title;
+                                dynamicField.GetCustomAttributes = () => new object[] { new Helpers.FormFactory.HeaderAttribute() };
                                 dynamicForm.Add(dynamicField);
                             }
 
@@ -682,11 +827,15 @@ namespace BioDivCollector.WebApp.Controllers
             ViewData["withOnlyGeometries"] = withOnlyGeometries;
             if (!erfassendeProjects.Contains(p)) ViewData["ReadOnly"] = true;
             else ViewData["ReadOnly"] = false;
+
+            if ((User.IsInRole("DM")) || (User.IsInRole("PK")) || (User.IsInRole("PL"))) ViewData["CanChangeGroup"] = true;
+            else ViewData["CanChangeGroup"] = false;
+
             if (withOnlyGeometries) return View("RecordsPerProjectPerGeometry", pvm);
             return View(pvm);
         }
 
-        public static async Task CreateDynamicView(BioDivContext db, ReferenceGeometry rg, ProjectGroup g, List<Group> myGroups, GeometrieViewModel gvm)
+        public static async Task CreateDynamicView(BioDivContext db, ReferenceGeometry rg, ProjectGroup g, List<Group> myGroups, GeometrieViewModel gvm, GeneralPluginExtension generalPluginExtension, User user)
         {
             foreach (Record r in rg.Records.Where(m => m.StatusId != StatusEnum.deleted))
             {
@@ -720,6 +869,23 @@ namespace BioDivCollector.WebApp.Controllers
                             TextData td = r.TextData.Where(m => m.FormField == ff).FirstOrDefault();
                             if (td != null) dynamicField.Value = td.Value;
 
+                            // Check if there is a standardvalue plugin
+                            string standardValue = "";
+                            foreach (IPlugin p in generalPluginExtension.Plugins)
+                            {
+                                if ( p is BaseStandardValueGenerator)
+                                {
+                                    standardValue = ((BaseStandardValueGenerator)p).GetStandardValue(ff, rg, r, user);
+                                }
+                            }
+
+                            if (standardValue != "")
+                            {
+                                dynamicField.Value = standardValue;
+                                if (ff.StandardValue.StartsWith("="))
+                                    dynamicField.GetCustomAttributes = () => new object[] { new Helpers.FormFactory.StandardValueAttribute() };
+                            }
+
                             dynamicField.NotOptional = ff.Mandatory;
                             dynamicForm.Add(dynamicField);
                         }
@@ -743,21 +909,73 @@ namespace BioDivCollector.WebApp.Controllers
                             dynamicField.NotOptional = ff.Mandatory;
                             dynamicForm.Add(dynamicField);
                         }
+                        else if (origFormField.FieldTypeId == FieldTypeEnum.Binary)
+                        {
+                            if (r.BinaryData.Count() == 0)
+                            {
+                                PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
+                                dynamicField.DisplayName = origFormField.Title;
+                                dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
+                                dynamicField.NotOptional = ff.Mandatory;
+                                dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                dynamicForm.Add(dynamicField);
+                            }
+                            else
+                            {
+                                PropertyVm dynamicField = new PropertyVm(typeof(BinaryData), "Field_" + ff.FormFieldId.ToString());
+                                dynamicField.DisplayName = origFormField.Title;
+                                dynamicField.DataAttributes = new Dictionary<string, string> { { "recordid", r.RecordId.ToString() }, { "formfieldid", ff.FormFieldId.ToString() } };
+                                dynamicField.NotOptional = ff.Mandatory;
+                                dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
+                                dynamicForm.Add(dynamicField);
+                                List<Guid> guids = new List<Guid>();
+                                foreach (BinaryData bd in r.BinaryData.Where(m => m.FormField == ff))
+                                {
+                                    guids.Add(bd.Id);
+                                }
+
+                                dynamicField.Value = guids;
+                            }
+                        }
                         else if (origFormField.FieldTypeId == FieldTypeEnum.Choice)
                         {
                             PropertyVm dynamicField = new PropertyVm(typeof(string), "Field_" + ff.FormFieldId.ToString());
                             dynamicField.DisplayName = origFormField.Title;
                             TextData td = r.TextData.Where(m => m.FormField == ff).FirstOrDefault();
-                            if (td != null) dynamicField.Value = td.Value;
 
                             await db.Entry(origFormField).Collection(m => m.FieldChoices).LoadAsync();
+                            if (td != null)
+                            {
+                                string text = td.Value;
+
+                                // check if the choices have format value|label. Search for the label
+                                foreach (FieldChoice fc in origFormField.FieldChoices.OrderBy(m => m.Order))
+                                {
+                                    if (fc.Text.Contains("|"))
+                                    {
+                                        string[] value = fc.Text.Split("|");
+                                        if (value[0].TrimEnd(' ') == text) text = value[1];
+                                    }
+                                }
+
+                                dynamicField.Value = text;
+                            }
+
 
                             if (origFormField.FieldChoices != null)
                             {
                                 List<string> choices = new List<string>();
                                 foreach (FieldChoice fc in origFormField.FieldChoices.OrderBy(m => m.Order))
                                 {
-                                    choices.Add(fc.Text);
+                                    // only add the fieldchoice when it is not in the HiddenFieldChoiceList of the main formfield (not the public)
+                                    if (!ff.HiddenFieldChoices.Where(m => m.FieldChoice == fc && m.FormField == ff).Any())
+                                    {
+                                        // split by | for different value and text
+                                        string text = fc.Text;
+                                        string[] value = text.Split("|");
+                                        if (value.Length > 1) text = value[1].TrimStart(' ');
+                                        choices.Add(text);
+                                    }
                                 }
                                 dynamicField.Choices = choices;
                             }
@@ -774,6 +992,13 @@ namespace BioDivCollector.WebApp.Controllers
                             dynamicField.GetCustomAttributes = () => new object[] { new FormFactory.Attributes.LabelOnRightAttribute() };
                             dynamicForm.Add(dynamicField);
                         }
+                        else if (origFormField.FieldTypeId == FieldTypeEnum.Header)
+                        {
+                            PropertyVm dynamicField = new PropertyVm(typeof(string), "Field_" + ff.FormFieldId.ToString());
+                            dynamicField.DisplayName = origFormField.Title;
+                            dynamicField.GetCustomAttributes = () => new object[] { new Helpers.FormFactory.HeaderAttribute() };
+                            dynamicForm.Add(dynamicField);
+                        }
 
                     }
 
@@ -782,6 +1007,7 @@ namespace BioDivCollector.WebApp.Controllers
                     dynamicHiddenField.NotOptional = true;
                     dynamicHiddenField.IsHidden = true;
                     dynamicForm.Add(dynamicHiddenField);
+
 
                     if (isReadOnly)
                     {
@@ -857,7 +1083,9 @@ namespace BioDivCollector.WebApp.Controllers
                         Include(u => u.TextData).ThenInclude(td => td.FormField).
                         Include(u => u.NumericData).ThenInclude(td => td.FormField).
                         Include(u => u.BooleanData).ThenInclude(td => td.FormField).
+                        Include(u => u.BinaryData).ThenInclude(td => td.FormField).
                         Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(mo => mo.PublicMotherFormField).
+                        Include(u => u.Form).ThenInclude(f => f.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(h => h.HiddenFieldChoices).
                         Include(u => u.ProjectGroup.Group).
                         Include(u => u.Geometry).
                         Include(u => u.RecordChangeLogs).ThenInclude(rcl => rcl.ChangeLog).ThenInclude(cl => cl.User)
@@ -894,7 +1122,7 @@ namespace BioDivCollector.WebApp.Controllers
                     GeometrieViewModel gvm = new GeometrieViewModel() { Geometry = rg };
                     gvm.Records = new List<RecordViewModel>();
 
-                    await CreateDynamicView(db, rg, g, myGroups, gvm);
+                    await CreateDynamicView(db, rg, g, myGroups, gvm, _generalPluginExtension, user);
 
                     if (gvms.Any(m=>m.Geometry.GeometryId==gvm.Geometry.GeometryId))
                     {

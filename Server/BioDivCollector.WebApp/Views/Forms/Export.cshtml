@@ -1,0 +1,137 @@
+﻿@using System.Security.Claims
+@using BioDivCollector.DB.Models.Domain
+@using BioDivCollector.WebApp.Controllers
+
+@model IEnumerable<Dictionary<int, string>>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Export";
+}
+
+@section Styles {
+    <link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
+}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>
+                    Daten exportieren
+                    <small>Auswahlfelder exportieren</small>
+                </h3>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb pull-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard","Home")"><i class="fa fa-home"></i></a></li>
+                    <li class="breadcrumb-item active">Projekte</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card height-equal" style="min-height: 685px;">
+                <div class="card-header">
+                    <h5>Exportieren</h5>
+                </div>
+                <div class="card-body">
+                    <form class="" id="exportform" asp-action="Export">
+                        <div class="row">
+                            <div class="col-md-12">
+                                    <div class="form-group has-valid">
+                                        <label class="control-label" for="fieldchoices">Auswahlfeld</label>
+                                        <select name="fieldchoice" class="form-control" id="fieldchoice">
+                                            @foreach (Dictionary<int,string> ff in Model)
+                                            {
+                                                <option value="@ff.First().Key">@ff.First().Value</option>
+                                            }
+                                        </select>
+                                    </div>
+                            </div>
+
+
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">Exportieren</button>
+                            <button class="btn btn-secondary" onclick="location.href = '@Url.Action("Index","Projects")'; return false;">Abbrechen</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="modal fade" id="waitExportModal" tabindex="-1" role="dialog" aria-labelledby="changeProjectStateLabel" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeProjectStateLabel">Export wird vorbereitet</h5>
+            </div>
+            <div class="modal-body">
+                <i class="fa fa-spinner fa-spin" style="font-size:25px;text-align:center;margin-top:50px;"></i> Bitte warten, der Export wird vorbereitet.
+                <p></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function() {
+        $('#fieldchoice').selectize();
+    });
+
+    $('#exportform').submit(function (e) {
+
+
+        e.preventDefault(); // avoid to execute the actual submit of the form.
+
+        var form = $(this);
+        var url = form.attr('action');
+
+        $('#waitExportModal').modal('show');
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: form.serialize(),
+            async: false,
+            cache: false,
+            dataType: 'JSON',
+            success: function (retData) {
+                $("#waitExportModal").removeClass("in");
+                $(".modal-backdrop").remove();
+                $('body').removeClass('modal-open');
+                $('body').css('padding-right', '');
+                $("#waitExportModal").hide();
+
+                if (retData.error != null) alert(retData.error);
+                else location.href = '@Url.Action("Download","Projects")?filename=' + retData.filename;
+            },
+            error: function (ex) {
+
+                $('#waitExportModal').modal('hide');
+                console.log(ex);
+                alert(ex);
+            }
+        });
+    });
+
+    
+</script>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/jquery-transfer/js/jquery.transfer.js"></script>
+
+}

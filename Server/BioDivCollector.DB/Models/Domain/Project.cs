@@ -46,6 +46,15 @@ namespace BioDivCollector.DB.Models.Domain
         /// </summary>
         [DisplayName("Open Government Data (OGD)")]
         public bool OGD { get; set; }
+
+        /// <summary>
+        /// Projekt hat Artendaten von welchen externen Tools
+        /// </summary>
+        [DisplayName("Projektdaten mit GUID-Bezug zu Daten in folgenden Anwendungen")]
+        public List<ProjectThirdPartyTool> ProjectThirdPartyTools { get; set; }
+        [NotMapped]
+        public string ProjectThirdPartyToolsString { get; set; }
+
         /// <summary>
         /// Aktueller Status des Projekts (gültige Werte siehe Geschäftsorganisationskonzept) = Bearbeitungsstatus
         /// </summary>

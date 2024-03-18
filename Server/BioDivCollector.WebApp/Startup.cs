@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AspNetCore.Proxy;
 using BioDivCollector.DB.Models.Domain;
 using BioDivCollector.PluginContract;
 using BioDivCollector.WebApp.Helpers;
@@ -53,6 +54,7 @@ namespace BioDivCollector.WebApp
         .AddMvcOptions(options => options.Filters.Add(new AuthorizeFilter()));
 
 
+            services.AddProxies();
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
@@ -100,6 +102,12 @@ namespace BioDivCollector.WebApp
                             
                                 db.Users.Add(u);
                                 db.SaveChanges();
+
+                                // Send Mails to all DM's
+                                Controllers.UsersController usersController = new Controllers.UsersController(Configuration);
+                                var task = usersController.SendNewUserMailToDM(u);
+                                task.Wait();
+
                             }
 
                         }
@@ -186,15 +194,20 @@ namespace BioDivCollector.WebApp
                 foreach (var pluginType in loader
                     .LoadDefaultAssembly()
                     .GetTypes()
-                    .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsAbstract))
+                    .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !typeof(IReferenceGeometryPlugin).IsAssignableFrom(t) && !t.IsAbstract))
                 {
                     // This assumes the implementation of IPlugin has a parameterless constructor
-                    //var plugin = Activator.CreateInstance(pluginType) as IPlugin;
-                    //generalPlugins.Add(plugin);
+                    try
+                    {
+                        var plugin = Activator.CreateInstance(pluginType) as IPlugin;
+                        generalPlugins.Add(plugin);
+                    }
+                    catch (Exception e)
+                    { }
                 }
             }
             services.Add(new ServiceDescriptor(typeof(ReferenceGeometryExtension), new ReferenceGeometryExtension(referenceGeometryPlugins)));
-
+            services.Add(new ServiceDescriptor(typeof(GeneralPluginExtension), new GeneralPluginExtension(generalPlugins)));
 
         }
 
@@ -293,8 +306,9 @@ namespace BioDivCollector.WebApp
             */
             var provider = new FileExtensionContentTypeProvider();
             provider.Mappings[".apk"] = "application/vnd.android.package-archive";
+            provider.Mappings[".aab"] = "application/x-authorware-bin";
 
-            
+
 
             app.UseStaticFiles();
             {

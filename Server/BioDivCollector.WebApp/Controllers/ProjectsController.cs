@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -9,6 +10,8 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using BioDivCollector.DB.Models.Domain;
 using BioDivCollector.WebApp.Helpers;
+using CsvHelper;
+using CsvHelper.Configuration;
 using GeoAPI.Geometries;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +34,6 @@ namespace BioDivCollector.WebApp.Controllers
         {
             Configuration = configuration;
         }
-
 
 
         private async Task<List<ProjectPocoForIndex>> CreateProjectPocoForIndex(User user)
@@ -107,6 +109,9 @@ namespace BioDivCollector.WebApp.Controllers
             return newProjectList;
         }
 
+            return newProjectList;
+        }
+
 
         public async Task<IActionResult> Index()
         {
@@ -115,6 +120,22 @@ namespace BioDivCollector.WebApp.Controllers
             ViewData["Username"] = user.UserId;
 
             return View(await CreateProjectPocoForIndex(user));
+        }
+
+        public async Task<IActionResult> ExportProjectList()
+        {
+            User user = Helpers.UserHelper.GetCurrentUser(User, db);
+            List<ProjectPocoForIndex> projectPocos = await CreateProjectPocoForIndex(user);
+
+            var stream = new MemoryStream();
+            using (var writeFile = new StreamWriter(stream, encoding: System.Text.Encoding.UTF8, leaveOpen: true))
+            {
+                var csv = new CsvWriter(writeFile, new CultureInfo("de-CH"));
+                csv.Context.RegisterClassMap<ProjectPocoForExportMap>();
+                csv.WriteRecords(projectPocos);
+            }
+            stream.Position = 0; //reset stream
+            return File(stream, "application/octet-stream", "Projects.csv");
         }
 
         public async Task<IActionResult> Delete(Guid id)
@@ -296,7 +317,10 @@ namespace BioDivCollector.WebApp.Controllers
             await db.Entry(newProject).Reference(m => m.Status).LoadAsync();
 
             await db.Entry(newProject).Collection(m => m.ProjectGroups).LoadAsync();
+            await db.Entry(newProject).Collection(m => m.ProjectThirdPartyTools).Query().Include(m=>m.ThirdPartyTool).LoadAsync();
 
+            newProject.ProjectThirdPartyToolsString = string.Join(",", newProject.ProjectThirdPartyTools.Select(m => m.ThirdPartyTool.Name).ToList());
+            
             foreach (ProjectGroup pg in newProject.ProjectGroups)
             {
                 await db.Entry(pg).Collection(m => m.Geometries).LoadAsync();
@@ -380,13 +404,13 @@ namespace BioDivCollector.WebApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind("ProjectId, ProjectName, ProjectNumber, Description, ProjectConfigurator, ProjectManager, ID_Extern, OGD")] ProjectPoco project)
+        public async Task<IActionResult> Edit([Bind("ProjectId, ProjectName, ProjectNumber, Description, ProjectThirdPartyToolsString, ProjectConfigurator, ProjectManager, ID_Extern, OGD")] ProjectPoco project)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    Project pOld = await db.Projects.Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).Where(m => m.ProjectId == project.ProjectId).FirstOrDefaultAsync();
+                    Project pOld = await db.Projects.Include(m => m.ProjectConfigurator).Include(m => m.ProjectManager).Include(m=>m.ProjectThirdPartyTools).ThenInclude(ptp=>ptp.ThirdPartyTool).Where(m => m.ProjectId == project.ProjectId).FirstOrDefaultAsync();
                     pOld.ProjectName = project.ProjectName;
                     pOld.ProjectNumber = project.ProjectNumber;
                     pOld.Description = project.Description;
@@ -407,6 +431,20 @@ namespace BioDivCollector.WebApp.Controllers
                         pOld.ProjectManager = newPM;
                         UsersController uc = new UsersController(Configuration);
                         await uc.AddRoleToUser(pOld.ProjectManager.UserId, "PL");
+                    }
+
+                    if (project.ProjectThirdPartyToolsString != null)
+                    {
+                        pOld.ProjectThirdPartyTools.RemoveRange(0, pOld.ProjectThirdPartyTools.Count);
+                        string[] tools = project.ProjectThirdPartyToolsString.Split(',');
+                        foreach (string tool in tools)
+                        {
+                            if (!pOld.ProjectThirdPartyTools.Where(m=>m.ThirdPartyTool.Name == tool).Any())
+                            {
+                                ProjectThirdPartyTool ptpt = new ProjectThirdPartyTool() { Project = pOld, ThirdPartyTool = db.ThirdPartyTools.Where(tpt => tpt.Name == tool).First() };
+                                pOld.ProjectThirdPartyTools.Add(ptpt);
+                            }
+                        }
                     }
 
                     db.Update(pOld);
@@ -468,6 +506,7 @@ namespace BioDivCollector.WebApp.Controllers
                                     int projectindex = names.IndexOf("bdcguid_projekt");
                                     int geometryIndex = names.IndexOf("bdcguid_geometrie");
                                     int recordIndex = names.IndexOf("bdcguid_beobachtung");
+                                    int groupIndex = names.IndexOf("group_id");
 
                                     if (result[projectindex] != null)
                                     {
@@ -476,17 +515,50 @@ namespace BioDivCollector.WebApp.Controllers
                                         {
                                             loadedProjectIndex = newGuid;
                                             // load the existing project
-                                            p = await db.Projects
+                                            /*p = await db.Projects
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.Form).ThenInclude(f => f.FormFormFields).ThenInclude(ff => ff.FormField)
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.TextData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.BooleanData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.NumericData)
+                                                .Include(m => m.ProjectGroups).ThenInclude(gp => gp.Geometries).ThenInclude(g => g.Records).ThenInclude(r => r.BinaryData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.Form).ThenInclude(f => f.FormFormFields).ThenInclude(ff => ff.FormField)
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.TextData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.BooleanData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.NumericData)
+                                                .Include(m => m.ProjectGroups).ThenInclude(g => g.Records).ThenInclude(r => r.BinaryData)
                                                 .Include(m => m.ProjectGroups).ThenInclude(m => m.Group)
-                                                .Where(m => m.ProjectId == loadedProjectIndex).FirstOrDefaultAsync();
+                                                .Where(m => m.ProjectId == loadedProjectIndex).FirstOrDefaultAsync();*/
+                                            p = await db.Projects
+                                               .Include(m => m.ProjectGroups).ThenInclude(pg => pg.Records)
+                                               .Include(m => m.ProjectGroups).ThenInclude(u => u.Geometries).ThenInclude(pg => pg.Records)
+                                               .Where(m => m.ProjectId == loadedProjectIndex)
+                                               .Where(m => m.StatusId != StatusEnum.deleted).FirstOrDefaultAsync();
+
+                                            foreach (ProjectGroup pg in p.ProjectGroups)
+                                            {
+                                                foreach (Record rr in pg.Records)
+                                                {
+                                                    await db.Entry(rr).Reference(m => m.Form).Query().Include(m => m.FormFormFields).ThenInclude(m => m.FormField).ThenInclude(m => m.FieldChoices).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.RecordChangeLogs).Query().Include(m => m.ChangeLog).ThenInclude(m => m.User).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.TextData).Query().Include(m => m.FormField).Include(m => m.FieldChoice).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.NumericData).Query().Include(m => m.FormField).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.BinaryData).Query().Include(m => m.FormField).LoadAsync();
+                                                    await db.Entry(rr).Collection(m => m.BooleanData).Query().Include(m => m.FormField).LoadAsync();
+                                                }
+                                                foreach (ReferenceGeometry rgg in pg.Geometries.Where(m => m.StatusId != StatusEnum.deleted))
+                                                {
+                                                    foreach (Record rr in rgg.Records.Where(m => m.StatusId != StatusEnum.deleted))
+                                                    {
+                                                        await db.Entry(rr).Reference(m => m.Form).Query().Include(m => m.FormFormFields).ThenInclude(m => m.FormField).ThenInclude(m => m.FieldChoices).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.RecordChangeLogs).Query().Include(m => m.ChangeLog).ThenInclude(m => m.User).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.TextData).Query().Include(m => m.FormField).Include(m => m.FieldChoice).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.NumericData).Query().Include(m => m.FormField).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.BinaryData).Query().Include(m => m.FormField).LoadAsync();
+                                                        await db.Entry(rr).Collection(m => m.BooleanData).Query().Include(m => m.FormField).LoadAsync();
+                                                    }
+
+                                                }
+                                            }
 
                                             // No rights to change the projects
                                             if (!erfassendeProjects.Any(m => m.ProjectId == p.ProjectId))
@@ -501,6 +573,18 @@ namespace BioDivCollector.WebApp.Controllers
                                         if (p.ProjectId != null)
                                         {
                                             ProjectGroup pg = db.ProjectsGroups.Where(m => m.ProjectId == p.ProjectId && m.ReadOnly == false && m.Group.GroupUsers.Any(u => u.UserId == user.UserId)).FirstOrDefault();
+
+                                            try
+                                            {
+                                                Guid groupGuid = Guid.Parse(result.GetString(groupIndex));
+                                                pg = db.ProjectsGroups.Where(m => m.ProjectId == p.ProjectId && m.GroupId == groupGuid).FirstOrDefault();
+
+                                            }
+                                            catch(Exception e)
+                                            {
+                                                // no groupid provided, use group for user instead (default)
+                                            }
+
                                             if ((result[geometryIndex] != null) && (!result.IsDBNull(geometryIndex)))
                                             {
 
@@ -977,9 +1061,13 @@ namespace BioDivCollector.WebApp.Controllers
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
+
+
+
+
         [ValidateAntiForgeryToken]
         [HttpPost]
-        public async Task<IActionResult> Export(string format, string efonly, string projects)
+        public async Task<IActionResult> Export(string format, string efonly, string projects, bool withImages = false)
         {
             User user = Helpers.UserHelper.GetCurrentUser(User, this.db);
             List<Project> erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(this.db, user, RoleEnum.EF);
@@ -1067,7 +1155,7 @@ namespace BioDivCollector.WebApp.Controllers
             }
             else if (format == "csv")
             {
-                psi.Arguments = "-f CSV " + exportfilename + pgstring + " \"" + prefix + "_records_without_geometries\" -where \"\\\"bdcguid_projekt\\\" in ('" + String.Join("', '", exportprojects.ToArray()) + "')\"";
+                psi.Arguments = "-f CSV " + exportfilename + pgstring + " \"" + prefix + "_union_records\" -where \"\\\"bdcguid_projekt\\\" in ('" + String.Join("', '", exportprojects.ToArray()) + "')\"";
 
                 var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
@@ -1075,7 +1163,7 @@ namespace BioDivCollector.WebApp.Controllers
             }
             else if (format == "xlsx")
             {
-                psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " \"" + prefix + "_records_without_geometries\" -where \"\\\"bdcguid_projekt\\\" in ('" + String.Join("', '", exportprojects.ToArray()) + "')\"";
+                psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " \"" + prefix + "_union_records\" -where \"\\\"bdcguid_projekt\\\" in ('" + String.Join("', '", exportprojects.ToArray()) + "')\"";
 
                 var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
@@ -1086,8 +1174,75 @@ namespace BioDivCollector.WebApp.Controllers
                 if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
 
             }
+
+            if (withImages)
+            {
+                try
+                {
+                    Directory.CreateDirectory(dataDir + "//Export//" + fname[0]);
+                    System.IO.File.Copy(dataDir + "//Export//" + fname[0] + "." + format, dataDir + "//Export//" + fname[0] + "//" + fname[0] + "." + format);
+
+
+                    foreach (string p in projects.Split(","))
+                    {
+                        BinaryController bC = new BinaryController(Configuration);
+                        bC.context = this.HttpContext;
+
+                        Project project = await this.db.Projects
+                            .Include(m => m.ProjectGroups).ThenInclude(m => m.Records).ThenInclude(m => m.BinaryData).ThenInclude(m=>m.Value)
+                            .Include(m => m.ProjectGroups).ThenInclude(m => m.Geometries).ThenInclude(m => m.Records).ThenInclude(m => m.BinaryData).ThenInclude(m => m.Value)
+                            .Where(m => m.ProjectId == new Guid(p)).FirstOrDefaultAsync();
+                        if ((efonly != "on") || ((efonly == "on") && erfassendeProjects.Contains(project)))
+                        {
+                            Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId);
+                            foreach (var rs in project.ProjectGroups.Select(m => m.Records.Where(m => m.StatusId != StatusEnum.deleted && m.BinaryData.Count() > 0).ToList()))
+                            {
+                                foreach (var r in rs.Where(m=>m.Geometry==null))
+                                {
+                                    Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + r.RecordId);
+                                    foreach (BinaryData b in r.BinaryData)
+                                    {
+                                        await bC.SaveBinaryAsync(b.Id, dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + r.RecordId + "//" + r.RecordId + "_" + b.Value.OriginalFileName);
+                                    }
+                                }
+                            }
+
+                            foreach (var geometries in project.ProjectGroups.Select(m => m.Geometries.Where(m => m.StatusId != StatusEnum.deleted).ToList()))
+                            {
+                                foreach (var g in geometries) {
+                                    foreach (var r in g.Records.Where(m => m.StatusId != StatusEnum.deleted && m.BinaryData.Count() > 0))
+                                    {
+                                        if (!Directory.Exists(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId)) Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId);
+
+
+                                            Directory.CreateDirectory(dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId + "//" + r.RecordId);
+                                        foreach (BinaryData b in r.BinaryData)
+                                        {
+                                            await bC.SaveBinaryAsync(b.Id, dataDir + "//Export//" + fname[0] + "//" + project.ProjectId + "//" + g.GeometryId + "//" + r.RecordId + "//" + r.RecordId + "_" + b.Value.OriginalFileName);
+                                        }
+
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+
+                    System.IO.Compression.ZipFile.CreateFromDirectory(dataDir + "//Export//" + fname[0], dataDir + "//Export//" + fname[0] + ".zip");
+                    format = "zip";
+                    //clearFolder(dataDir + "//Export//" + fname[0]);
+                }
+                catch (Exception ex)
+                {
+
+                }
+
+            }
+
+
             //Stream stream = System.IO.File.OpenRead(exportfilename);
 
+            await this.db.Database.ExecuteSqlRawAsync("DROP VIEW IF EXISTS " + prefix + "_union_records;");
             await this.db.Database.ExecuteSqlRawAsync("DROP VIEW IF EXISTS " + prefix + "_point_view; DROP VIEW IF EXISTS " + prefix + "_line_view; DROP VIEW IF EXISTS " + prefix + "_polygon_view;");
             await this.db.Database.ExecuteSqlRawAsync("DROP VIEW IF EXISTS " + prefix + "_records_without_geometries;");
 
@@ -1098,6 +1253,22 @@ namespace BioDivCollector.WebApp.Controllers
 
             return Json(new ExportProcess() { Filename = fname[0] + "." + format });
 
+        }
+
+        private void clearFolder(string FolderName)
+        {
+            DirectoryInfo dir = new DirectoryInfo(FolderName);
+
+            foreach (FileInfo fi in dir.GetFiles())
+            {
+                fi.Delete();
+            }
+
+            foreach (DirectoryInfo di in dir.GetDirectories())
+            {
+                clearFolder(di.FullName);
+                di.Delete();
+            }
         }
 
         public IActionResult Download(string filename)
@@ -1111,6 +1282,13 @@ namespace BioDivCollector.WebApp.Controllers
 
             string[] fname = filename.Split(".");
             return File(stream, "application/octet-stream", "bdc_export." + fname[1]);
+        }
+
+        public async Task<IActionResult> GetThirdPartyTools()
+        {
+            List<ThirdPartyTool> thirdPartyTool = await db.ThirdPartyTools.ToListAsync();
+            string json = JsonConvert.SerializeObject(thirdPartyTool);
+            return Content(json, "application/json");
         }
 
 
@@ -1144,6 +1322,28 @@ namespace BioDivCollector.WebApp.Controllers
 
             string json = JsonConvert.SerializeObject(returnList);
             return Content(json, "application/json");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateThirdPartyTools(string Name)
+        {
+            try
+            {
+                ThirdPartyTool tpt = new ThirdPartyTool() { Name = Name };
+                db.Entry(tpt).State = EntityState.Added;
+                db.ThirdPartyTools.Add(tpt);
+                await db.SaveChangesAsync();
+
+                List<ThirdPartyTool> allTPT = new List<ThirdPartyTool>();
+                allTPT.Add(tpt);
+                return Json(new { items = allTPT });
+            }
+            catch (Exception e)
+            {
+                
+            }
+
+            return Json(null);
         }
 
 
@@ -1558,6 +1758,29 @@ namespace BioDivCollector.WebApp.Controllers
         public string MyGroup { get; set; }
 
     }
+
+    public class ProjectPocoForExportMap : ClassMap<ProjectPocoForIndex>
+    {
+        public ProjectPocoForExportMap()
+        {
+            Map(m => m.Project.ProjectName).Index(0).Name("Name");
+            Map(m => m.Project.ProjectNumber).Index(1).Name("Projektnummer");
+            Map(m => m.Project.BDCGuid).Index(2).Name("BDC Guid");
+            Map(m => m.Project.ID_Extern).Index(3).Name("ID_Extern");
+            Map(m => m.Project.Description).Index(4).Name("Beschreibung");
+            Map(m => m.Project.OGD).Index(5).Name("OGD");
+            Map(m => m.MyGroup).Index(6).Name("Gruppe");
+            Map(m => m.GeometryCount).Index(7).Name("Anzahl Geometrien");
+            Map(m => m.RecordCount).Index(8).Name("Anzahl Beobachtungen");
+            Map(m => m.Project.ProjectConfigurator.FirstName).Index(9).Name("Koordinator Vorname");
+            Map(m => m.Project.ProjectConfigurator.Name).Index(10).Name("Koordinator Nachname");
+            Map(m => m.Project.ProjectManager.FirstName).Index(11).Name("Projektleiter Vorname");
+            Map(m => m.Project.ProjectManager.Name).Index(12).Name("Projektleiter Nachname");
+            Map(m => m.Project.ProjectStatus.Description).Index(13).Name("Projektstatus");
+        }
+    }
+
+
     public class LayersList
     {
         public Layers[] items { get; set; }
@@ -1605,6 +1828,7 @@ namespace BioDivCollector.WebApp.Controllers
         public bool OGD { get; set; }
         public string ProjectConfigurator { get; set; }
         public string ProjectManager { get; set; }
+        public string ProjectThirdPartyToolsString { get; set; }
     }
 
 

@@ -16,6 +16,9 @@ namespace BioDivCollector.DB.Models.Domain
         public DbSet<TextData> TextData { get; set; }
         public DbSet<BooleanData> BooleanData { get; set; }
         public DbSet<NumericData> NumericData { get; set; }
+        public DbSet<BinaryData> BinaryData { get; set; }
+
+        public DbSet<ObjectStorage> ObjectStorage { get; set; }
 
         public DbSet<Record> Records { get; set; }
         public DbSet<Status> Statuses { get; set; }
@@ -48,7 +51,10 @@ namespace BioDivCollector.DB.Models.Domain
         public DbSet<FormField> FormFields { get; set; }
         public DbSet<FieldType> FieldTypes { get; set; }
         public DbSet<FieldChoice> FieldChoices { get; set; }
+        public DbSet<HiddenFieldChoice> HiddenFieldChoices { get; set; }
         public DbSet<ProjectForm> ProjectsForms { get; set; }
+        public DbSet<ThirdPartyTool> ThirdPartyTools { get; set; }
+        public DbSet<ProjectThirdPartyTool> ProjectsThirdPartyTools { get; set; }
 
         //public BioDivContext(DbContextOptions<BioDivContext> options)
         //    : base(options)

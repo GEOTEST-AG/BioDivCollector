@@ -27,6 +27,10 @@
 
         Choice = 51,
 
-        Guid = 61       //needed? or saved as text?
+        Guid = 61,       //needed? or saved as text?
+
+        Header = 71,
+
+        Binary = 81,
     }
 }

@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using AspNetCore.Proxy;
+using AspNetCore.Proxy.Options;
+using BioDivCollector.DB.Models.Domain;
 using BioDivCollector.WebApp.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,83 +23,44 @@ namespace BioDivCollector.WebApp.Controllers
     {
         public IConfiguration Configuration { get; }
 
+        private BioDivContext _context = new BioDivContext();
+
         public MapImageProxyController(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
+        [Route("/ProxyWMSSecure/{**layerId}")]
         [AllowAnonymous]
-        public ActionResult GetProxyImage(string Layer, string TileMatrix, string TileCol, string TileRow)
+        public Task ProxySecure(int layerId)
         {
-            //https://wmts102.geo.admin.ch/1.0.0/ch.swisstopo.lubis-luftbilder_farbe/default/99991231/21781/26/1227/1428.png
-            if (Layer == "ch.swisstopo.swissimage")
+            Layer l = _context.Layers.Where(m=>m.LayerId == layerId).FirstOrDefault();
+            if (l == null)
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://wmts.geo.admin.ch/1.0.0/" + Layer + "/default/current/21781/" + TileMatrix + "/" + TileCol + "/" + TileRow + ".jpeg");
-                request.Referer = "http://localhost";
-                request.Method = "GET";
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-                if (response.StatusCode.ToString().ToLower() == "ok")
-                {
-                    string contentType = response.ContentType;
-                    Stream content = response.GetResponseStream();
-                    StreamReader contentReader = new StreamReader(content);
-
-                    return base.File(content, "image/jpg");
-
-                }
-
-                return new HttpStatusCodeResult(404, "Error in image proxy");
-
+                return null;
             }
 
-            if (Layer == "geologie")
+            var queryString = this.Request.QueryString.Value;
+
+            if (l.Username == null)
             {
-                Layer = "swisstopo-pixelkarte";
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://maps.geotest.ch/mapproxy/wmts/geologie/" + Layer + "/" + TileMatrix + "/" + TileCol + "/" + TileRow + ".png");
-                request.Method = "GET";
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-                if (response.StatusCode.ToString().ToLower() == "ok")
-                {
-                    string contentType = response.ContentType;
-                    Stream content = response.GetResponseStream();
-                    StreamReader contentReader = new StreamReader(content);
-
-                    return base.File(content, "image/png");
-
-                }
-
-                return new HttpStatusCodeResult(404, "Error in image proxy");
-            }
-            else
-            {
-                try
-                {
-                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://maps.geotest.ch/mapproxy/wmts/swisstopo/" + Layer + "/" + TileMatrix + "/" + TileCol + "/" + TileRow + ".jpeg");
-                    request.Method = "GET";
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-                    if (response.StatusCode.ToString().ToLower() == "ok")
-                    {
-                        string contentType = response.ContentType;
-                        Stream content = response.GetResponseStream();
-                        StreamReader contentReader = new StreamReader(content);
-
-                        return base.File(content, "image/jpg");
-
-                    }
-
-                    return new HttpStatusCodeResult(404, "Error in image proxy");
-                }
-                catch (Exception e)
-                {
-                    return new HttpStatusCodeResult(404, "Error in image proxy: " + e.ToString());
-                }
+                return this.HttpProxyAsync($"{l.Url.Substring(0, l.Url.IndexOf("?"))}{queryString}");
             }
 
+            HttpProxyOptions po = HttpProxyOptionsBuilder.Instance
+                .WithShouldAddForwardedHeaders(false)
+        .WithBeforeSend((c, hrm) =>
+        {
+            hrm.Headers.Remove("Cookie");
+            // Set something that is needed for the downstream endpoint.
+            hrm.Headers.Authorization = new AuthenticationHeaderValue(
+        "Basic", Convert.ToBase64String(
+            System.Text.ASCIIEncoding.ASCII.GetBytes(
+               $"{l.Username}:{l.Password}")));
+            return Task.CompletedTask;
+        }).Build();
+            return  this.HttpProxyAsync($"{l.Url.Substring(0, l.Url.IndexOf("?"))}{queryString}", po);
         }
-
 
         [AcceptVerbs(Http.Get, Http.Head, Http.MkCol, Http.Post, Http.Put)]
         [ReadableBodyStream]

@@ -1,5 +1,6 @@
 ﻿using BioDivCollector.Connector.Models.DTO;
 using BioDivCollector.DB.Models.Domain;
+using BioDivCollector.PluginContract.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,11 +23,15 @@ namespace BioDivCollector.Connector.Controllers
     {
         private readonly BioDivContext _context;
         private readonly ILogger _logger;
+        private GeneralPluginExtension _generalPluginExtension;
+        private readonly BinaryController _binaryController;
 
-        public ProjectController(BioDivContext context, ILogger<ProjectController> logger)
+        public ProjectController(BioDivContext context, ILogger<ProjectController> logger, GeneralPluginExtension generalPluginExtension, BinaryController binaryController)
         {
             _context = context;
             _logger = logger;
+            _generalPluginExtension = generalPluginExtension;
+            _binaryController = binaryController;
         }
 
         // GET: api/Project/5
@@ -37,7 +42,7 @@ namespace BioDivCollector.Connector.Controllers
         /// <param name="startDateTime">optional datetime, e.g. 2020-10-29T15:30:12 or 2020-10-29T15:30:12Z (for explicit Utc time) -> if provided: deleted objects included</param>
         /// <returns></returns>
         [HttpGet("{id}/{startDateTime?}")]
-        public async Task<ActionResult<ProjectDTO>> GetProject(Guid id, DateTime? startDateTime)
+        public async Task<ActionResult<ProjectDTO>> GetProject(Guid id, DateTime? startDateTime, int version = 3)
         {
             string userName = string.Empty;
 
@@ -73,6 +78,8 @@ namespace BioDivCollector.Connector.Controllers
                 .Include(p => p.ProjectGroups)
                     .ThenInclude(pg => pg.Group).ThenInclude(g => g.GroupUsers)
                     .ThenInclude(gu => gu.User)
+                .Include(p => p.ProjectThirdPartyTools)
+                    .ThenInclude(ptpt=>ptpt.ThirdPartyTool)
                 .Where(p => p.ProjectId == id &&
                             p.StatusId != StatusEnum.deleted &&
                             p.ProjectStatusId == ProjectStatusEnum.Projekt_bereit)
@@ -119,6 +126,8 @@ namespace BioDivCollector.Connector.Controllers
                     .ThenInclude(t => t.FormField)
                 .Include(r => r.BooleanData)
                     .ThenInclude(t => t.FormField)
+                .Include(r => r.BinaryData)
+                    .ThenInclude(t => t.FormField)
                 .Include(g => g.RecordChangeLogs)
                     .ThenInclude(rcl => rcl.ChangeLog)
                     .ThenInclude(c => c.User)
@@ -150,6 +159,8 @@ namespace BioDivCollector.Connector.Controllers
                 .Include(r => r.NumericData)
                     .ThenInclude(t => t.FormField)
                 .Include(r => r.BooleanData)
+                    .ThenInclude(t => t.FormField)
+                .Include(r => r.BinaryData)
                     .ThenInclude(t => t.FormField)
                 .Include(g => g.RecordChangeLogs)
                     .ThenInclude(rcl => rcl.ChangeLog)
@@ -209,7 +220,7 @@ namespace BioDivCollector.Connector.Controllers
 
                 //-------------------------------------------------------------------------------------------------------------------------------------------------
                 //add geometry records to projectDto
-                var geometryRecordDtos = Records2Dto(geometryRecords.Where(r => r.Geometry.GeometryId == geom.GeometryId), userName, startDateTime);
+                var geometryRecordDtos = Records2Dto(geometryRecords.Where(r => r.Geometry.GeometryId == geom.GeometryId), userName, startDateTime, version);
                 geomDto.records.AddRange(geometryRecordDtos);
 
                 if (geomDto.records.Any() || (startDateTime != null && geomDto.timestamp > startDateTime) || startDateTime == null)
@@ -226,7 +237,7 @@ namespace BioDivCollector.Connector.Controllers
             //-------------------------------------------------------------------------------------------------------------------------------------------------
             // add project records to projectDto
 
-            var recordDtos = Records2Dto(records, userName, startDateTime);
+            var recordDtos = Records2Dto(records, userName, startDateTime, version);
             projectDto.records.AddRange(recordDtos);
 
             //-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -267,8 +278,14 @@ namespace BioDivCollector.Connector.Controllers
                     wmsLayer = layer.WMSLayer,
                     order = layerOrder,
                     visible = projectLayer.Visible,
-                    opacity = projectLayer.Transparency
+                    opacity = projectLayer.Transparency,
                 };
+                if (version > 3)
+                {
+
+                    layerDto.username = layer.Username;
+                    layerDto.password = layer.Password;
+                }
                 projectDto.layers.Add(layerDto);
                 layerOrder++;
             }
@@ -291,6 +308,8 @@ namespace BioDivCollector.Connector.Controllers
                                     .ThenInclude(fcl => fcl.ChangeLog)
                                 .Include(f => f.FormFormFields)
                                     .ThenInclude(f => f.FormField).ThenInclude(ff => ff.FieldChoices)
+                                .Include(f => f.FormFormFields)
+                                    .ThenInclude(f => f.FormField).ThenInclude(ff => ff.HiddenFieldChoices)
                                 .Include(f => f.FormFormFields)
                                     .ThenInclude(f => f.FormField).ThenInclude(pff => pff.PublicMotherFormField).ThenInclude(ff => ff.FieldChoices);
 
@@ -324,7 +343,8 @@ namespace BioDivCollector.Connector.Controllers
                             source = origFormField.Source,
                             order = field.Order,
                             mandatory = origFormField.Mandatory,
-                            useInRecordTitle = field.UseInRecordTitle
+                            useInRecordTitle = field.UseInRecordTitle,
+                            standardValue = field.StandardValue
                         };
                         foreach (FieldChoice choice in origFormField.FieldChoices.OrderBy(fc => fc.Order))
                         {
@@ -335,7 +355,15 @@ namespace BioDivCollector.Connector.Controllers
                                 order = choice.Order
                             };
 
-                            fieldDto.fieldChoices.Add(choiceDto);
+                            // split by | for different value and text
+                            if (choice.Text.Contains("|"))
+                            {
+                                choiceDto.text = choice.Text.Split("|")[1].TrimStart(' ');
+                            }
+
+                            // if not hidden, add it to the choice-list
+                            if (!field.HiddenFieldChoices.Where(m=>m.FormField == field && m.FieldChoice == choice).Any())
+                                fieldDto.fieldChoices.Add(choiceDto);
                         }
 
                         formDto.formFields.Add(fieldDto);
@@ -355,7 +383,7 @@ namespace BioDivCollector.Connector.Controllers
         /// <param name="records"></param>
         /// <param name="userName"></param>
         /// <returns></returns>
-        private List<RecordDTO> Records2Dto(IQueryable<Record> records, string userName, DateTime? startDateTime)
+        private List<RecordDTO> Records2Dto(IQueryable<Record> records, string userName, DateTime? startDateTime, int version = 0)
         {
             List<RecordDTO> recordDtos = new List<RecordDTO>();
 
@@ -403,6 +431,13 @@ namespace BioDivCollector.Connector.Controllers
                         formFieldId = text.FormField?.FormFieldId,
                         fieldChoiceId = text.FieldChoice?.FieldChoiceId
                     };
+
+                    // check if fieldchoice is in format value|label -> use label as text
+                    if ((text.FieldChoice!=null) && (text.FieldChoice.Text.Contains("|")))
+                    {
+                        textDto.value = text.FieldChoice.Text.Split("|")[1].TrimStart(' ');
+                    }
+
                     recDto.texts.Add(textDto);
                 }
                 foreach (NumericData numeric in rec.NumericData)
@@ -426,6 +461,18 @@ namespace BioDivCollector.Connector.Controllers
                         formFieldId = booleanData.FormField?.FormFieldId
                     };
                     recDto.booleans.Add(booleanDto);
+                }
+                if (version >= 3)
+                {
+                    foreach (BinaryData binaryData in rec.BinaryData)
+                    {
+                        BinaryDataDTO binaryDTO = new BinaryDataDTO()
+                        {
+                            binaryId = binaryData.Id,
+                            formFieldId = binaryData.FormField?.FormFieldId
+                        };
+                        recDto.binaries.Add(binaryDTO);
+                    }
                 }
 
                 recordDtos.Add(recDto);
@@ -492,9 +539,6 @@ namespace BioDivCollector.Connector.Controllers
 
             try
             {
-
-
-
                 //Check the user and the project
                 var checkResult = await this.CheckUserProjectValid(projectDtoId);
                 userName = checkResult.Item2;   //save userName
@@ -1015,6 +1059,7 @@ namespace BioDivCollector.Connector.Controllers
                     .Include(r => r.TextData)
                     .Include(r => r.NumericData)
                     .Include(r => r.BooleanData)
+                    .Include(r => r.BinaryData)
                     .Where(r => r.RecordId == updateGuid).SingleOrDefaultAsync();
 
                 if (record == null)
@@ -1101,23 +1146,63 @@ namespace BioDivCollector.Connector.Controllers
 
                     }
 
-                    if (iamgod) //DANGER ZONE
+                    if (iamgod) //DANGER ZONE                   //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ACTIVATE DB CHANGES <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     {
                         _context.TextData.RemoveRange(record.TextData);
                         _context.NumericData.RemoveRange(record.NumericData);
                         _context.BooleanData.RemoveRange(record.BooleanData);
-                        await _context.SaveChangesAsync(); //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ACTIVATE DB CHANGES <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+                        _context.Entry(record).State = EntityState.Modified;
+                        await _context.SaveChangesAsync();
+
+                        record.TextData.Clear();
+                        record.NumericData.Clear();
+                        record.BooleanData.Clear();
+
+                        //Special treatement for binary to keep the objectstorages
+                        var oldBinaryList = record.BinaryData.Select(b => b.Id).ToList();
+                        var newBinaryList = recordDto.binaries.Select(b => b.binaryId).ToList();
+
+                        var oldBinaryToRemove = oldBinaryList.Except(newBinaryList);
+                        foreach (Guid binaryId in oldBinaryToRemove)
+                        {
+                            var binary = record.BinaryData.Single(b => b.Id == binaryId);
+                            var objectStorageId = binary.ValueId;
+
+                            if (await _context.ObjectStorage.CountAsync(o => o.ObjectStorageId == objectStorageId) > 1)
+                            {
+                                //no deletion of object storage because another binary data references it
+                            }
+                            else
+                            {
+                                var rc = await _binaryController.DeleteContentAsync(binaryId, ((ClaimsIdentity)User.Identity).FindFirst("preferred_username").Value);
+                            }
+                            _context.BinaryData.Remove(binary);
+                            _context.Entry(binary).State = EntityState.Deleted;
+
+                            record.BinaryData.Remove(binary);
+                        }
                     }
                     else
                     {
                         record.TextData.Clear();
                         record.NumericData.Clear();
                         record.BooleanData.Clear();
+                        record.BinaryData.Clear();
                     }
 
                     foreach (TextDataDTO textDto in recordDto.texts)            //TextData
                     {
                         TextData newText = textDto.Dto2Model();
+                        // Is FieldChoice of type value|label ? Then replace label with value to store only value into db
+                        if (newText.FieldChoiceId != null)
+                        {
+                            FieldChoice fc = await _context.FieldChoices.FindAsync(newText.FieldChoiceId);
+                            if ((fc != null) && (fc.Text.Contains("|")))
+                            {
+                                newText.Value = fc.Text.Split('|')[0].TrimEnd(' ');
+                            }
+                        }
                         record.TextData.Add(newText);                           //Add new data to record
                     }
 
@@ -1131,6 +1216,22 @@ namespace BioDivCollector.Connector.Controllers
                     {
                         BooleanData newBoolean = booleanDto.Dto2Model();
                         record.BooleanData.Add(newBoolean);                     //Add new data to record
+                    }
+
+                    foreach (BinaryDataDTO binaryDto in recordDto.binaries)         //BinaryData
+                    {
+                        BinaryData newBinary = binaryDto.Dto2Model();
+                        BinaryData oldBinary = record.BinaryData.SingleOrDefault(b => b.Id == binaryDto.binaryId);
+
+                        if (oldBinary != null)
+                        {
+                            newBinary.ValueId = oldBinary?.ValueId;                 //Link old object storage
+                            record.BinaryData.Remove(oldBinary);                    //remove old data
+                            if (iamgod) _context.Entry(oldBinary).State = EntityState.Deleted;
+                        }
+
+                        record.BinaryData.Add(newBinary);                           //Add new data to record
+                        if (iamgod) _context.Entry(newBinary).State = EntityState.Added;
                     }
 
                     if (recordDto.timestamp > recordDto.creationTime)
@@ -1147,7 +1248,7 @@ namespace BioDivCollector.Connector.Controllers
                         record.RecordChangeLogs.Add(changeLogRec);
                     }
 
-                    updateInfo += $"txt:{record.TextData.Count}, num:{record.NumericData.Count}, bool:{record.BooleanData.Count}";
+                    updateInfo += $"txt:{record.TextData.Count}, num:{record.NumericData.Count}, bool:{record.BooleanData.Count}, binary:{record.BinaryData.Count}";
                     if (hasNewParent)
                         updateInfo += $", newParentGeometry: {record.GeometryId}";
 
@@ -1231,6 +1332,17 @@ namespace BioDivCollector.Connector.Controllers
                     foreach (TextDataDTO textDto in recordDto.texts)            //TextData
                     {
                         TextData newText = textDto.Dto2Model();
+
+                        // Is FieldChoice of type value|label ? Then replace label with value to store only value into db
+                        if (newText.FieldChoiceId != null)
+                        {
+                            FieldChoice fc = await _context.FieldChoices.FindAsync(newText.FieldChoiceId);
+                            if ((fc != null) && (fc.Text.Contains("|")))
+                            {
+                                newText.Value = fc.Text.Split('|')[0].TrimEnd(' ');
+                            }
+                        }
+
                         newRec.TextData.Add(newText);
                     }
                     foreach (NumericDataDTO numericDto in recordDto.numerics)   //NumericData
@@ -1242,6 +1354,11 @@ namespace BioDivCollector.Connector.Controllers
                     {
                         BooleanData newBoolean = booleanDto.Dto2Model();
                         newRec.BooleanData.Add(newBoolean);
+                    }
+                    foreach (BinaryDataDTO binaryDTO in recordDto.binaries)   //BooleanData
+                    {
+                        BinaryData newBinary = binaryDTO.Dto2Model();
+                        newRec.BinaryData.Add(newBinary);
                     }
 
                     ChangeLogRecord changeLogRec = new ChangeLogRecord()    //create change logs: Create
@@ -1270,7 +1387,7 @@ namespace BioDivCollector.Connector.Controllers
 
                     _context.Records.Add(newRec);
 
-                    createInfo += $"txt:{newRec.TextData.Count}, num:{newRec.NumericData.Count}, bool:{newRec.BooleanData.Count}";
+                    createInfo += $"txt:{newRec.TextData.Count}, num:{newRec.NumericData.Count}, bool:{newRec.BooleanData.Count}, binary:{newRec.BinaryData.Count}";
 
                     recSyncDto.created.Add(createGuid, createInfo);
                 }

@@ -1,19 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using AspNetCore;
 using BioDivCollector.DB.Models.Domain;
 using BioDivCollector.WebApp.Helpers;
+using FormFactory;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RestSharp;
+using RunProcessAsTask;
 
 namespace BioDivCollector.WebApp.Controllers
 {
@@ -60,11 +67,139 @@ namespace BioDivCollector.WebApp.Controllers
 
         }
 
-        /// <summary>
-        /// Shows a table with all form fields and Id's for the wfs
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IActionResult> LookupTable()
+        public async Task<IActionResult> EditBigFields(int id)
+        {
+            if ((!User.IsInRole("DM")) && (!User.IsInRole("PL")) && (!User.IsInRole("PK"))) return RedirectToAction("NotAllowed", "Home");
+
+
+            FormField ff = await db.FormFields.Include(m => m.FieldChoices)
+                .Include(m=>m.PublicMotherFormField).ThenInclude(zz=>zz.FieldChoices)              
+                .Where(m => m.FormFieldId == id).FirstOrDefaultAsync();
+
+            await db.Entry(ff).Collection(m => m.HiddenFieldChoices).LoadAsync();
+
+            List<BigFieldChoice> bfcs = new List<BigFieldChoice>();
+            foreach (FieldChoice fc in ff.FieldChoices)
+            {
+                BigFieldChoice bfc = new BigFieldChoice() { FieldChoice = fc, isHidden = true };
+                if (ff.HiddenFieldChoices.Where(m => m.FormField == ff && m.FieldChoice == fc).Any()) bfc.isHidden = false;
+                bfcs.Add(bfc);
+            }
+            if (ff.PublicMotherFormField != null)
+            {
+                foreach (FieldChoice fc in ff.PublicMotherFormField?.FieldChoices)
+                {
+                    BigFieldChoice bfc = new BigFieldChoice() { FieldChoice = fc, isHidden = true };
+                    if (ff.HiddenFieldChoices.Where(m => m.FormField == ff && m.FieldChoice == fc).Any()) bfc.isHidden = false;
+                    bfcs.Add(bfc);
+                }
+            }
+            User user = Helpers.UserHelper.GetCurrentUser(User, db);
+            ViewData["readonly"] = false;
+
+            FormFormField firstFormFormField = await db.FormsFormFields.
+                    Include(m => m.Form).ThenInclude(cl => cl.FormChangeLogs).ThenInclude(fcl => fcl.ChangeLog).ThenInclude(xx => xx.User)
+                    .Where(m => m.FormFieldId == ff.FormFieldId).FirstOrDefaultAsync();
+            if ((firstFormFormField != null) && (firstFormFormField.Form.FormChangeLogs != null) && (firstFormFormField.Form.FormChangeLogs.Count > 0))
+            {
+                if (firstFormFormField.Form.FormChangeLogs[0].ChangeLog.User.UserId != user.UserId) ViewData["readonly"] = true;
+
+            }
+
+            if (User.IsInRole("DM")) ViewData["readonly"] = false;
+
+            ViewData["FormFieldId"] = ff.FormFieldId;
+            return View(bfcs);
+
+        }
+
+        public async Task<IActionResult> EditBigFieldsState(int id, int fieldchoice, bool state)
+        {
+            HiddenFieldChoice hfc = await db.HiddenFieldChoices.Where(m => m.FormField.FormFieldId == id && m.FieldChoice.FieldChoiceId == fieldchoice).FirstOrDefaultAsync();
+            if ((hfc == null) && (state==false))
+            {
+                FormField ff = await db.FormFields.FindAsync(id);
+                FieldChoice fc = await db.FieldChoices.FindAsync(fieldchoice);
+
+                hfc = new HiddenFieldChoice() { FormField = ff, FieldChoice = fc };
+                db.HiddenFieldChoices.Add(hfc);
+                db.Entry(hfc).State = EntityState.Added;
+            }
+            else if ((hfc != null) && (state==true))
+            {
+                db.HiddenFieldChoices.Remove(hfc);
+                db.Entry(hfc).State = EntityState.Deleted;
+            }
+
+            await db.SaveChangesAsync();
+            return Content("OK");
+
+
+        }
+
+        public async Task<IActionResult> EditBigFieldsText(int id, int fieldchoice, string text)
+        {
+            
+            FieldChoice fc = await db.FieldChoices.FindAsync(fieldchoice);
+
+            fc.Text = text;
+            db.Entry(fc).State = EntityState.Modified;
+            
+
+            await db.SaveChangesAsync();
+            return Content("OK");
+        }
+
+        public async Task<IActionResult> EditBigFieldsOrder(int id, int fieldchoice, int order)
+        {
+
+            FieldChoice fc = await db.FieldChoices.FindAsync(fieldchoice);
+
+            fc.Order = order;
+            db.Entry(fc).State = EntityState.Modified;
+
+
+            await db.SaveChangesAsync();
+            return Content("OK");
+        }
+
+        public async Task<IActionResult> EditBigFieldsRemove(int id, int fieldchoice)
+        {
+
+            FieldChoice fc = await db.FieldChoices.Include(m=>m.HiddenFieldChoices).Where(m=>m.FieldChoiceId==fieldchoice).FirstOrDefaultAsync();
+
+            HiddenFieldChoice hfc = await db.HiddenFieldChoices.Where(m => m.FormField.FormFieldId == id && m.FieldChoice.FieldChoiceId == fieldchoice).FirstOrDefaultAsync();
+            if (hfc != null) 
+            {
+                fc.HiddenFieldChoices.Remove(hfc);
+                db.HiddenFieldChoices.Remove(hfc);
+                db.Entry(hfc).State = EntityState.Deleted;
+            } 
+            db.FieldChoices.Remove(fc);
+            db.Entry(fc).State = EntityState.Deleted;
+
+
+            await db.SaveChangesAsync();
+            return RedirectToAction("EditBigFields", new { @id = id });
+        }
+
+        public async Task<IActionResult> EditBigFieldsAdd(int id, string text)
+        {
+            FormField ff = await db.FormFields.FindAsync(id);
+            FieldChoice fc = new FieldChoice() { FormField = ff, Text = text };
+            if (ff.FieldChoices != null) fc.Order = ff.FieldChoices.Count();
+            else ff.FieldChoices = new List<FieldChoice>();
+
+            ff.FieldChoices.Add(fc);
+
+            db.Entry(ff).State = EntityState.Modified;
+
+
+            await db.SaveChangesAsync();
+            return RedirectToAction("EditBigFields", new { @id = id });
+        }
+
+        private async Task<List<LookupTableViewModel>> CreateLookupTableViewModel()
         {
             List<FormField> formFields = await db.FormFields.Include(m => m.FormFieldForms).ThenInclude(m => m.Form).ToListAsync();
 
@@ -76,7 +211,7 @@ namespace BioDivCollector.WebApp.Controllers
                 ltvm.UsedInForms.AddRange(ff.FormFieldForms?.Select(m => m.Form));
 
                 // formfield is public mother, so add all children formfields-forms
-                if ((ff.Public==true) && (ff.PublicMotherFormFieldFormFieldId==null))
+                if ((ff.Public == true) && (ff.PublicMotherFormFieldFormFieldId == null))
                 {
                     List<FormField> children = await db.FormFields.Where(m => m.PublicMotherFormFieldFormFieldId == ff.FormFieldId).ToListAsync();
                     foreach (FormField child in children)
@@ -88,7 +223,66 @@ namespace BioDivCollector.WebApp.Controllers
                 ltvms.Add(ltvm);
             }
 
-            return View(ltvms);
+            return ltvms;
+        }
+
+
+        /// <summary>
+        /// Shows a table with all form fields and Id's for the wfs
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> LookupTable()
+        {
+            return View(await CreateLookupTableViewModel());
+        }
+
+        /// <summary>
+        /// Exports a QGIS QML Attribute table with the alias for all wfs fields
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> ExportQGISQmlAttributeTable()
+        {
+            List<LookupTableViewModel> ltvms = await CreateLookupTableViewModel();
+
+            var stream = new MemoryStream();
+            using (var writeFile = new StreamWriter(stream, encoding: System.Text.Encoding.UTF8, leaveOpen: true))
+            {
+                writeFile.WriteLine("<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>");
+                writeFile.WriteLine("<qgis version=\"3.16.4-Hannover\" styleCategories=\"Fields\">");
+                writeFile.WriteLine("  <aliases>");
+                writeFile.WriteLine("    <alias field=\"bdcguid_projekt\" index=\"0\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"projekt_id_extern\" index=\"1\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"projektname\" index=\"2\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"bdcguid_geometrie\" index=\"3\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"geometriename\" index=\"4\" name=\"\"/>");
+                writeFile.WriteLine("    <alias field=\"bdcguid_beobachtung\" index=\"5\" name=\"\"/>");
+
+                int index = 6;
+
+                foreach (LookupTableViewModel ltvm in ltvms)
+                {
+                    string id = "";
+                    if ((ltvm.FormField.Public == true) && (ltvm.FormField.PublicMotherFormField == null))
+                    {
+                        id = "a_" + ltvm.FormField.FormFieldId;
+                    }
+                    else if (ltvm.FormField.Public == false)
+                    {
+                        id = "f_" + ltvm.FormField.FormFieldId;
+                    }
+
+
+                    writeFile.WriteLine("    <alias field=\"" + id + "\" index=\"" + index + "\" name=\"" + ltvm.FormField.Title.Replace("<br>","").Replace("<","").Replace(">","") + "\"/>");
+                    index++;
+
+                }
+                writeFile.WriteLine("  </aliases>");
+                writeFile.WriteLine("</qgis>");
+
+            }
+            stream.Position = 0; //reset stream
+            return File(stream, "application/octet-stream", "style.qml");
+
         }
 
         public async Task<IActionResult> Create(string name)
@@ -113,6 +307,7 @@ namespace BioDivCollector.WebApp.Controllers
             if ((!User.IsInRole("PK")) && (!User.IsInRole("PL")) && (!User.IsInRole("DM"))) return RedirectToAction("NotAllowed", "Home");
 
             Form origForm = await db.Forms.Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(f => f.FieldChoices)
+                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(f => f.HiddenFieldChoices)
                 .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).ThenInclude(mo => mo.FieldChoices)
                 .Where(m => m.FormId == id).FirstOrDefaultAsync();
             if (origForm == null) return StatusCode(500);
@@ -160,6 +355,7 @@ namespace BioDivCollector.WebApp.Controllers
                     if (fff.FormField.FieldTypeId == FieldTypeEnum.Choice)
                     {
                         ff2.FieldChoices = new List<FieldChoice>();
+
                         foreach (FieldChoice fc in fff.FormField.FieldChoices)
                         {
                             FieldChoice newChoice = new FieldChoice() { FormField = ff2, Order = fc.Order, Text = fc.Text };
@@ -397,7 +593,9 @@ namespace BioDivCollector.WebApp.Controllers
                 fps.Add(fp);
             }
 
-            Form f = db.Forms.Find(id);
+            Form f = await db.Forms.
+                Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m=>m.FieldChoices)
+                .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).Where(m => m.FormId == id).FirstOrDefaultAsync();
             if (f == null) return NotFound();
             if (fps.Where(m => m.Form.FormId == f.FormId && m.Editable == true).Count() == 0) return RedirectToAction("NotAllowed", "Home");
 
@@ -407,6 +605,8 @@ namespace BioDivCollector.WebApp.Controllers
             List<FormFieldPoco> pffps = new List<FormFieldPoco>();
             foreach (FormField ff in ffs.OrderBy(m => m.Title))
             {
+                await db.Entry(ff).Collection(m => m.HiddenFieldChoices).LoadAsync();
+
                 FormFieldPoco pffp = CreateFormFieldPocosFormField(ff);
                 // get first Form -> This is the owner
                 FormFormField firstFormFormField = await db.FormsFormFields.
@@ -422,6 +622,7 @@ namespace BioDivCollector.WebApp.Controllers
 
                 pffps.Add(pffp);
             }
+
             string json = JsonConvert.SerializeObject(pffps);
             ViewData["PublicFormFields"] = json;
 
@@ -432,14 +633,14 @@ namespace BioDivCollector.WebApp.Controllers
             return View(f);
         }
 
-        private FormFieldPoco CreateFormFieldPocosFormField(FormField ff)
+        private FormFieldPoco CreateFormFieldPocosFormField(FormField ff, FormField origFormField = null)
         {
 
 
 
             if (ff.FieldTypeId == FieldTypeEnum.Text)
             {
-                FormFieldPoco ffp = new FormFieldPoco() { type = "text", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
+                FormFieldPoco ffp = new FormFieldPoco() { type = "text", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public, value = ff.StandardValue };
                 return ffp;
             }
             else if (ff.FieldTypeId == FieldTypeEnum.DateTime)
@@ -447,16 +648,43 @@ namespace BioDivCollector.WebApp.Controllers
                 FormFieldPoco ffp = new FormFieldPoco() { type = "date", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
                 return ffp;
             }
+            else if (ff.FieldTypeId == FieldTypeEnum.Binary)
+            {
+                FormFieldPoco ffp = new FormFieldPoco() { type = "file", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle,/* ispublic = ff.Public*/ };
+                return ffp;
+            }
             else if (ff.FieldTypeId == FieldTypeEnum.Choice)
             {
                 FormFieldPoco ffp = new FormFieldPoco() { type = "select", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
 
                 List<OptionsPoco> values = new List<OptionsPoco>();
-                foreach (FieldChoice fc in ff.FieldChoices.OrderBy(m => m.Order))
+
+                if (ff.FieldChoices.Count < 50)
                 {
-                    OptionsPoco op = new OptionsPoco() { label = fc.Text, value = fc.FieldChoiceId.ToString() };
+
+                    foreach (FieldChoice fc in ff.FieldChoices.OrderBy(m => m.Order))
+                    {
+                        OptionsPoco op = new OptionsPoco() { label = fc.Text, value = fc.FieldChoiceId.ToString() };
+                        if ((origFormField != null))
+                        {
+                            if (!origFormField.HiddenFieldChoices.Where(m => m.FormField == origFormField && m.FieldChoice == fc).Any()) op.visible = true;
+                            else op.visible = false;
+                        }
+                        else
+                        {
+                            if (!ff.HiddenFieldChoices.Where(m => m.FormField == origFormField && m.FieldChoice == fc).Any()) op.visible = true;
+                            else op.visible = false;
+                        }
+                        values.Add(op);
+                    }
+
+                }
+                else
+                {
+                    OptionsPoco op = new OptionsPoco() { label = "Zu viele Einträge in Liste. Bitte separat editieren", value = "0", visible=true };
                     values.Add(op);
                 }
+
                 ffp.values = values;
                 return ffp;
             }
@@ -471,16 +699,21 @@ namespace BioDivCollector.WebApp.Controllers
 
                 return ffp;
             }
-
+            else if (ff.FieldTypeId == FieldTypeEnum.Header)
+            {
+                FormFieldPoco ffp = new FormFieldPoco() { type = "header", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
+                return ffp;
+            }
             return null;
 
         }
 
         public async Task<IActionResult> CreateFormBuilderJson(int id)
         {
-            Form form = await db.Forms.Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.FieldChoices)
+            Form form = await db.Forms.Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
+                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
                 .Include(m=>m.FormChangeLogs).ThenInclude(m=>m.ChangeLog).ThenInclude(m=>m.User)
-                .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).ThenInclude(mo => mo.FieldChoices)
+                .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo=>mo.PublicMotherFormField)
                 .Where(m => m.FormId == id).FirstOrDefaultAsync();
             if (form == null) return NotFound();
 
@@ -489,9 +722,19 @@ namespace BioDivCollector.WebApp.Controllers
             List<FormFieldPoco> ffps = new List<FormFieldPoco>();
             foreach (FormField ff in form.FormFormFields.Select(fff => fff.FormField).OrderBy(m => m.Order))
             {
+                if (ff.FieldTypeId == FieldTypeEnum.Choice)
+                {
+                    await db.Entry(ff).Collection(m => m.HiddenFieldChoices).LoadAsync();
+                    await db.Entry(ff).Collection(m => m.FieldChoices).LoadAsync();
+                }
+
                 if (ff.PublicMotherFormField != null)
                 {
-                    FormFieldPoco ffp = CreateFormFieldPocosFormField(ff.PublicMotherFormField);
+                    if (ff.FieldTypeId == FieldTypeEnum.Choice)
+                    {
+                        await db.Entry(ff.PublicMotherFormField).Collection(m => m.FieldChoices).LoadAsync();
+                    }
+                    FormFieldPoco ffp = CreateFormFieldPocosFormField(ff.PublicMotherFormField, ff);
                     ffp.name = ff.FormFieldId.ToString();
                     ffp.mandatory = ff.Mandatory;
                     ffp.useinrecordtitle = ff.UseInRecordTitle;
@@ -541,6 +784,7 @@ namespace BioDivCollector.WebApp.Controllers
 
             Form form = await db.Forms.
                 Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.FieldChoices)
+                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField).ThenInclude(m => m.HiddenFieldChoices)
                 .Include(mother => mother.FormFormFields).ThenInclude(mo => mo.FormField).ThenInclude(mo => mo.PublicMotherFormField).ThenInclude(mo => mo.FieldChoices).Where(m => m.FormId == data.id).FirstOrDefaultAsync();
             if (form == null) return NotFound();
 
@@ -590,6 +834,7 @@ namespace BioDivCollector.WebApp.Controllers
                         ff.Mandatory = ffp.mandatory;
                         ff.UseInRecordTitle = ffp.useinrecordtitle;
                         ff.Public = ffp.ispublic;
+                        ff.StandardValue = ffp.value;
                         db.Entry(ff).State = EntityState.Modified;
                     }
                 }
@@ -614,52 +859,78 @@ namespace BioDivCollector.WebApp.Controllers
                     FormField origFormField = ff;
                     if (ff.PublicMotherFormField != null) origFormField = ff.PublicMotherFormField;
 
-                    foreach (OptionsPoco op in ffp.values)
+                    if (origFormField.FieldChoices == null) origFormField.FieldChoices = new List<FieldChoice>();
+
+                    if (origFormField.FieldChoices.Count < 50)
                     {
-                        try
+                        foreach (OptionsPoco op in ffp.values)
                         {
-                            FieldChoice alreadyFieldChoiceExist = origFormField.FieldChoices?.Where(m => m.Text == op.label).FirstOrDefault();
-                            if (alreadyFieldChoiceExist != null)
+                            try
                             {
-                                if (alreadyFieldChoiceExist.Order != i) alreadyFieldChoiceExist.Order = i;
-                                if (alreadyFieldChoiceExist.Text != op.label) alreadyFieldChoiceExist.Text = op.label;
+                                FieldChoice alreadyFieldChoiceExist = origFormField.FieldChoices?.Where(m => m.Text == op.label).FirstOrDefault();
+                                if (alreadyFieldChoiceExist != null)
+                                {
+                                    if (alreadyFieldChoiceExist.Order != i) alreadyFieldChoiceExist.Order = i;
+                                    if (alreadyFieldChoiceExist.Text != op.label) alreadyFieldChoiceExist.Text = op.label;
 
-                                usedFieldChoices.Add(alreadyFieldChoiceExist);
-                                db.Entry(alreadyFieldChoiceExist).State = EntityState.Modified;
+                                    usedFieldChoices.Add(alreadyFieldChoiceExist);
+                                    db.Entry(alreadyFieldChoiceExist).State = EntityState.Modified;
+
+                                    // set visibility: visible -> no entry in hidden
+                                    if (op.visible && ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff).Any())
+                                        db.HiddenFieldChoices.RemoveRange(ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff));
+                                    else if (!op.visible && !ff.HiddenFieldChoices.Where(m => m.FieldChoice == alreadyFieldChoiceExist && m.FormField == ff).Any())
+                                    {
+                                        HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = alreadyFieldChoiceExist, FormField = ff };
+                                        db.HiddenFieldChoices.Add(hfc);
+                                    }
+                                }
+                                else
+                                {
+                                    FieldChoice newFieldChoice = new FieldChoice() { Text = op.label, FormField = ff, Order = i };
+                                    if (ff.FieldChoices == null) origFormField.FieldChoices = new List<FieldChoice>();
+                                    ff.FieldChoices.Add(newFieldChoice);
+                                    db.FieldChoices.Add(newFieldChoice);
+                                    usedFieldChoices.Add(newFieldChoice);
+                                    db.Entry(newFieldChoice).State = EntityState.Added;
+
+                                    // set visibility: visible -> no entry in hidden
+                                    
+                                    // disable for the first entry
+                                    
+                                    /*if (!op.visible)
+                                    {
+                                        HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = newFieldChoice, FormField = ff };
+                                        db.HiddenFieldChoices.Add(hfc);
+                                    }*/
+
+                                }
                             }
-                            else
+                            catch (Exception e)
                             {
-                                FieldChoice newFieldChoice = new FieldChoice() { Text = op.label, FormField = ff, Order = i };
-                                if (ff.FieldChoices == null) origFormField.FieldChoices = new List<FieldChoice>();
-                                ff.FieldChoices.Add(newFieldChoice);
-                                db.FieldChoices.Add(newFieldChoice);
-                                usedFieldChoices.Add(newFieldChoice);
-                                db.Entry(newFieldChoice).State = EntityState.Added;
+                                // could not parse value
                             }
+                            i++;
+
                         }
-                        catch (Exception e)
+
+                        await db.SaveChangesAsync();
+                        // delete not used FieldChoices
+                        List<FieldChoice> toRemoveFieldChoices = origFormField.FieldChoices?.Where(m => usedFieldChoices.All(m2 => m2.FieldChoiceId != m.FieldChoiceId)).ToList();
+                        foreach (FieldChoice toRemoveFC in toRemoveFieldChoices)
                         {
-                            // could not parse value
+                            // delete all references in textdata
+                            List<TextData> referenzeTextDatas = await db.TextData.Where(m => m.FieldChoiceId == toRemoveFC.FieldChoiceId).ToListAsync();
+                            foreach (TextData td in referenzeTextDatas)
+                            {
+                                td.FieldChoice = null;
+                                db.Entry(td).State = EntityState.Modified;
+                            }
+
+
+                            db.FieldChoices.Remove(toRemoveFC);
+                            db.Entry(toRemoveFC).State = EntityState.Deleted;
                         }
-                        i++;
-
-                    }
-                    await db.SaveChangesAsync();
-                    // delete not used FieldChoices
-                    List<FieldChoice> toRemoveFieldChoices = origFormField.FieldChoices?.Where(m => usedFieldChoices.All(m2 => m2.FieldChoiceId != m.FieldChoiceId)).ToList();
-                    foreach (FieldChoice toRemoveFC in toRemoveFieldChoices)
-                    {
-                        // delete all references in textdata
-                        List<TextData> referenzeTextDatas = await db.TextData.Where(m => m.FieldChoiceId == toRemoveFC.FieldChoiceId).ToListAsync();
-                        foreach (TextData td in referenzeTextDatas)
-                        {
-                            td.FieldChoice = null;
-                            db.Entry(td).State = EntityState.Modified;
-                        }
-
-
-                        db.FieldChoices.Remove(toRemoveFC);
-                        db.Entry(toRemoveFC).State = EntityState.Deleted;
                     }
 
                 }
@@ -717,10 +988,16 @@ namespace BioDivCollector.WebApp.Controllers
             string sqlCreateViews1 = "CREATE OR REPLACE VIEW public.{prefix}_{ogd}{geometry}_view " +
                                         "AS SELECT p.projectid as \"bdcguid_projekt\", p.id_extern as \"projekt_id_extern\", " +
                                         "p.projectname as \"projektname\", " +
+                                        "p.description AS \"beschreibung\", " +
+                                        "p2.description AS \"status\", " +
+                                        "thirdparty.name as \"extprogramme\"," +
                                         "g.geometryid as \"bdcguid_geometrie\", " +
                                         "g.geometryname as \"geometriename\", " +
                                         "g.{geometry}, " +
-                                        "case when r2.recordid is null then uuid_generate_v4() else r2.recordid end AS \"bdcguid_beobachtung\", ";
+                                        "case when r2.recordid is null then uuid_generate_v4() else r2.recordid end AS \"bdcguid_beobachtung\", " +
+                                        "r2.groupid as \"group_id\", "+
+                                        "getrecordchangelogdate(r2.recordid) as changedate, " +
+                                        "getrecordchangeloguser(r2.recordid) as changeuser, ";
             sqlCreateViews1 = sqlCreateViews1.Replace("{prefix}", prefix);
 
             if (prefix == "wfs") prefix = "";
@@ -729,19 +1006,32 @@ namespace BioDivCollector.WebApp.Controllers
             string sqlCreateViewsGeneral = "CREATE OR REPLACE VIEW public.{prefix}records_without_geometries " +
                                         "AS SELECT p.projectid as \"bdcguid_projekt\", p.id_extern as \"projekt_id_extern\", " +
                                         "p.projectname as \"projektname\", " +
+                                        "p.description AS \"beschreibung\", " +
+                                        "p2.description AS \"status\", " +
+                                        "thirdparty.name as \"extprogramme\"," +
+                                        "r2.geometryid as \"bdcguid_geometrie\", " +
+                                        "NULL as \"geometriename\", " +
+                                        "'POINT EMPTY'::geometry, " +
                                         "r2.recordid as \"bdcguid_beobachtung\", " +
-                                        "r2.geometryid as \"bdcguid_geometrie\", ";
+                                        "r2.groupid as \"group_id\", " +
+                                        "getrecordchangelogdate(r2.recordid) as changedate, " +
+                                        "getrecordchangeloguser(r2.recordid) as changeuser, ";
+                                        
             sqlCreateViewsGeneral = sqlCreateViewsGeneral.Replace("{prefix}", prefix);
 
             string sqlCreateViews2 = "FROM projects p " +
+                                        "INNER JOIN projectstatuses p2 on p2.id = p.projectstatusid " +
                                         "LEFT JOIN geometries g ON g.projectid = p.projectid " +
-                                        "LEFT JOIN records r2 ON r2.geometryid = g.geometryid " +
-                                        "WHERE p.statusid <> 3 AND g.statusid <> 3 AND g.{geometry} IS NOT NULL AND (r2.statusid <> 3 or r2.statusid is null) {ogd_true}" +
+                                        "LEFT JOIN (select * from records where statusid <> 3) r2 ON r2.geometryid = g.geometryid " +
+                                        "LEFT JOIN (select p.projectid, string_agg(name::text, ';') as name from projectsthirdpartytools p inner join thirdpartytools t ON (t.thirdpartytoolid = p.thirdpartytoolid) group by p.projectid) as thirdparty ON thirdparty.projectid = p.projectid " +
+                                        "WHERE p.statusid <> 3 AND g.statusid <> 3 AND g.{geometry} IS NOT NULL {ogd_true}" +
                                         "ORDER BY g.geometryname; ";
 
             string sqlCreateViewsGeneral2 = "FROM projects p " +
-                                        "LEFT JOIN records r2 ON r2.projectid = p.projectid " +
-                                        "WHERE p.statusid <> 3 AND (r2.statusid <> 3 or r2.statusid is null) and r2.groupid is not null {ogd_true};";
+                                        "INNER JOIN projectstatuses p2 on p2.id = p.projectstatusid " +
+                                        "LEFT JOIN (select * from records where statusid <> 3) r2 ON r2.projectid = p.projectid " +
+                                        "LEFT JOIN (select p.projectid, string_agg(name::text, ';') as name from projectsthirdpartytools p inner join thirdpartytools t ON (t.thirdpartytoolid = p.thirdpartytoolid) group by p.projectid) as thirdparty ON thirdparty.projectid = p.projectid " +
+                                        "WHERE p.statusid <> 3 and r2.groupid is not null {ogd_true};";
 
             string sqlGeometrieView = sqlCreateViews1;
             string sqlGeneralView = sqlCreateViewsGeneral;
@@ -802,6 +1092,11 @@ namespace BioDivCollector.WebApp.Controllers
                     sqlGeometrieView += "getrecordnumber(r2.recordid, '" + ffnfv.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
                     sqlGeneralView += "getrecordnumber(r2.recordid, '" + ffnfv.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
                 }
+                else if (ffnfv.FormField.FieldTypeId == FieldTypeEnum.Number)
+                {
+                    sqlGeometrieView += "getrecordbinary(r2.recordid, '" + ffnfv.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
+                    sqlGeneralView += "getrecordbinary(r2.recordid, '" + ffnfv.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
+                }
             }
 
 
@@ -828,6 +1123,11 @@ namespace BioDivCollector.WebApp.Controllers
                             sqlGeometrieView += "getrecordnumber(r2.recordid, '" + f.Title.Replace("'", "''") + "'::text, '" + fff.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
                             sqlGeneralView += "getrecordnumber(r2.recordid, '" + f.Title.Replace("'", "''") + "'::text, '" + fff.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
                         }
+                        else if (fff.FormField.FieldTypeId == FieldTypeEnum.Binary)
+                        {
+                            sqlGeometrieView += "getrecordbinary(r2.recordid, '" + f.Title.Replace("'", "''") + "'::text, '" + fff.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
+                            sqlGeneralView += "getrecordbinary(r2.recordid, '" + f.Title.Replace("'", "''") + "'::text, '" + fff.FormField.Title.Replace("'", "''") + "'::text) AS \"" + (withNumber ? ffnfv.ShortNameWithId : ffnfv.ShortName) + "\", ";
+                        }
                     }
                 }
             }
@@ -853,6 +1153,7 @@ namespace BioDivCollector.WebApp.Controllers
             await db.Database.ExecuteSqlRawAsync(sqlPointView);
             await db.Database.ExecuteSqlRawAsync(sqlLineView);
             await db.Database.ExecuteSqlRawAsync(sqlPolygonView);
+
             if (withOgd)
             {
                 await db.Database.ExecuteSqlRawAsync(sqlOGDPointView);
@@ -860,6 +1161,16 @@ namespace BioDivCollector.WebApp.Controllers
                 await db.Database.ExecuteSqlRawAsync(sqlOGDPolygonView);
             }
             await db.Database.ExecuteSqlRawAsync(sqlGeneralView);
+            if (prefix != "")
+            {
+                string unionquery = "CREATE OR REPLACE VIEW public.{prefix}union_records " +
+                                            "AS select * from {prefix}records_without_geometries where bdcguid_geometrie is null " +
+                                            "union all select * from {prefix}point_view " +
+                                            "union all select * from {prefix}line_view " +
+                                            "union all select * from {prefix}polygon_view ";
+                unionquery = unionquery.Replace("{prefix}", prefix);
+                await db.Database.ExecuteSqlRawAsync(unionquery);
+            }
         }
 
 
@@ -906,6 +1217,7 @@ namespace BioDivCollector.WebApp.Controllers
             if (ffp.type == "text")
             {
                 ff.FieldTypeId = FieldTypeEnum.Text;
+                ff.StandardValue = ffp.value;
             }
             else if (ffp.type == "date")
             {
@@ -915,13 +1227,355 @@ namespace BioDivCollector.WebApp.Controllers
             {
                 ff.FieldTypeId = FieldTypeEnum.Choice;
             }
+            else if (ffp.type == "file")
+            {
+                ff.FieldTypeId = FieldTypeEnum.Binary;
+            }
             else if (ffp.type == "checkbox-group")
             {
                 ff.FieldTypeId = FieldTypeEnum.Boolean;
             }
-
+            else if (ffp.type == "header")
+            {
+                ff.FieldTypeId = FieldTypeEnum.Header;
+            }
             return ff;
         }
+
+
+        public async Task<IActionResult> Export()
+        {
+            List<Dictionary<int, string>> returnList = new List<Dictionary<int, string>>();
+
+            List<Form> forms = await db.Forms.Include(m => m.FormProjects).ThenInclude(fp => fp.Project)
+                .Include(m => m.FormFormFields).ThenInclude(fff => fff.FormField)
+                .Include(m => m.FormChangeLogs).ThenInclude(m => m.ChangeLog).ThenInclude(m => m.User)
+                .ToListAsync();
+
+            List<Form> fps = new List<Form>();
+
+            if (User.IsInRole("DM"))
+            {
+                foreach (Form f in forms)
+                {
+                    fps.Add(f);
+                }
+            }
+            else
+            {
+                User user = Helpers.UserHelper.GetCurrentUser(User, db);
+                foreach (Form f in forms)
+                {
+                    if (f.FormChangeLogs?.First().ChangeLog?.User == user) fps.Add(f);
+                }
+            }
+
+
+
+            List<FormField> ffs = db.FormFields.Include(m=>m.FormFieldForms).ThenInclude(m=>m.Form).Where(m=>m.FieldTypeId == FieldTypeEnum.Choice).ToList();
+            foreach (FormField ff in ffs)
+            {
+                if (ff.FormFieldForms.Where(m => fps.Contains(m.Form)).Any())
+                {
+                    Dictionary<int, string> keyValuePairs = new Dictionary<int, string>() { { ff.FormFieldId, ff.Title + "(" + ff.FormFieldForms.FirstOrDefault()?.Form.Title + ")" } };
+                    returnList.Add(keyValuePairs);
+                }
+            }
+
+            return View(returnList);
+        }
+
+        [ValidateAntiForgeryToken]
+        [HttpPost]
+        public async Task<IActionResult> Export(string fieldchoice)
+        {
+            User user = Helpers.UserHelper.GetCurrentUser(User, this.db);
+            
+            string exportf = Path.GetRandomFileName();
+            string[] fname = exportf.Split(".");
+
+            string dataDir = AppDomain.CurrentDomain.GetData("DataDirectory").ToString();
+            if (!Directory.Exists(dataDir + "//Export")) Directory.CreateDirectory(dataDir + "//Export");
+            string exportfilename = dataDir + "//Export//" + fname[0] + ".csv";
+
+
+            ProcessStartInfo psi = new ProcessStartInfo();
+            string db = Configuration["Environment:DB"];
+            string host = Configuration["Environment:DBHost"];
+            string dbuser = Configuration["Environment:DBUSer"];
+            string dbpassword = Configuration["Environment:DBPassword"];
+
+
+            psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
+            psi.WorkingDirectory = @"C:\Program Files\GDAL";
+            psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files\GDAL\gdal-data";
+            psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files\GDAL\gdal-plugins";
+            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];
+
+            psi.CreateNoWindow = false;
+            psi.UseShellExecute = false;
+
+            string pgstring = " PG:\"dbname = '" + db + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
+
+            string sql_command = @"
+select fc2.fieldchoiceid, ff.formfieldid, 'nein' as kanntexteditieren, fc2.\""text\"", fc2.\""order\"" reihenfolge, case when h.hiddenfieldchoiceid is not null then 0 else 1 end sichtbar from formfields ff 
+left outer join formfields mother on (ff.publicmotherformfieldformfieldid = mother.formfieldid)
+inner join fieldchoices fc2 on (fc2.formfieldid = mother.formfieldid) 
+left outer join hiddenfieldchoices h on (h.fieldchoiceid = fc2.fieldchoiceid and h.formfieldid = ff.formfieldid)
+where ff.formfieldid = " + fieldchoice + @"
+union
+select fc.fieldchoiceid, fc.formfieldid, 'ja', text, \""order\"" reihenfolge, case when h.hiddenfieldchoiceid is not null then 0 else 1 end sicthbar from fieldchoices fc 
+left outer join hiddenfieldchoices h on (h.fieldchoiceid = fc.fieldchoiceid and h.formfieldid = fc.formfieldid)
+where fc.\""formfieldid\"" = " + fieldchoice + @"
+order by \""reihenfolge\""
+";
+
+
+            psi.Arguments = "-f CSV " + dataDir + "//Export//" + fname[0] + ".csv " + pgstring + " -sql \""+ sql_command +"\"";
+
+            var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
+            if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.First() });
+  
+            return Json(new ExportProcess() { Filename = fname[0] + ".csv"});
+
+        }
+
+        public IActionResult Import()
+        {
+            return View();
+        }
+
+        private static Random random = new Random();
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            User user = Helpers.UserHelper.GetCurrentUser(User, this.db);
+            List<Project> erfassendeProjects = new List<Project>();
+
+            if (User.IsInRole("DM"))
+            {
+                erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(this.db, user, RoleEnum.DM); ;
+            }
+            else if (User.IsInRole("EF")) erfassendeProjects = await DB.Helpers.ProjectManager.UserProjectsAsync(this.db, user, RoleEnum.EF);
+
+            string prefix = "import_" + RandomString(4);
+
+            string dataDir = AppDomain.CurrentDomain.GetData("DataDirectory").ToString();
+            string filePath = dataDir + "\\Import\\" + file.FileName;
+            if (file.Length > 0)
+            {
+                // full path to file in temp location
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+            }
+
+            ProcessStartInfo psi = new ProcessStartInfo();
+
+            string db_conf = Configuration["Environment:DB"];
+            string host = Configuration["Environment:DBHost"];
+            string dbuser = Configuration["Environment:DBUser"];
+            string dbpassword = Configuration["Environment:DBPassword"];
+
+            string pgstring = " PG:\"dbname = '" + db_conf + "' user = '" + dbuser + "' password = '" + dbpassword + "' host = '" + host + "'\"";
+
+            psi.FileName = @"C:\Program Files\GDAL\ogr2ogr.exe";
+            psi.WorkingDirectory = @"C:\Program Files\GDAL";
+            psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files\GDAL\gdal-data";
+            psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files\GDAL\gdal-plugins";
+            psi.EnvironmentVariables["PATH"] = "C:\\Program Files\\GDAL;" + psi.EnvironmentVariables["PATH"];
+
+            psi.CreateNoWindow = false;
+            psi.UseShellExecute = false;
+
+            string format = System.IO.Path.GetExtension(filePath);
+
+            string changes = "";
+
+            
+            psi.Arguments = "-F \"PostgreSQL\" " + pgstring + " -nln \"" + prefix + "_fieldchoice\" \"" + filePath + "\" --config OGR_XLSX_HEADERS FORCE";
+            var OgrOgrResult = ProcessEx.RunAsync(psi).Result;
+            if (OgrOgrResult.ExitCode != 0) return Json(new ExportProcess() { Error = OgrOgrResult.StandardError.FirstOrDefault().ToString() + " (" + psi.Arguments + ")" });
+
+            string returnMessage = "";
+
+            // overwrite filechoices or create new
+            try
+            {
+                using (var context = new BioDivContext())
+                {
+                    using (var command = context.Database.GetDbConnection().CreateCommand())
+                    {
+                        command.CommandText = "select * from " + prefix + "_fieldchoice";
+                        command.CommandType = CommandType.Text;
+
+                        context.Database.OpenConnection();
+
+
+                        using (var result = command.ExecuteReader())
+                        {
+                            var names = Enumerable.Range(0, result.FieldCount).Select(result.GetName).ToList();
+                            int fieldchoiceid = names.IndexOf("fieldchoiceid");
+                            int formfieldid = names.IndexOf("formfieldid");
+                            int text = names.IndexOf("text");
+                            int order = names.IndexOf("reihenfolge");
+                            int visibility = names.IndexOf("sichtbar");
+
+                            FormField? lastFF = null;
+
+                            while (result.Read())
+                            {
+                                if (result[fieldchoiceid] != null)
+                                {
+                                    FieldChoice fc = null;
+                                    try
+                                    {
+                                        int newId = Int32.Parse(result.GetString(fieldchoiceid));
+                                        fc = db.FieldChoices.Include(m => m.FormField).ThenInclude(m=>m.HiddenFieldChoices).Where(m => m.FieldChoiceId == newId).FirstOrDefault();
+                                        string content = result.GetString(text);
+
+                                        if (fc.FormField.FormFieldId == Int32.Parse(result.GetString(formfieldid)))
+                                        {
+                                            lastFF = fc.FormField;
+
+                                            if (content.ToLower() == "todelete")
+                                            {
+                                                db.FieldChoices.Remove(fc);
+                                                db.Entry(fc).State = EntityState.Deleted;
+                                                returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + ") gelöscht</li>";
+                                            }
+                                            else if ((fc.Text != content) || (fc.Order != Int32.Parse(result.GetString(order))))
+                                            {
+                                                fc.Text = content;
+                                                fc.Order = Int32.Parse(result.GetString(order));
+
+                                                db.Entry(fc).State = EntityState.Modified;
+                                                returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + ") angepasst mit neuem Text " + fc.Text + "</li>";
+                                            }
+
+                                            int visibilityId = Int32.Parse(result.GetString(visibility));
+                                            if (visibilityId == 0)
+                                            {
+                                                if (!fc.FormField.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
+                                                {
+                                                    HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = fc, FormField = fc.FormField };
+                                                    db.HiddenFieldChoices.Add(hfc);
+                                                    db.Entry(hfc).State = EntityState.Added;
+
+                                                    returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + "): Sichtbarkeit auf nicht sichtbar gestellt</li>";
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (fc.FormField.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
+                                                {
+                                                    HiddenFieldChoice hfc = fc.FormField.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).First();
+                                                    db.HiddenFieldChoices.Remove(hfc);
+                                                    db.Entry(hfc).State = EntityState.Deleted;
+                                                    returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + "): Sichtbarkeit auf sichtbar gestellt</li>";
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Only changes the visibility --> fc is from publicmotherformfield
+                                            FormField ff = db.FormFields.Include(m => m.PublicMotherFormField).ThenInclude(m=>m.FieldChoices).Include(m=>m.HiddenFieldChoices).ThenInclude(m=>m.FieldChoice).Where(m => m.FormFieldId == Int32.Parse(result.GetString(formfieldid))).FirstOrDefault();
+                                            if (ff != null)
+                                            {
+                                                if ((ff.PublicMotherFormField!=null) && (ff.PublicMotherFormField.FieldChoices!=null) && (ff.PublicMotherFormField.FieldChoices.Contains(fc)))
+                                                {
+                                                    int visibilityId = Int32.Parse(result.GetString(visibility));
+                                                    if (visibilityId==0)
+                                                    {
+                                                        if (!ff.HiddenFieldChoices.Where(m=>m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
+                                                        {
+                                                            HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = fc, FormField = ff };
+                                                            db.HiddenFieldChoices.Add(hfc);
+                                                            db.Entry(hfc).State = EntityState.Added;
+                                                            returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + "): Sichtbarkeit auf nicht sichtbar gestellt</li>";
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (ff.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).Any())
+                                                        {
+                                                            HiddenFieldChoice hfc = ff.HiddenFieldChoices.Where(m => m.FieldChoice.FieldChoiceId == fc.FieldChoiceId).First();
+                                                            db.HiddenFieldChoices.Remove(hfc);
+                                                            db.Entry(hfc).State = EntityState.Deleted;
+                                                            returnMessage += "<li>Auswahlfeld (" + fc.FieldChoiceId + "): Sichtbarkeit auf sichtbar gestellt</li>";
+                                                        }
+
+
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        int ffid = Int32.Parse(result.GetString(formfieldid));
+                                        FormField ff = await db.FormFields.Where(m => m.FormFieldId == ffid).SingleOrDefaultAsync();
+                                        if ((fc == null) && (ff != null))
+                                        {
+                                            fc = new FieldChoice();
+                                            fc.FormField = ff;
+                                            fc.Text = result.GetString(text);
+                                            fc.Order = Int32.Parse(result.GetString(order));
+
+                                            int visibilityId = Int32.Parse(result.GetString(visibility));
+                                            if (visibilityId == 0)
+                                            {
+                                                HiddenFieldChoice hfc = new HiddenFieldChoice() { FieldChoice = fc, FormField = ff };
+                                                db.HiddenFieldChoices.Add(hfc);
+                                                db.Entry(hfc).State = EntityState.Added;
+                                            }
+
+
+                                            db.Entry(fc).State = EntityState.Added;
+                                            returnMessage += "<li>Neue Auswahlmöglichkeit erstellt</li>";
+                                        }
+
+                                    }
+                                    
+
+                                        
+                                    
+
+
+                                }
+                            }
+
+                            await db.SaveChangesAsync();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                returnMessage += "<li>Fehler :" + ex.ToString() + "</li>";
+            }
+
+
+            changes += returnMessage;
+            await this.db.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS " + prefix + "_nogeometry;");
+            
+
+            changes = "Folgende Änderungen / Neuerungen wurden erfolgreich übernommen: <ul>" + changes + "</ul>";
+
+            return View("ImportOK", changes.Replace("OK", ""));
+
+        }
+
     }
 
     public class FormFieldNamesForView
@@ -1020,6 +1674,8 @@ namespace BioDivCollector.WebApp.Controllers
         {
             return Regex.Replace(str, "[^a-zA-Z0-9_.]+", "", RegexOptions.Compiled);
         }
+
+
     }
 
     public class FormPoco
@@ -1051,12 +1707,14 @@ namespace BioDivCollector.WebApp.Controllers
         public string label { get; set; }
         public string name { get; set; }
         public string description { get; set; }
+        public string value { get; set; }
         public string source { get; set; }
         public bool mandatory { get; set; }
         public bool useinrecordtitle { get; set; }
         public bool ispublic { get; set; }
         public bool isreadonly { get; set; }
         public string author { get; set; }
+        public string subtype { get; set; }
         public List<OptionsPoco> values { get; set; }
     }
 
@@ -1066,6 +1724,7 @@ namespace BioDivCollector.WebApp.Controllers
         public string label { get; set; }
         public string value { get; set; }
         public bool selected { get; set; }
+        public bool visible { get; set; }
     }
 
     public class FormsPoco
@@ -1130,6 +1789,12 @@ namespace BioDivCollector.WebApp.Controllers
     {
         public FormField FormField { get; set; }
         public List<Form> UsedInForms { get; set; }
+    }
+
+    public class BigFieldChoice
+    {
+        public FieldChoice FieldChoice { get; set; }
+        public bool isHidden { get; set; }
     }
 
 }

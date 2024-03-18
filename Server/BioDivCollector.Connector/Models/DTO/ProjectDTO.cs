@@ -30,6 +30,8 @@ namespace BioDivCollector.Connector.Models.DTO
             projectStatusId = project.ProjectStatusId;
             projectManager = project.ProjectManager?.ToString();
             projectConfigurator = project.ProjectConfigurator?.ToString();
+            projectThirdPartyTools = string.Join(", ", project.ProjectThirdPartyTools.Select(m => m.ThirdPartyTool.Name).ToList());
+
         }
 
         public Guid projectId { get; set; }
@@ -42,6 +44,8 @@ namespace BioDivCollector.Connector.Models.DTO
 
         public string projectManager { get; set; }
         public string projectConfigurator { get; set; }
+
+        public string projectThirdPartyTools { get; set; }
 
         public List<ReferenceGeometryDTO> geometries { get; set; } = new List<ReferenceGeometryDTO>();
         public List<RecordDTO> records { get; set; } = new List<RecordDTO>();
@@ -88,6 +92,7 @@ namespace BioDivCollector.Connector.Models.DTO
         public List<TextDataDTO> texts { get; set; } = new List<TextDataDTO>();
         public List<NumericDataDTO> numerics { get; set; } = new List<NumericDataDTO>();
         public List<BooleanDataDTO> booleans { get; set; } = new List<BooleanDataDTO>();
+        public List<BinaryDataDTO> binaries { get; set; } = new List<BinaryDataDTO>();
     }
 
     public class TextDataDTO
@@ -152,12 +157,30 @@ namespace BioDivCollector.Connector.Models.DTO
         }
     }
 
+    public class BinaryDataDTO
+    {
+        public Guid binaryId { get; set; }
+
+        public int? formFieldId { get; set; }
+
+        public BinaryData Dto2Model()
+        {
+            return new BinaryData()
+            {
+                Id = this.binaryId,
+                FormFieldId = this.formFieldId,
+            };
+        }
+    }
+
     public class LayerDTO
     {
         public int layerId { get; set; }
         public string title { get; set; }
         public string url { get; set; }
         public string wmsLayer { get; set; }
+        public string username { get; set; }
+        public string password { get; set; }
 
         public bool visible { get; set; }
         public double opacity { get; set; }
@@ -190,6 +213,7 @@ namespace BioDivCollector.Connector.Models.DTO
         public int order { get; set; }
         public bool mandatory { get; set; }
         public bool useInRecordTitle { get; set; }
+        public string standardValue { get; set; }
 
         public List<FieldChoiceDto> fieldChoices = new List<FieldChoiceDto>();
     }

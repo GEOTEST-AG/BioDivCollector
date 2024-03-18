@@ -10,8 +10,26 @@
 }
 
 @section Styles {
-    <link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
+<link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
 }
+
+
+
+<div class="modal fade" id="waitExportModal" tabindex="-1" role="dialog" aria-labelledby="changeProjectStateLabel2" aria-hidden="true" style="z-index:100000;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeProjectStateLabel2">Export wird vorbereitet</h5>
+            </div>
+            <div class="modal-body">
+                <i class="fa fa-spinner fa-spin" style="font-size:25px;text-align:center;margin-top:50px;"></i> Bitte warten, der Export wird vorbereitet.
+                <p></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class="container-fluid">
     <div class="page-header">
         <div class="row">
@@ -84,8 +102,22 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="media p-20">
+                                        <div class="checkbox checkbox-primary mr-3">
+                                            <input type="checkbox" name="format" id="binary" value="binary">
+                                            <label for="binary"></label>
+                                        </div>
+                                        <div class="media-body">
+                                            <h6 class="mt-0 mega-title-badge">Mit Bilder (.zip)</h6>
+                                            <p>Export inklusive Bilder (als ZIP)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
+                        
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="row">
@@ -100,20 +132,20 @@
 
                         <input type="hidden" name="efonly" id="efonly" value="off" />
                         <!--
-    <div class="row">
+                        <div class="row">
 
-        <div class="col-md-5">
-            <div class="form-group m-checkbox-inline mb-0" style="padding-top:30px;float: none; margin: 0 auto;">
-                <div class="checkbox checkbox-primary">
+                            <div class="col-md-5">
+                                <div class="form-group m-checkbox-inline mb-0" style="padding-top:30px;float: none; margin: 0 auto;">
+                                    <div class="checkbox checkbox-primary">
 
-                    <input type="checkbox" name="efonly" id="efonly">
-                    <label for="efonly" class="mb-0">Nur Projekte exportieren, für welche der Benutzer auch Erfasser-Rechte hat.</label>
-                </div>
-            </div>
+                                        <input type="checkbox" name="efonly" id="efonly">
+                                        <label for="efonly" class="mb-0">Nur Projekte exportieren, für welche der Benutzer auch Erfasser-Rechte hat.</label>
+                                    </div>
+                                </div>
 
-        </div>
-    </div>
-        -->
+                            </div>
+                        </div>
+                            -->
 
                         <div class="card-footer">
                             <button type="submit" class="btn btn-primary">Exportieren</button>
@@ -129,28 +161,13 @@
 </div>
 
 
-<div class="modal fade" id="waitExportModal" tabindex="-1" role="dialog" aria-labelledby="changeProjectStateLabel" aria-hidden="true" style="z-index:100000;">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="changeProjectStateLabel">Export wird vorbereitet</h5>
-            </div>
-            <div class="modal-body">
-                <i class="fa fa-spinner fa-spin" style="font-size:25px;text-align:center;margin-top:50px;"></i> Bitte warten, der Export wird vorbereitet.
-                <p></p>
-            </div>
-        </div>
-    </div>
-</div>
-
 
 <script>
-    $('#exportform').submit(function (e) {
+    $('#waitExportModal').on('shown.bs.modal', function () {
+        
 
-
-        e.preventDefault(); // avoid to execute the actual submit of the form.
-
-        var form = $(this);
+        
+        var form = $('#exportform');
         var url = form.attr('action');
         var data = form.serializeArray(); // convert form to array
         data.push({ name: "projects", value: transfer.getSelectedItems().each });
@@ -164,9 +181,10 @@
         var ArrArr = $.map(arr, function (n, i) {
             return [n.value];
         });
-
-
-        $('#waitExportModal').modal('show');
+        var withImages = "";
+        if($("#binary").is(':checked')) {
+            withImages = "&withImages=true";
+        };
 
         data.push({ name: "projects", value: { ArrArr } });
         //JSON.stringify({ paramName: info })
@@ -174,7 +192,7 @@
         $.ajax({
             type: "POST",
             url: url,
-            data: form.serialize() + "&projects=" +  ArrArr,
+            data: form.serialize() + "&projects=" +  ArrArr + withImages,
             async: false,
             cache: false,
             dataType: 'JSON',
@@ -194,6 +212,13 @@
                 alert(ex);
             }
         });
+    });
+
+
+    $('#exportform').submit(function (e) {
+        e.preventDefault(); // avoid to execute the actual submit of the form.
+        $('#waitExportModal').modal('show');
+
     });
 
     var transfer;
@@ -218,8 +243,9 @@
     });
 </script>
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/jquery-transfer/js/jquery.transfer.js"></script>
+<script src="~/js/jquery-transfer/js/jquery.transfer.js"></script>
 
 }

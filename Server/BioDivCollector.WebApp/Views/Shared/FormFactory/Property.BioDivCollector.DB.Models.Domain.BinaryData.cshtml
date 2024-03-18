@@ -1,0 +1,108 @@
+﻿@using FormFactory.Attributes
+@using System.Linq;
+@using FormFactory
+@model PropertyVm
+@{
+    var posted = ((Model.Value as bool? ?? bool.Parse((Model.Value as string ?? "false"))));
+    string chk = posted ? "checked=\"checked\"" : "";
+
+    Random random = new Random(); 
+}
+
+@if (Model.Value != null)
+{
+
+    @if (Model.Readonly)
+    {
+        <div class="">
+            @foreach (Guid g in (List<Guid>)(Model.Value)) 
+            {
+                <a href="/Binary/@g/false?dummy=@random.Next()" data-lightbox="photos" style="display:inline-block;">
+                    <img src="/Binary/@g/false?dummy=@random.Next()" style="max-width:100%;max-height: 200px; display:inline-block;" />
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div>
+            <label>
+                @Model.DisplayName
+            </label>
+        </div>
+        foreach (Guid g in (List<Guid>)(Model.Value))
+        {
+            <a href="/Binary/@g/false?dummy=@random.Next()" data-lightbox="photos" style="display:inline-block;">
+                <div class="image-remover">
+                    <img class="rounded img-fluid" src="/Binary/@g/false?dummy=@random.Next()" data-target="#carouselExample" data-slide-to="0" id="binaryimg_@g" style="max-width:100%; max-height: 200px;">    
+                    <svg viewBox="0 0 30 30" class="ico-close" onclick="return deleteImage(event, '@g')"><use xlink:href="#ico-close"></use></svg>
+                </div>
+            </a>
+        }
+        <!--<img src="/Binary/@Model.Value/false?dummy=@random.Next()" style="width:100%;" id="binaryimg_@Model.Value"/>-->
+        <div class="dropzone" id="binary_@Model.DataAttributes["recordid"]"></div>
+
+        <script>
+            Dropzone.autoDiscover = false;
+            $(document).ready(function () {
+                $('#binary_@Model.DataAttributes["recordid"]').dropzone({ url: "/Binary/Upload/@Model.DataAttributes["recordid"]?formFieldId=@Model.DataAttributes["formfieldid"]",
+                
+                init: function() {
+                    this.on("success", file => {
+                        $hidden = $('#BeobachtungUrl');
+                        $hidden.trigger("click");
+                    });
+                },
+                dictDefaultMessage : "Legen Sie Dateien hier ab um Sie hochzuladen",
+                dictFallbackMessage : "Ihr Browser unterstützt Drag&Drop Dateiuploads nicht.",
+                dictFallbackText : "Please use the fallback form below to upload your files like in the olden days.",
+                dictFileTooBig : "Die Datei ist zu groß. Die maximale Dateigröße beträgt {{maxFileSize}}MB",
+                dictInvalidFileType : "You can't upload files of this type.",
+                dictResponseError : "Server responded with {{statusCode}} code.",
+                dictCancelUpload : "Cancel upload",
+                dictCancelUploadConfirmation : "Are you sure you want to cancel this upload?",
+                dictRemoveFile : "Remove file",
+                dictMaxFilesExceeded : "Sie können keine weiteren Dateien mehr hochladen",
+                
+                });
+            });
+        </script>
+    }
+}
+else
+{
+    Guid newGuid = Guid.NewGuid();
+    <div>
+        <label>
+            @Model.DisplayName
+        </label>
+    </div>
+<div class="dropzone" id="binary_@newGuid.ToString()"></div>
+
+        <script>
+            Dropzone.autoDiscover = false;
+            $(document).ready(function () {
+                $('#binary_@newGuid.ToString()').dropzone({ url: "/Binary/Upload/@Model.DataAttributes["recordid"]?formFieldId=@Model.DataAttributes["formfieldid"]",
+                
+                init: function() {
+                    this.on("success", file => {
+                        $("#binaryimg_@newGuid.ToString()").attr("src", "/Binary/@newGuid.ToString()/false?dummy=@random.Next()");
+                    });
+                },
+                dictDefaultMessage : "Legen Sie Dateien hier ab um Sie hochzuladen",
+                dictFallbackMessage : "Ihr Browser unterstützt Drag&Drop Dateiuploads nicht.",
+                dictFallbackText : "Please use the fallback form below to upload your files like in the olden days.",
+                dictFileTooBig : "Die Datei ist zu groß. Die maximale Dateigröße beträgt {{maxFileSize}}MB",
+                dictInvalidFileType : "You can't upload files of this type.",
+                dictResponseError : "Server responded with {{statusCode}} code.",
+                dictCancelUpload : "Cancel upload",
+                dictCancelUploadConfirmation : "Are you sure you want to cancel this upload?",
+                dictRemoveFile : "Remove file",
+                dictMaxFilesExceeded : "Sie können keine weiteren Dateien mehr hochladen",
+                
+                });
+            });
+        </script>
+}
+
+

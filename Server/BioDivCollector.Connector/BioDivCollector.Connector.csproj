@@ -8,6 +8,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="McMaster.NETCore.Plugins" Version="1.4.0" />
+		<PackageReference Include="McMaster.NETCore.Plugins.Mvc" Version="1.4.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.10" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.9" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.9" />
@@ -22,10 +24,12 @@
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="3.1.4" />
 		<PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\BioDivCollector.DB\BioDivCollector.DB.csproj" />
+		<ProjectReference Include="..\BioDivCollector.PluginContract\BioDivCollector.PluginContract.csproj" />
 	</ItemGroup>
 
 
