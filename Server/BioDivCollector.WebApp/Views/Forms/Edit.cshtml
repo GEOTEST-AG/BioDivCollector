@@ -385,6 +385,33 @@
                         disabled: true
                     }
                 },
+                number: {
+                    description: {
+                        label: 'Beschreibung',
+                        value: ''
+                    },
+                    source: {
+                        label: 'Quelle',
+                        value: ''
+                    },
+                    mandatory: {
+                        label: 'Pflichtfeld',
+                        type: 'checkbox',
+                    },
+                    useinrecordtitle: {
+                        label: 'Inhalt in Titel verwenden',
+                        type: 'checkbox',
+                    },
+                    author: {
+                        label: 'Autor',
+                        value: '',
+                        disabled: true
+                    },
+                    ispublic: {
+                        label: 'Wiederverwendbar',
+                        type: 'checkbox',
+                    }
+                },
                 select: {
                     description: {
                         label: 'Beschreibung',
@@ -492,7 +519,7 @@
 
             disableFields: ['autocomplete',
                 'button',
-                'hidden','number',
+                'hidden',
                 'paragraph',
                 'starRating', 'radio-group',
                 'textarea']

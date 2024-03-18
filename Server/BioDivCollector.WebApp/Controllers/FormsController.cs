@@ -414,6 +414,7 @@ namespace BioDivCollector.WebApp.Controllers
                 foreach (NumericData td in referenzeNumericDatas)
                 {
                     db.NumericData.Remove(td);
+                    td.FormField = null;
                     db.Entry(td).State = EntityState.Modified;
                 }
 
@@ -635,9 +636,6 @@ namespace BioDivCollector.WebApp.Controllers
 
         private FormFieldPoco CreateFormFieldPocosFormField(FormField ff, FormField origFormField = null)
         {
-
-
-
             if (ff.FieldTypeId == FieldTypeEnum.Text)
             {
                 FormFieldPoco ffp = new FormFieldPoco() { type = "text", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public, value = ff.StandardValue };
@@ -646,6 +644,11 @@ namespace BioDivCollector.WebApp.Controllers
             else if (ff.FieldTypeId == FieldTypeEnum.DateTime)
             {
                 FormFieldPoco ffp = new FormFieldPoco() { type = "date", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle, ispublic = ff.Public };
+                return ffp;
+            }
+            else if (ff.FieldTypeId == FieldTypeEnum.Number)
+            {
+                FormFieldPoco ffp = new FormFieldPoco() { type = "number", label = ff.Title, name = ff.FormFieldId.ToString(), description = ff.Description, source = ff.Source, mandatory = ff.Mandatory, useinrecordtitle = ff.UseInRecordTitle,/* ispublic = ff.Public*/ };
                 return ffp;
             }
             else if (ff.FieldTypeId == FieldTypeEnum.Binary)
@@ -1234,6 +1237,10 @@ namespace BioDivCollector.WebApp.Controllers
             else if (ffp.type == "checkbox-group")
             {
                 ff.FieldTypeId = FieldTypeEnum.Boolean;
+            }
+            else if (ffp.type == "number")
+            {
+                ff.FieldTypeId = FieldTypeEnum.Number;
             }
             else if (ffp.type == "header")
             {

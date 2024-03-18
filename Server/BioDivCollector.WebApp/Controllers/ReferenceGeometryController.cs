@@ -150,7 +150,7 @@ namespace BioDivCollector.WebApp.Controllers
             User user = Helpers.UserHelper.GetCurrentUser(User, db);
 
             ReferenceGeometry g = await db.Geometries
-                .Include(m => m.Records).ThenInclude(u=>u.TextData).ThenInclude(td => td.FormField)
+                .Include(m => m.Records).ThenInclude(u => u.TextData).ThenInclude(td => td.FormField)
                 .Include(m => m.Records).ThenInclude(u => u.NumericData).ThenInclude(td => td.FormField)
                 .Include(m => m.Records).ThenInclude(u => u.BooleanData).ThenInclude(td => td.FormField)
                 .Include(m => m.Records).ThenInclude(u => u.BinaryData).ThenInclude(td => td.FormField)

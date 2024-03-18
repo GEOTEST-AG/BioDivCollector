@@ -266,6 +266,10 @@
                             {
                                 <text>@rvm.Record.TextData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value</text>
                             }
+                                            else if (formfield.FieldTypeId == FieldTypeEnum.Number)
+                                            {
+                                                <text>@rvm.Record.NumericData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value</text>
+                                            }
                             else if (formfield.FieldTypeId == FieldTypeEnum.Boolean)
                             {
                                 if (rvm.Record.BooleanData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value == true)

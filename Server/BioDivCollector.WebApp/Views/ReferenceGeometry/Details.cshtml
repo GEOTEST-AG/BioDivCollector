@@ -300,6 +300,13 @@
                                                         newTitle += rvm.Record.TextData.Where(m => m.FormFieldId == fff.FormField.FormFieldId).First().Value + ", ";
                                                     }
                                                 }
+                                                else if ((fff.FormField.FieldTypeId == BioDivCollector.DB.Models.Domain.FieldTypeEnum.Number))
+                                                {
+                                                    if (rvm.Record.NumericData.Any(m => m.FormFieldId == fff.FormField.FormFieldId))
+                                                    {
+                                                        newTitle += rvm.Record.NumericData.Where(m => m.FormFieldId == fff.FormField.FormFieldId).First().Value.ToString() + ", ";
+                                                    }
+                                                }
                                             }
                                             if (newTitle.Length > 1) newTitle = newTitle.Substring(0, newTitle.Length - 2);
                                             <text>@newTitle (@rvm.Record.Form.Title)</text>

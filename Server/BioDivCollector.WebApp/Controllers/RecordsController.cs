@@ -262,6 +262,29 @@ namespace BioDivCollector.WebApp.Controllers
 
                             }
                         }
+                        else if (ff.FieldTypeId == FieldTypeEnum.Number)
+                        {
+                            if (parameters.GetValue("Field_" + ff.FormFieldId) != null)
+                            {
+                                string newValue = parameters.GetValue("Field_" + ff.FormFieldId).ToString();
+                                NumericData nd = r.NumericData.Where(m => m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
+                                double newDouble = 0.0;
+                                Double.TryParse(newValue, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out newDouble);
+                                if (nd == null)
+                                {
+                                    nd = new NumericData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = newDouble };
+                                    r.NumericData.Add(nd);
+                                    db.Entry(nd).State = EntityState.Added;
+                                    db.Entry(r).State = EntityState.Modified;
+                                }
+                                else
+                                {
+                                    nd.Value = newDouble;
+                                    db.Entry(nd).State = EntityState.Modified;
+                                }
+
+                            }
+                        }
                         else if (ff.FieldTypeId == FieldTypeEnum.DateTime)
                         {
                             if (parameters.GetValue("Field_" + ff.FormFieldId) != null)
@@ -692,6 +715,21 @@ namespace BioDivCollector.WebApp.Controllers
                                 dynamicField.NotOptional = ff.Mandatory;
                                 dynamicForm.Add(dynamicField);
                             }
+                            else if (origFormField.FieldTypeId == FieldTypeEnum.Number)
+                            {
+                                PropertyVm dynamicField = new PropertyVm(typeof(double), "Field_" + ff.FormFieldId.ToString());
+                                dynamicField.DisplayName = origFormField.Title;
+                                //if ((origFormField.Unit != null) && (origFormField.Unit != "")) dynamicField.DisplayName += $" [{origFormField.Unit}]";
+                                NumericData nd = r.NumericData.Where(m => m.FormField == ff).FirstOrDefault();
+                                if (nd != null) dynamicField.Value = nd.Value;
+                                else
+                                {
+                                    //dynamicField.Value = new Double();
+                                }
+
+                                dynamicField.NotOptional = ff.Mandatory;
+                                dynamicForm.Add(dynamicField);
+                            }
                             else if (origFormField.FieldTypeId == FieldTypeEnum.DateTime)
                             {
                                 PropertyVm dynamicField = new PropertyVm(typeof(DateTime), "Field_" + ff.FormFieldId.ToString());
@@ -884,6 +922,21 @@ namespace BioDivCollector.WebApp.Controllers
                                 dynamicField.Value = standardValue;
                                 if (ff.StandardValue.StartsWith("="))
                                     dynamicField.GetCustomAttributes = () => new object[] { new Helpers.FormFactory.StandardValueAttribute() };
+                            }
+
+                            dynamicField.NotOptional = ff.Mandatory;
+                            dynamicForm.Add(dynamicField);
+                        }
+                        else if (origFormField.FieldTypeId == FieldTypeEnum.Number)
+                        {
+                            PropertyVm dynamicField = new PropertyVm(typeof(double), "Field_" + ff.FormFieldId.ToString());
+                            dynamicField.DisplayName = origFormField.Title;
+                            //if ((origFormField.Unit != null) && (origFormField.Unit != "")) dynamicField.DisplayName += $" [{origFormField.Unit}]";
+                            NumericData nd = r.NumericData.Where(m => m.FormField == ff).FirstOrDefault();
+                            if (nd != null) dynamicField.Value = nd.Value;
+                            else
+                            {
+                                //dynamicField.Value = new Double();
                             }
 
                             dynamicField.NotOptional = ff.Mandatory;
