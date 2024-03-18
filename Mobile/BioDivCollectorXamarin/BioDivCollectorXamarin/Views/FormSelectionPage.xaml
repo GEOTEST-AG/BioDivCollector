@@ -11,26 +11,28 @@
         <viewmodels:FormSelectionPageVM/>
     </ContentPage.BindingContext>
     <ContentPage.Content>
-        <StackLayout>
-            <ListView x:Name="FormListView"
+        <StackLayout VerticalOptions="FillAndExpand">
+            <Label Text="Zum Aktualisieren herunterziehen ↓" FontSize="10" HorizontalOptions="Center" Margin="0,5"/>
+            <RefreshView IsRefreshing="{Binding IsRefreshing}"  Command="{Binding RefreshCommand}">
+                <ListView x:Name="FormListView"
             ItemsSource="{Binding Forms}"
             ItemTapped="FormListView_ItemTapped"
             RowHeight="80"
             SeparatorColor="Gray"
             SelectionMode="None">
 
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="model:Form">
-                        <ViewCell>
-                            <StackLayout VerticalOptions="Center" Margin="20">
-                                <Label Text="{Binding title}"  Style="{DynamicResource ListItemTextStyle}" />
-                            </StackLayout>
-                        </ViewCell>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="model:Form">
+                            <ViewCell>
+                                <StackLayout VerticalOptions="Center" Margin="20">
+                                    <Label Text="{Binding title}"  Style="{DynamicResource ListItemTextStyle}" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
 
-            </ListView>
-
+                </ListView>
+            </RefreshView>
             <local:ConnectionView/>
         </StackLayout>
     </ContentPage.Content>

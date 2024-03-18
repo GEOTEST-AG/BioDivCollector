@@ -1,22 +1,19 @@
-﻿using BioDivCollectorXamarin.Models.DatabaseModel;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.LoginModel;
 using Mapsui.UI.Forms;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
 using SQLite;
-using SQLiteNetExtensions.Extensions;
 using SQLiteNetExtensionsAsync.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.SymbolStore;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Xamarin.Auth;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -1010,6 +1007,8 @@ namespace BioDivCollectorXamarin.Models
                 }
             }
 
+            
+
             await conn.DropTableAsync<Record>();
             await conn.DropTableAsync<TextData>();
             await conn.DropTableAsync<NumericData>();
@@ -1026,6 +1025,185 @@ namespace BioDivCollectorXamarin.Models
             await conn.InsertAllWithChildrenAsync(numData);
             await conn.InsertAllWithChildrenAsync(boolData);
             await conn.InsertAllWithChildrenAsync(binData);
+
+
+        }
+
+        /// <summary>
+        /// Downloads the json from the connector for a project, saves the binaryIds only and downloads the photos. Includes authorisation.
+        /// </summary>
+        /// <param name="projectId">Specifies project</param>
+        /// <param name="time">Specifies the earliest time from which the changes should be downloaded</param>
+        public static async Task GetBinaryOnlyJsonString(string projectId, string time)
+        {
+            var binaryDownloadList = new List<Tuple<string, int?>>();
+
+            //Refresh token, then synchronise
+            var auth = Authentication.AuthParams;
+            auth.ShowErrors = false;
+            auth.AllowCancel = false;
+
+            auth.Completed += async (sender, eventArgs) =>
+            {
+                if (eventArgs.IsAuthenticated == true)
+                {
+                    Dictionary<String, String> props = eventArgs.Account.Properties;
+
+                    Authentication.SaveTokens(props);
+
+                    string url = "";
+                    if (time != null && time != "")
+                    {
+                        url = App.ServerURL + "/api/Project/" + projectId + "/" + time;
+                    }
+                    else
+                    {
+                        url = App.ServerURL + "/api/Project/" + projectId;
+                    }
+
+                    var through = false;
+                    try
+                    {
+                        var json = "";
+                        using (HttpClient client = new HttpClient())
+                        {
+                                client.Timeout = TimeSpan.FromSeconds(600); // 10 minutes
+                                var token = Preferences.Get("AccessToken", "");
+                                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                                //MessagingCenter.Send(new DataDAO(), "SyncMessage", "Waiting for data");
+                                var response = await client.GetAsync(url);
+                                var jsonbytes = await response.Content.ReadAsByteArrayAsync();
+                                var utf8 = Encoding.UTF8;
+                                json = utf8.GetString(jsonbytes, 0, jsonbytes.Length);
+
+                                through = true; // Check that we got through all the code
+                        }
+
+                        string success = "false";
+
+                        if (json.ToLower() == "error downloading data")
+                        {
+                            MessagingCenter.Send(new Project(), "DataDownloadError", json);
+                        }
+
+                        if (json.ToLower() != "error downloading data" && json.ToLower() != "error parsing data")
+                        {
+                            try
+                            {
+                                //Parse JSON
+                                var settings = new JsonSerializerSettings
+                                {
+                                    NullValueHandling = NullValueHandling.Ignore,
+                                    StringEscapeHandling = StringEscapeHandling.EscapeHtml
+                                };
+                                var projectRoot = JsonConvert.DeserializeObject<Project>(json, settings);
+
+                                var conn = App.ActiveDatabaseConnection;
+                                foreach (var geom in projectRoot.geometries)
+                                {
+                                    foreach (var rec in geom.records)
+                                    {
+                                        foreach (var bin in rec.binaries)
+                                        {
+                                            var existingbin = await BinaryData.FetchBinaryData(bin.binaryId);
+                                            if (existingbin != null)
+                                            {
+                                                var id = existingbin.Id;
+                                                existingbin = bin;
+                                                existingbin.Id = id;
+                                                existingbin.record_fk = rec.recordId;
+                                                await conn.UpdateAsync(existingbin);
+                                            }
+                                            else
+                                            {
+                                                bin.record_fk = rec.recordId;
+                                                await conn.InsertAsync(bin);
+                                            }
+
+                                            binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
+                                        }
+                                    }
+                                }
+
+                                foreach (var rec in projectRoot.records)
+                                { 
+                                    foreach (var bin in rec.binaries)
+                                    {
+                                        var existingbin = await BinaryData.FetchBinaryData(bin.binaryId);
+                                        if (existingbin != null)
+                                        {
+                                            var id = existingbin.Id;
+                                            existingbin = bin;
+                                            existingbin.Id = id;
+                                            existingbin.record_fk = rec.recordId;
+                                            await conn.UpdateAsync(existingbin);
+                                        }
+                                        else
+                                        {
+                                            bin.record_fk = rec.recordId;
+                                            await conn.InsertAsync(bin);
+                                        }
+
+                                        binaryDownloadList.Add(new Tuple<string, int?>(rec.recordId, bin.formFieldId));
+                                    }
+                                }
+
+                                int i = 1;
+                                foreach (var tuple in binaryDownloadList)
+                                {
+                                    MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Foto {i++} von {binaryDownloadList.Count} wird heruntergeladen");
+                                    await BinaryData.DownloadBinaryData(tuple.Item1, tuple.Item2);
+                                }
+
+                                success = "Data successfully downloaded";
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
+                                success = "Error parsing data" + e;
+                            }
+
+                            try
+                            {
+                                ShowSyncCompleteMessage(success);
+                                MessagingCenter.Send(new Project(), "DataDownloadSuccess", success);
+                                MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
+                            }
+                            catch
+                            {
+                                if (through == false)
+                                {
+                                    MessagingCenter.Send(Application.Current, "DownloadComplete", "Error Downloading Data");
+                                    MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
+                                }
+                            }
+                        }
+
+                        MessagingCenter.Send(Application.Current, "DownloadComplete", json);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        if (through == false)
+                        {
+                            MessagingCenter.Send(Application.Current, "DownloadComplete", "Error Downloading Data");
+                            MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", "");
+                        }
+                    }
+                }
+                else
+                {
+                    MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful");
+                }
+            };
+
+            auth.Error += (sender, eventArgs) =>
+            {
+                //Careful! This triggers on the iPhone even when login is successful
+            };
+
+            await auth.RequestRefreshTokenAsync(Preferences.Get("RefreshToken", ""));
         }
 
         /// <summary>
@@ -1308,6 +1486,32 @@ namespace BioDivCollectorXamarin.Models
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     App.Current.MainPage.DisplayAlert("", message, "OK");
+                });
+            }
+        }
+
+        public static void MigratePhotos()
+        {
+            var firstLaunchCurrent = VersionTracking.IsFirstLaunchForCurrentVersion;
+            var previousBuild = VersionTracking.PreviousBuild;
+            int.TryParse(previousBuild, out int previousBuildInt);
+            if (firstLaunchCurrent && !VersionTracking.IsFirstLaunchEver && previousBuildInt < 70 && !App.MigrationsCompleted && App.IsConnected)
+            {
+                //On first launch, we need to download all the photos for the local projects to avoid data loss. Only runs once.
+                Task.Run(async () =>
+                {
+                    MessagingCenter.Send<Application, string>(Application.Current, "SyncMessage", $"Fotos werden heruntergeladen");
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        await App.Current.MainPage.DisplayAlert("Fotos werden heruntergeladen", "Die Fotos aller lokal gespeicherten Projekte werden heruntergeladen. Die App kann normal weiterverwendet werden", "OK");
+                    });
+
+                    var projectList = await Project.GetLocalProjects();
+                    foreach (var project in projectList)
+                    {
+                        await DataDAO.GetBinaryOnlyJsonString(project, null);
+                    }
+                    App.MigrationsCompleted = true;
                 });
             }
         }

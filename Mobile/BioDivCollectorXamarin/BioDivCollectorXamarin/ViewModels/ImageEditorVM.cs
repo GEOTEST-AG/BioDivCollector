@@ -35,6 +35,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Editor = new SfImageEditor();
             Editor.ImageSaving += this.ImageEditor_ImageSaving;
             Editor.ImageLoaded += this.Editor_ImageLoaded;
+            Editor.SetToolbarItemVisibility("save, reset", false);
             return Editor;
         }
 
@@ -118,6 +119,17 @@ namespace BioDivCollectorXamarin.ViewModels
                     },
                     Name = "Album"
                 });
+                Editor.ToolbarSettings.ToolbarItems.Insert(0, new HeaderToolbarItem
+                {
+
+                    Name = "ResetButton",
+                    Text = "Zurücksetzen",
+                });
+                Editor.ToolbarSettings.ToolbarItems.Add( new HeaderToolbarItem
+                {
+                    Name = "SaveButton",
+                    Text = "Speichern",
+                });
                 Editor.ToolbarSettings.ToolbarItemSelected -= ToolbarSettings_ToolbarItemSelected;
                 Editor.ToolbarSettings.ToolbarItemSelected += ToolbarSettings_ToolbarItemSelected;
             }
@@ -138,6 +150,14 @@ namespace BioDivCollectorXamarin.ViewModels
             else if (e.ToolbarItem.Name == "Album")
             {
                 await PickPhotoAsync();
+            }
+            else if (e.ToolbarItem.Name == "SaveButton")
+            {
+                Editor.Save();
+            }
+            else if (e.ToolbarItem.Name == "ResetButton")
+            {
+                Editor.Reset();
             }
         }
 
@@ -382,11 +402,38 @@ namespace BioDivCollectorXamarin.ViewModels
                 await binDat.SaveBinaryRecord();
                 BinaryDataId = binDat.binaryId;
             }
+            else
+            {
+                var binDat = await BinaryData.FetchBinaryData(BinaryDataId);
+                await Record.UpdateRecord(binDat.record_fk);
+            }
         }
 
         private void UpdateRoute()
         {
             App.CurrentRoute = $"//Records/Form/ImageEditor?formid={FormFieldId}&recid={RecordId}&binaryid={BinaryDataId}";
+        }
+
+        public void OnDisappearing()
+        {
+            Task.Run(async() =>
+            {
+                try
+                {
+                    var directory = DependencyService.Get<FileInterface>().GetImagePath();
+                    string filepath = Path.Combine(directory, BinaryDataId + ".jpg");
+
+                    App.CurrentRoute = $"//Records/Form/ImageEditor?formid={FormFieldId}&recid={RecordId}&binaryid={BinaryDataId}";
+                    if (!System.IO.File.Exists(filepath))
+                    {
+                        await BinaryData.DeleteBinary(BinaryDataId);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            });
         }
     }
 }

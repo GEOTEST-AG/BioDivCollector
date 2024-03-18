@@ -1,14 +1,12 @@
-﻿using BioDivCollectorXamarin.Models.LoginModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
+using BioDivCollectorXamarin.Models.LoginModel;
 using SQLite;
 using SQLiteNetExtensions.Attributes;
-using SQLiteNetExtensions.Extensions;
-using Xamarin.Forms;
-using System.Threading.Tasks;
-using Xamarin.Essentials;
 using SQLiteNetExtensionsAsync.Extensions;
+using Xamarin.Essentials;
+using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
 {
@@ -334,6 +332,18 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 Console.WriteLine(e);
                 return false;
             }
+        }
+
+        public static async Task<List<string>> GetLocalProjects()
+        {
+            var returnList = new List<string>();
+            var conn = App.ActiveDatabaseConnection;
+            var projectList = await conn.Table<Project>().ToListAsync();
+            foreach ( var proj in projectList)
+            {
+                returnList.Add(proj.projectId.ToString());
+            }
+            return returnList;
         }
     }
 }

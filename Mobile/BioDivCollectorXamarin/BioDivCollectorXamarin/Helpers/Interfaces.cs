@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 namespace BioDivCollectorXamarin.Helpers
 {
@@ -16,6 +15,7 @@ namespace BioDivCollectorXamarin.Helpers
         {
             string GetMbTilesPath();
             string GetImagePath();
+            string GetPathToDownloads();
         }
 
         public interface IDownloader

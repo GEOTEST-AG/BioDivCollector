@@ -1,8 +1,7 @@
 ﻿using System;
 using BioDivCollectorXamarin.Models;
-using BioDivCollectorXamarin.Models.LoginModel;
-using BioDivCollectorXamarin.ViewModels;
 using BioDivCollectorXamarin.Models.DatabaseModel;
+using BioDivCollectorXamarin.ViewModels;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 

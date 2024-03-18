@@ -1,8 +1,8 @@
-﻿using SQLite;
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using SQLite;
 using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
@@ -16,6 +16,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             SQLite.SQLiteOpenFlags.ReadWrite |
             // create the database if it doesn't exist
             SQLite.SQLiteOpenFlags.Create |
+            // enable multi-threaded database access
+            SQLiteOpenFlags.NoMutex |
             // enable multi-threaded database access
             SQLite.SQLiteOpenFlags.SharedCache;
 
@@ -44,7 +46,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         {
             var connectionString = new SQLiteConnectionString(Constants.DatabasePath);
             var instance = new DatabaseConnection(connectionString);
-            //CreateTableResult result = await Database.CreateTableAsync<T>();
+            instance.EnableWriteAheadLoggingAsync().ConfigureAwait(false);
             return instance;
         });
 

@@ -90,7 +90,7 @@ namespace BioDivCollectorXamarin.Views
                     Device.BeginInvokeOnMainThread(async () =>
                     {
                         var rec = await Record.FetchRecord(ViewModel.RecordId);
-                        await Shell.Current.GoToAsync($"Form?formid={rec.formId}&recid={ViewModel.RecordId}&geomid={rec.geometry_fk}");
+                        await Shell.Current.GoToAsync($"//Records/Form?formid={rec.formId}&recid={ViewModel.RecordId}&geomid={rec.geometry_fk}");
                     });
                 })
             });
@@ -108,6 +108,12 @@ namespace BioDivCollectorXamarin.Views
             {
                 ViewModel.GetData();
             }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            ViewModel.OnDisappearing();
         }
     }
 }

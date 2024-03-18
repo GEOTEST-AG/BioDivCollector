@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.ViewModels;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -84,7 +83,7 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         private async void ShowUserChoice()
         {
-            string action = await DisplayActionSheet("Willkommen " + App.CurrentUser.firstName, "Cancel", "Abmelden");
+            string action = await DisplayActionSheet("Version " + VersionTracking.CurrentVersion + ". Willkommen " + App.CurrentUser.firstName + " " + App.CurrentUser.name, "Cancel", "Abmelden");
             if (action == "Abmelden")
             {
                 ViewModel.Logout();

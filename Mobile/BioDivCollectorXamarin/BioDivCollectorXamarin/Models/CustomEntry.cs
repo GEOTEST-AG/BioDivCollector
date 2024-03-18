@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using Xamarin.Forms;
 using Syncfusion.SfAutoComplete.XForms;
+using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Controls
 {
 	/// <summary>
-    /// Adds id and mandatory parameters to a standard text entry
-    /// </summary>
-    public class CustomEntry:Entry
+	/// Adds id and mandatory parameters to a standard text entry
+	/// </summary>
+	public class CustomEntry:Entry
     {
         public int? ValueId { get; set; }
         public int? TypeId { get; set; }

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using BioDivCollectorXamarin.ViewModels;
+﻿using System.Runtime.CompilerServices;
 using BioDivCollectorXamarin.Views;
-using Syncfusion.SfImageEditor.XForms;
 using Xamarin.Forms;
-using Xamarin.Forms.PlatformConfiguration;
-using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
 
 namespace BioDivCollectorXamarin
 {
@@ -27,6 +21,7 @@ namespace BioDivCollectorXamarin
             Routing.RegisterRoute("//Map/MapLayers", typeof(MapLayersPage));
             Routing.RegisterRoute("//Records/FormSelection", typeof(FormSelectionPage));
             Routing.RegisterRoute("Records/Geometries", typeof(ObjectsListPage));
+            Routing.RegisterRoute("Register", typeof(RegistrationPage));
         }
 
         protected override void OnAppearing()

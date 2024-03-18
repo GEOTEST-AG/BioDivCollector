@@ -155,6 +155,9 @@ namespace BioDivCollectorXamarin.ViewModels
                 });
             });
 
+
+
+
             MessagingCenter.Subscribe<Application,string>(App.Current, "DownloadComplete", (sender,json) =>
             {
                 mapLayers = new ObservableCollection<BioDivCollectorXamarin.Models.MapLayer>();

@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Views;
-using SQLite;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 

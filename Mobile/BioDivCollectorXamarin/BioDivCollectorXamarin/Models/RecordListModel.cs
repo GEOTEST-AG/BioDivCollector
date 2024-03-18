@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.ViewModels;
-using SQLite;
 using Xamarin.Essentials;
-using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models
 {

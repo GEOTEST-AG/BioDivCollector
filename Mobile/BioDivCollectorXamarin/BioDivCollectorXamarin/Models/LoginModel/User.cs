@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using BioDivCollectorXamarin.Models.IEssentials;
 using Newtonsoft.Json;
-using Xamarin.Essentials;
 
 namespace BioDivCollectorXamarin.Models.LoginModel
 {

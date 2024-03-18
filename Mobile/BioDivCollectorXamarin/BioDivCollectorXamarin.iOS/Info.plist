@@ -28,7 +28,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>ch.geotest.BioDivCollector</string>
 	<key>CFBundleVersion</key>
-	<string>55</string>
+	<string>74</string>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>CFBundleName</key>
@@ -166,5 +166,7 @@
 	<string>Wenn Sie Ihre Fotos zusätzlich in Ihrem Fotoarchiv speichern möchten, erteilen Sie bitte hier die Erlaubnis.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Wenn Sie Fotos aus Ihrer Fotobibliothek zur Verwendung in dieser App auswählen möchten, geben Sie bitte hier Ihre Erlaubnis.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Damit Sie Ihre Position in der Karte anzeigen können, benötigt diese App Zugriff auf Ihre Position, wenn die App in Gebrauch ist. Wenn Sie möchten, dass die App Ihre Position schneller findet, wenn Sie zur App wechseln, müssen Sie ihr gelegentlich Zugriff auf Ihre Position gewähren, wenn die App nicht verwendet wird.</string>
 </dict>
 </plist>

@@ -28,8 +28,10 @@
     <MtouchArch>x86_64</MtouchArch>
     <MtouchLink>None</MtouchLink>
     <MtouchDebug>true</MtouchDebug>
-    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
+    <!-- <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey> -->
+    <!-- <CodesignProvision>Wildcard</CodesignProvision> -->
     <CodesignProvision>Wildcard</CodesignProvision>
+    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>none</DebugType>
@@ -39,8 +41,10 @@
     <WarningLevel>4</WarningLevel>
     <MtouchLink>Full</MtouchLink>
     <MtouchArch>x86_64</MtouchArch>
-    <CodesignKey>Apple Development: Nicholas Dawes (KL9HLGYN6R)</CodesignKey>
-    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <!-- <CodesignKey>Apple Development: Nicholas Dawes (KL9HLGYN6R)</CodesignKey> -->
+    <!-- <CodesignProvision>VS: WildCard Development</CodesignProvision> -->
+    <CodesignProvision>Automatic</CodesignProvision>
+    <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,13 +55,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchArch>ARM64</MtouchArch>
-    <CodesignKey>iPhone Developer</CodesignKey>
+    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
     <MtouchDebug>true</MtouchDebug>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <MtouchLink>None</MtouchLink>
     <MtouchInterpreter>-all</MtouchInterpreter>
-    <CodesignProvision>
-    </CodesignProvision>
+    <CodesignProvision>Wildcard</CodesignProvision>
     <IOSDebugOverWiFi>true</IOSDebugOverWiFi>
     <MtouchProfiling>true</MtouchProfiling>
   </PropertyGroup>
@@ -74,7 +77,9 @@
     <IOSDebugOverWiFi>false</IOSDebugOverWiFi>
     <MtouchProfiling>false</MtouchProfiling>
     <MtouchLink>SdkOnly</MtouchLink>
-    <CodesignProvision>BioDiv Store</CodesignProvision>
+    <CodesignProvision>BioDiv</CodesignProvision>
+    <MtouchUseLlvm>true</MtouchUseLlvm>
+    <MtouchFloat32>true</MtouchFloat32>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
     <AppExtensionDebugBundleId />
@@ -389,39 +394,11 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>13.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="Xamarin.Auth.Extensions">
-      <Version>1.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="Xamarin.Auth.XamarinForms">
-      <Version>1.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="Xamarin.CommunityToolkit">
-      <Version>2.0.5</Version>
-    </PackageReference>
-    <PackageReference Include="Xamarin.Essentials" Version="1.7.3" />
-    <PackageReference Include="Mapsui">
-      <Version>3.0.2</Version>
-    </PackageReference>
     <PackageReference Include="Syncfusion.Xamarin.Core">
-      <Version>20.3.0.50</Version>
+      <Version>21.1.35</Version>
     </PackageReference>
     <PackageReference Include="Syncfusion.Licensing">
-      <Version>20.3.0.50</Version>
-    </PackageReference>
-    <PackageReference Include="Xamarin.Forms">
-      <Version>5.0.0.2515</Version>
-    </PackageReference>
-    <PackageReference Include="Mapsui.Forms">
-      <Version>3.0.2</Version>
-    </PackageReference>
-    <PackageReference Include="BruTile.MbTiles">
-      <Version>4.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Memory">
-      <Version>4.5.5</Version>
+      <Version>21.1.35</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />

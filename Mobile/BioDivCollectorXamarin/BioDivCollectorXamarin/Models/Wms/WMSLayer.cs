@@ -1,14 +1,13 @@
-﻿using BruTile;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using BruTile;
+using BruTile.MbTiles;
 using BruTile.Predefined;
 using BruTile.Web;
 using BruTile.Wmsc;
 using Mapsui.Layers;
 using SQLite;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using BruTile.MbTiles;
 
 namespace BioDivCollectorXamarin.Models.Wms
 {

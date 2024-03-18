@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.ComponentModel;
-using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.DatabaseModel;
-using BioDivCollectorXamarin.Models.LoginModel;
 using BioDivCollectorXamarin.ViewModels;
-using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -25,7 +20,10 @@ namespace BioDivCollectorXamarin.Views
                 //int.TryParse(value, out int parsedValue);
                 RecId = value;
                 Initialise();
-                if (ViewModel != null) { ViewModel.RecId = value; }
+                if (ViewModel != null) 
+                { 
+                    ViewModel.RecId = value; 
+                }
             }
         }
         public string FormIdString
@@ -103,19 +101,20 @@ namespace BioDivCollectorXamarin.Views
         {
             if (FormId != 0 && RecId != null && GeomId != null && FormId != null)
             {
+                
                 //var form = await Form.FetchFormOfType(FormId);
                 //if (form != null)
                 //{
-                    var makeFormTask = Task.Run(() =>
-                    {
-                        ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
+                //var makeFormTask = Task.Run(() =>
+                //{
+                ViewModel = new FormPageVM(RecId, FormId, GeomId, Navigation);
                         Device.BeginInvokeOnMainThread(() =>
                         {
                             BindingContext = ViewModel;
                         });
-                    });
+                    //});
 
-                    await makeFormTask;
+                   // await makeFormTask;
 
 
                 //}
@@ -145,6 +144,7 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         protected override void OnAppearing()
         {
+            ViewModel.OnAppearing();
         }
 
         private void UpdateFormView()
@@ -163,10 +163,10 @@ namespace BioDivCollectorXamarin.Views
             });
         }
 
-        protected override void OnDisappearing()
+        protected async override void OnDisappearing()
         {
             base.OnDisappearing();
-            ViewModel.OnDisappearing();
+            await ViewModel.OnDisappearing();
         }
 
         /// <summary>

@@ -1,18 +1,17 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 using BioDivCollectorXamarin.Models;
-using BioDivCollectorXamarin.Views;
-using BioDivCollectorXamarin.ViewModels;
 using BioDivCollectorXamarin.Models.DatabaseModel;
-using System.Globalization;
+using BioDivCollectorXamarin.ViewModels;
 using Xamarin.Essentials;
-using NetTopologySuite.Index.HPRtree;
+using Xamarin.Forms;
+using static System.Net.Mime.MediaTypeNames;
+using static BioDivCollectorXamarin.Helpers.Interfaces;
+using static PInvoke.Kernel32;
+using Application = Xamarin.Forms.Application;
 
 namespace BioDivCollectorXamarin.Views
 {
@@ -68,13 +67,14 @@ namespace BioDivCollectorXamarin.Views
 
             MessagingCenter.Subscribe<MapPageVM, string>(this, "GenerateNewForm", async (sender, geomId) =>
             {
-                var formList = await Form.FetchFormsForProject();
-                int i = formList.Count;
-
-                var geom = await ReferenceGeometry.GetGeometry(geomId);
-
-                AddFormToNewGeometry(i, formList, geom, geomId);
                 MessagingCenter.Unsubscribe<MapPageVM>(this, "GenerateNewForm");
+
+                //var formList = await Form.FetchFormsForProject();
+                //int i = formList.Count;
+
+                //var geom = await ReferenceGeometry.GetGeometry(geomId);
+
+                await AddFormToNewGeometry(geomId);
             });
 
             MessagingCenter.Unsubscribe<Application>(App.Current, "SetBackSortBy");
@@ -372,29 +372,33 @@ namespace BioDivCollectorXamarin.Views
         /// <param name="formList"></param>
         /// <param name="geom"></param>
         /// <param name="geomId"></param>
-        void AddFormToNewGeometry(int i, List<Form> formList, ReferenceGeometry geom, string geomId)
+        private async Task AddFormToNewGeometry(string geomId)
         {
+            var formList = await Form.FetchFormsForProject();
+            int i = formList.Count;
+
+            var geom = await ReferenceGeometry.GetGeometry(geomId);
+
             int geomId2 = geom.Id;
             if (i == 1)
             {
                 var formid = formList.FirstOrDefault().formId;
 
-
                 if (formid != null)
                 {
                     //Navigation.PushAsync(new FormPage(null, formid, geomId2), true);
-                    Shell.Current.GoToAsync($"Form?recid=&formid={formid}&geomid={geomId2}", true);
+                    await Shell.Current.GoToAsync($"Form?recid=&formid={formid}&geomid={geomId2}&recid=", true);
                 }
             }
             else
             {
                 if (geomId == null)
                 {
-                    Navigation.PushAsync(new FormSelectionPage(null), true);
+                    await Navigation.PushAsync(new FormSelectionPage(null), true);
                 }
                 else
                 {
-                    Navigation.PushAsync(new FormSelectionPage(geomId2), true);
+                    await Navigation.PushAsync(new FormSelectionPage(geomId2), true);
                 }
             }
         }

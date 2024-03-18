@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Views;
 using NativeMedia;
-using SQLite;
-using SQLiteNetExtensions.Extensions;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using static BioDivCollectorXamarin.Helpers.Interfaces;

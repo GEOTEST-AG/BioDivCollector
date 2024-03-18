@@ -1,6 +1,7 @@
 ﻿using System;
 using BioDivCollectorXamarin.ViewModels;
 using Mapsui.UI.Forms;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.PlatformConfiguration;
 using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
@@ -54,6 +55,10 @@ namespace BioDivCollectorXamarin.Views
                 Padding = safeInsets;
                 ViewModel.OnAppearing();
             });
+            if (Preferences.Get("GPS", false))
+            {
+                App.Gps.StartGPSAsync();
+            }
         }
 
         /// <summary>

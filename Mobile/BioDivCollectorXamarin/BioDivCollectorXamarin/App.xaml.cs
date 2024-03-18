@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using BioDivCollectorXamarin.Models;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.IEssentials;
 using BioDivCollectorXamarin.Models.LoginModel;
+using BioDivCollectorXamarin.ViewModels;
+using BioDivCollectorXamarin.Views;
 using SQLite;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -24,7 +25,7 @@ namespace BioDivCollectorXamarin
         /// <summary>
         /// Quickly configure the app to the test server or production server
         /// </summary>
-        public static bool IsTest = true;
+        public static bool IsTest = false;
 
         /// <summary>
         /// Keeps track of the current user
@@ -77,9 +78,26 @@ namespace BioDivCollectorXamarin
         public static bool IsConnected = true;
 
         /// <summary>
+        /// GPS Cancellation token
+        /// </summary>
+        public static CancellationTokenSource GPSCancellationToken;
+        
+        /// <summary>
+        /// The GPS object
+        /// </summary>
+        public static GPS Gps { get; set; } = new GPS();
+
+        public static bool GpsIsRunning { get; set; }
+
+        /// <summary>
         /// Single running Databaseconnection
         /// </summary>
         public static SQLiteAsyncConnection ActiveDatabaseConnection;
+
+        /// <summary>
+        /// Bool to indicate if migrations have been completed since the app last started. This prevents migrations from occurring when the app goes into the background and comes back
+        /// </summary>
+        public static bool MigrationsCompleted;
 
         /// <summary>
         /// Configure the app to the test or prod connector
@@ -171,6 +189,8 @@ namespace BioDivCollectorXamarin
             }
         }
 
+
+
         /// <summary>
         /// Initialisation without further parameters
         /// </summary>
@@ -253,6 +273,28 @@ namespace BioDivCollectorXamarin
                     }
                     
                 });
+                DataDAO.MigratePhotos();
+            });
+
+            MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "RefreshSuccessful", (sender) =>
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    MainPage = new AppShell();
+                    if (CurrentRoute != null && CurrentRoute != String.Empty)
+                    {
+                        try
+                        {
+                            AppShell.Current.GoToAsync(CurrentRoute);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Didn't manage to go to route, " + e);
+                        }
+                    }
+
+                });
+                DataDAO.MigratePhotos();
             });
 
             MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginUnsuccessful", (sender) =>
@@ -265,6 +307,15 @@ namespace BioDivCollectorXamarin
                 });
             });
 
+            MessagingCenter.Subscribe<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "ReturnToLogin", (sender) =>
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+
+                    MainPage = Login.GetPageToView();
+
+                });
+            });
         }
 
         /// <summary>
@@ -289,6 +340,12 @@ namespace BioDivCollectorXamarin
             // Handle when your app sleeps
             this.StopListening();
             ShowLogin = true;
+            GPS.StopGPSAsync();
+
+            Task.Run(async () =>
+            {
+                await ActiveDatabaseConnection.CloseAsync();
+            });
         }
 
         /// <summary>
@@ -296,6 +353,12 @@ namespace BioDivCollectorXamarin
         /// </summary>
         protected override void OnResume()
         {
+            //Reopen connection
+            Task.Run(async () =>
+            {
+                ActiveDatabaseConnection = await DatabaseConnection.Instance;
+            });
+
             Login.CheckLogin();
             this.StartListening();
         }

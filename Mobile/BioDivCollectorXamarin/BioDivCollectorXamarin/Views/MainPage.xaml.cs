@@ -1,11 +1,5 @@
-﻿using System.Threading.Tasks;
-using BioDivCollectorXamarin.ViewModels;
+﻿using BioDivCollectorXamarin.ViewModels;
 using Xamarin.Forms;
-using Xamarin.Auth;
-using System;
-using Xamarin.Forms.PlatformConfiguration;
-using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
-using Xamarin.Essentials;
 using Xamarin.Forms.Xaml;
 
 namespace BioDivCollectorXamarin

@@ -19,7 +19,7 @@ using static BioDivCollectorXamarin.Helpers.Interfaces;
 [assembly: Dependency(typeof(BioDivCollectorXamarin.Droid.AndroidDownloader))]
 namespace BioDivCollectorXamarin.Droid
 {
-    [Activity(Label = "BioDiv", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = false, ConfigurationChanges = ConfigChanges.ScreenSize  | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Orientation, ScreenOrientation = ScreenOrientation.Portrait)]
+    [Activity(Label = "BioDiv", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = false, ConfigurationChanges = ConfigChanges.ScreenSize  | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Orientation, ScreenOrientation = ScreenOrientation.FullUser)]
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
         private static int PERMISSION_REQUEST_CODE = 200;

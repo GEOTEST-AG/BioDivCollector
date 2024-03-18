@@ -39,7 +39,11 @@
                     <Label x:Name="SaveCount" Text="{Binding SaveCountText}" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Margin="0" HeightRequest="50" BackgroundColor="White" Opacity="1" TextColor="Black" HorizontalOptions="FillAndExpand"/>
                     <Button x:Name="CancelSaveButton" Text="Abbrechen" TextColor="White" TextTransform="Uppercase" VerticalOptions="Center" WidthRequest="120" Margin="5" CornerRadius="10" HeightRequest="40" Style="{StaticResource CancelButtonStyle}" Command="{Binding CancelSaveCommand}" HorizontalOptions="End"/>
                 </StackLayout>
-                <local:ConnectionView/>
+            <StackLayout Orientation="Vertical" Spacing="10" WidthRequest="500" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Padding="0" Margin="0,20" BackgroundColor="{StaticResource BioDivGrey}" IsVisible="{Binding GeomsLoadingText, Converter={StaticResource stringToBool}}">
+                <Label x:Name="GeomsLoading" Text="{Binding GeomsLoadingText}" MaxLines="2" HeightRequest="40" TextTransform="Uppercase" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Margin="0" VerticalOptions="StartAndExpand" Opacity="1" TextColor="White" HorizontalOptions="FillAndExpand"/>
+                <ActivityIndicator IsVisible="{Binding IsLoading}" IsRunning="{Binding IsLoading}" Color="{StaticResource BioDivGreen}" HorizontalOptions="Center" VerticalOptions="Start"/>
+            </StackLayout>
+            <local:ConnectionView/>
           </StackLayout>
     </ContentPage.Content>
 

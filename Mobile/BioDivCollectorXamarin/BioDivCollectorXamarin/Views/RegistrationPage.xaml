@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="BioDivCollectorXamarin.Views.RegistrationPage"
+    BackgroundColor="{StaticResource BioDivGreen}">
+    <ContentPage.Content>
+        <StackLayout Orientation="Vertical" Padding="0,0,0,20">
+            <WebView Source="https://id.biodivcollector.ch/auth/realms/BioDivCollector/protocol/openid-connect/registrations?client_id=BioDivCollector&amp;response_type=code&amp;scope=email&amp;redirect_uri=https%3A%2F%2Fbiodivcollector.ch" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"/>
+            <Button Text="Abbrechen" TextColor="White" Clicked="Button_Clicked" HorizontalOptions="FillAndExpand"/>
+        </StackLayout>
+            </ContentPage.Content>
+</ContentPage>
+

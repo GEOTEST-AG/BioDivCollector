@@ -114,6 +114,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
                             var jsonObject = jsonTask.Result;
                             var returnedObject = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonObject);  //Deserialise response
                             SaveTokens(returnedObject);
+                            Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginSuccessful");
                         }
                         else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
@@ -176,7 +177,7 @@ namespace BioDivCollectorXamarin.Models.LoginModel
 
                         Authentication.SaveTokens(props);
 
-                        Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "LoginSuccessful");
+                        Xamarin.Forms.MessagingCenter.Send<Xamarin.Forms.Application>(Xamarin.Forms.Application.Current, "RefreshSuccessful");
                     }
                     catch (Exception ex)
                     {
