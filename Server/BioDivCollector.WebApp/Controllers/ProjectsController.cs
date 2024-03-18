@@ -109,10 +109,6 @@ namespace BioDivCollector.WebApp.Controllers
             return newProjectList;
         }
 
-            return newProjectList;
-        }
-
-
         public async Task<IActionResult> Index()
         {
             User user = Helpers.UserHelper.GetCurrentUser(User, db);
