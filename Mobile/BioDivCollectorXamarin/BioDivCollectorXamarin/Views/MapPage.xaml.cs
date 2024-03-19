@@ -105,6 +105,7 @@ namespace BioDivCollectorXamarin.Views
         /// <param name="e"></param>
         private void MapsuiMapView_MapLongClicked(object sender, MapLongClickedEventArgs e)
         {
+            ViewModel.CanAddMapGeometry = true;
             var mp = sender as Mapsui.Map;
             ViewModel.AddTempPoint(e.Point);
         }
