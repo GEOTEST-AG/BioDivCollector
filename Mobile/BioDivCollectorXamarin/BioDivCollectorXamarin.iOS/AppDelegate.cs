@@ -29,6 +29,7 @@ namespace BioDivCollectorXamarin.iOS
             global::Xamarin.Forms.Forms.Init();
             NativeMedia.Platform.Init(GetTopViewController);
             new Syncfusion.SfAutoComplete.XForms.iOS.SfAutoCompleteRenderer();
+            new Syncfusion.SfNumericTextBox.XForms.iOS.SfNumericTextBoxRenderer();
             Syncfusion.SfImageEditor.XForms.iOS.SfImageEditorRenderer.Init();
             Syncfusion.ListView.XForms.iOS.SfListViewRenderer.Init();
             string dbName = "biodivcollector_database.sqlite";

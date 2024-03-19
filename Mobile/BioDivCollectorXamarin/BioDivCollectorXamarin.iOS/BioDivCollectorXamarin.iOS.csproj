@@ -30,8 +30,8 @@
     <MtouchDebug>true</MtouchDebug>
     <!-- <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey> -->
     <!-- <CodesignProvision>Wildcard</CodesignProvision> -->
-    <CodesignProvision>Wildcard</CodesignProvision>
-    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
+    <CodesignProvision></CodesignProvision>
+    <CodesignKey>Apple Development: Nicholas Dawes (KL9HLGYN6R)</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>none</DebugType>
@@ -55,12 +55,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchArch>ARM64</MtouchArch>
-    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
+    <CodesignKey>Apple Development: Nicholas Dawes (KL9HLGYN6R)</CodesignKey>
     <MtouchDebug>true</MtouchDebug>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <MtouchLink>None</MtouchLink>
     <MtouchInterpreter>-all</MtouchInterpreter>
-    <CodesignProvision>Wildcard</CodesignProvision>
+    <CodesignProvision>BioDivDev24</CodesignProvision>
     <IOSDebugOverWiFi>true</IOSDebugOverWiFi>
     <MtouchProfiling>true</MtouchProfiling>
   </PropertyGroup>
@@ -395,10 +395,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Syncfusion.Xamarin.Core">
-      <Version>21.1.35</Version>
+      <Version>25.1.35</Version>
     </PackageReference>
     <PackageReference Include="Syncfusion.Licensing">
-      <Version>21.1.35</Version>
+      <Version>25.1.35</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
