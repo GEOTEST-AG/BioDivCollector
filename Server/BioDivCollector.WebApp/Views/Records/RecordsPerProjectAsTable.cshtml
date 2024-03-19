@@ -46,12 +46,12 @@
                 $('#RecordContent').html('');
                 $('#records-loading-spinner').show();
                 $.ajax(
-            {
-                url: "@Url.Action("Delete","Records")/" + recordId,
-            }).done(function () {
-                loadBeobachtungsTableURL('@Url.Action("RecordsPerProjectAsTable", "Records", new { @id = Model.Project.ProjectId })');
-            }
-            );
+                    {
+                        url: "@Url.Action("Delete","Records")/" + recordId,
+                    }).done(function () {
+                        loadBeobachtungsTableURL('@Url.Action("RecordsPerProjectAsTable", "Records", new { @id = Model.Project.ProjectId })');
+                    }
+                    );
 
             }
 
@@ -72,7 +72,7 @@
 
                     }
                 );
-}
+            }
             $(this).off('hide.bs.modal');
         });
     }
@@ -84,29 +84,29 @@
         $('#moverecordid').val(recordId);
 
         $select = $('#togeometrie-select').selectize({
-                                        initItem: true,
+            initItem: true,
 
-                                        // Need to preload, so that Selectize will go get the option
-                                        preload: true,
-                                        maxItems: 1,
-                                        persist: false,
-                                        load: function (query, callback) {
-                                            //if (!query.length) return callback();
-                                            $.ajax({
-                                                url: '@Url.Action("GetGeometriesForProject", "ReferenceGeometry")?id=' + projectId +'&search=' + encodeURIComponent(query),
-                                                type: 'GET',
-                                                error: function () {
-                                                    callback();
-                                                },
-                                                success: function (res) {
-                                                    callback(res.slice(0, 10));
-                                                }
-                                            });
-                                        },
+            // Need to preload, so that Selectize will go get the option
+            preload: true,
+            maxItems: 1,
+            persist: false,
+            load: function (query, callback) {
+                //if (!query.length) return callback();
+                $.ajax({
+                    url: '@Url.Action("GetGeometriesForProject", "ReferenceGeometry")?id=' + projectId + '&search=' + encodeURIComponent(query),
+                    type: 'GET',
+                    error: function () {
+                        callback();
+                    },
+                    success: function (res) {
+                        callback(res.slice(0, 10));
+                    }
+                });
+            },
             valueField: 'Id',
-                                        labelField: 'Title',
+            labelField: 'Title',
             searchField: 'Title'
-                                    });
+        });
 
 
 
@@ -127,7 +127,7 @@
                     {
                         url: "@Url.Action("Move","Records")?from=" + recordId + "&to=" + $('#togeometrie-select').val(),
                     }).done(function () {
-                         loadBeobachtungsTableURL('@Url.Action("RecordsPerProjectAsTable", "Records", new { @id = Model.Project.ProjectId })');
+                        loadBeobachtungsTableURL('@Url.Action("RecordsPerProjectAsTable", "Records", new { @id = Model.Project.ProjectId })');
 
                     }
                     )
@@ -142,12 +142,12 @@
 <div class="">
     <div class="">
         @if ((bool)ViewData["ReadOnly"] == false)
-            {
-       
-        <span style="float:right; margin-bottom:20px;">
-            <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" style="width:280px;" onclick="javascript:addTableRecordToProject();"><i class="icofont-plus-circle"></i> Neue Beobachtung hinzufügen</button>
-        </span>
-            }
+        {
+
+            <span style="float:right; margin-bottom:20px;">
+                <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" style="width:280px;" onclick="javascript:addTableRecordToProject();"><i class="icofont-plus-circle"></i> Neue Beobachtung hinzufügen</button>
+            </span>
+        }
         <div class="user-status table-responsive product-chart">
 
             <table id="recordsTable" class="table">
@@ -156,10 +156,10 @@
                         <th colspan="4">Geometrie</th>
 
                         @foreach (BioDivCollector.DB.Models.Domain.Form form in Model.Forms)
-                            {
+                        {
 
-                        <th colspan="@form.FormFormFields.Select(fff=>fff.FormField).Count()">@form.Title</th>
-                            }
+                            <th colspan="@form.FormFormFields.Select(fff=>fff.FormField).Count()">@form.Title</th>
+                        }
 
                         <th colspan="3">Letzte Änderung</th>
                     </tr>
@@ -176,14 +176,13 @@
                         </th>
 
                         <!-- Forms -->
-
                         @foreach (BioDivCollector.DB.Models.Domain.Form form in Model.Forms)
+                        {
+                            @foreach (BioDivCollector.DB.Models.Domain.FormField formfield in form.FormFormFields.Select(fff => fff.FormField).Where(m => m.FieldTypeId != FieldTypeEnum.Header).OrderBy(m => m.Order))
                             {
-                        @foreach (BioDivCollector.DB.Models.Domain.FormField formfield in form.FormFormFields.Select(fff => fff.FormField).Where(m=>m.FieldTypeId!=FieldTypeEnum.Header).OrderBy(m => m.Order))
-                                {
-                        <th>@formfield.Title</th>
-                                }
+                                <th>@formfield.Title</th>
                             }
+                        }
 
                         <!-- End Forms -->
 
@@ -200,109 +199,109 @@
                 </thead>
                 <tbody>
                     @foreach (BioDivCollector.WebApp.Controllers.RecordViewModel rvm in Model.Records.OrderByDescending(m => m.Record.RecordChangeLogs.Max(cl => cl.ChangeLogId)))
-                        {
-                    <tr>
-                        <td>
-                            @if ((!rvm.Readonly) && ((bool)ViewData["ReadOnly"] == false) && (rvm.Record.RecordId.ToString() != "00000000-0000-0000-0000-000000000000"))
-                            {
-                                <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" style="width:42px;" onclick="openEditModal('@rvm.Record.RecordId')"><i class="fa fa-pencil-square-o"></i></button>
-                                <button type="button" class="btn btn-danger" data-original-title="btn btn-light" title="" style="width:42px;" onclick="deleteTableRecordFromProject('@rvm.Record.RecordId')"><i class="icofont-ui-delete"></i></button>
-                            }
-
-
-                        </td>
-
-                        @if (rvm.Record.Geometry != null)
+                    {
+                        <tr>
+                            <td>
+                                @if ((!rvm.Readonly) && ((bool)ViewData["ReadOnly"] == false) && (rvm.Record.RecordId.ToString() != "00000000-0000-0000-0000-000000000000"))
                                 {
-                                    if (rvm.Record.Geometry.Polygon != null)
-                                    {
-                                <td>
-                            <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="Auf Karte zeigen" style="width:42px;" onclick="location.href='@Url.Action("Map","Projects",new { id = Model.Project.ProjectId, geometryId = rvm.Record.Geometry.GeometryId })'"><i class="fas fa-draw-polygon"></i></button>
+                                    <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="" style="width:42px;" onclick="openEditModal('@rvm.Record.RecordId')"><i class="fa fa-pencil-square-o"></i></button>
+                                    <button type="button" class="btn btn-danger" data-original-title="btn btn-light" title="" style="width:42px;" onclick="deleteTableRecordFromProject('@rvm.Record.RecordId')"><i class="icofont-ui-delete"></i></button>
+                                }
 
 
-                        </td>
-                                    }
-                                    else if (rvm.Record.Geometry.Line != null)
-                                    {
-                        <td>
-                            <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="Auf Karte zeigen" style="width:42px;" onclick="location.href='@Url.Action("Map","Projects",new { id = Model.Project.ProjectId, geometryId = rvm.Record.Geometry.GeometryId })'"><span class="material-icons">timeline</span></button>
-                        
-                        </td>
-                                    }
-                                    else
-                                    {
-                        <td>
-                            <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="Auf Karte zeigen" style="width:42px;" onclick="location.href='@Url.Action("Map","Projects",new { id = Model.Project.ProjectId, geometryId = rvm.Record.Geometry.GeometryId })'"><i class="fas fa-map-marker-alt"></i></button>
-                        </td>
-                                    }
+                            </td>
+
+                            @if (rvm.Record.Geometry != null)
+                            {
+                                if (rvm.Record.Geometry.Polygon != null)
+                                {
+                                    <td>
+                                        <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="Auf Karte zeigen" style="width:42px;" onclick="location.href='@Url.Action("Map","Projects",new { id = Model.Project.ProjectId, geometryId = rvm.Record.Geometry.GeometryId })'"><i class="fas fa-draw-polygon"></i></button>
 
 
+                                    </td>
+                                }
+                                else if (rvm.Record.Geometry.Line != null)
+                                {
+                                    <td>
+                                        <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="Auf Karte zeigen" style="width:42px;" onclick="location.href='@Url.Action("Map","Projects",new { id = Model.Project.ProjectId, geometryId = rvm.Record.Geometry.GeometryId })'"><span class="material-icons">timeline</span></button>
 
-                        <td>@rvm.Record.Geometry.GeometryName</td>
+                                    </td>
                                 }
                                 else
                                 {
-                        <td></td>
-                        <td>(keine Geometrie)</td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary" data-original-title="btn btn-light" title="Auf Karte zeigen" style="width:42px;" onclick="location.href='@Url.Action("Map","Projects",new { id = Model.Project.ProjectId, geometryId = rvm.Record.Geometry.GeometryId })'"><i class="fas fa-map-marker-alt"></i></button>
+                                    </td>
                                 }
-                    <td>
-                        @if (rvm.Record.RecordId.ToString() != "00000000-0000-0000-0000-000000000000")
-                        {
-                            <button type="button" class="btn btn-primary btn-clipboard" data-clipboard-action="copy" data-clipboard-text="@rvm.Record.BDCGuid"><i class="fa fa-copy" aria-hidden="true"></i></button>
-                        }
-                    </td>
-                        @foreach (BioDivCollector.DB.Models.Domain.Form form in Model.Forms)
+
+
+
+                                <td>@rvm.Record.Geometry.GeometryName</td>
+                            }
+                            else
+                            {
+                                <td></td>
+                                <td>(keine Geometrie)</td>
+                            }
+                            <td>
+                                @if (rvm.Record.RecordId.ToString() != "00000000-0000-0000-0000-000000000000")
                                 {
-                        @foreach (BioDivCollector.DB.Models.Domain.FormField formfield in form.FormFormFields.Select(fff => fff.FormField).Where(m => m.FieldTypeId != FieldTypeEnum.Header).OrderBy(m => m.Order))
-                        {
-                    <td>
-                        @if (rvm.Record.FormId == form.FormId)
-                        {
-                            if ((formfield.FieldTypeId == FieldTypeEnum.Text) || (formfield.FieldTypeId == FieldTypeEnum.Choice))
+                                    <button type="button" class="btn btn-primary btn-clipboard" data-clipboard-action="copy" data-clipboard-text="@rvm.Record.BDCGuid"><i class="fa fa-copy" aria-hidden="true"></i></button>
+                                }
+                            </td>
+                            @foreach (BioDivCollector.DB.Models.Domain.Form form in Model.Forms)
                             {
-                                <text>@rvm.Record.TextData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value</text>
-                            }
-                            else if (formfield.FieldTypeId == FieldTypeEnum.DateTime) 
-                            {
-                                <text>@rvm.Record.TextData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value</text>
-                            }
+                                @foreach (BioDivCollector.DB.Models.Domain.FormField formfield in form.FormFormFields.Select(fff => fff.FormField).Where(m => m.FieldTypeId != FieldTypeEnum.Header).OrderBy(m => m.Order))
+                                {
+                                    <td>
+                                        @if (rvm.Record.FormId == form.FormId)
+                                        {
+                                            if ((formfield.FieldTypeId == FieldTypeEnum.Text) || (formfield.FieldTypeId == FieldTypeEnum.Choice))
+                                            {
+                                                <text>@rvm.Record.TextData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value</text>
+                                            }
+                                            else if (formfield.FieldTypeId == FieldTypeEnum.DateTime)
+                                            {
+                                                <text>@rvm.Record.TextData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value</text>
+                                            }
                                             else if (formfield.FieldTypeId == FieldTypeEnum.Number)
                                             {
                                                 <text>@rvm.Record.NumericData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value</text>
                                             }
-                            else if (formfield.FieldTypeId == FieldTypeEnum.Boolean)
-                            {
-                                if (rvm.Record.BooleanData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value == true)
-                                {
-                                    <text>Ja</text>
-                                }
-                                else if (rvm.Record.BooleanData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value == false)
-                                {
-                                    <text>Nein</text>
-                                }
+                                            else if (formfield.FieldTypeId == FieldTypeEnum.Boolean)
+                                            {
+                                                if (rvm.Record.BooleanData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value == true)
+                                                {
+                                                    <text>Ja</text>
+                                                }
+                                                else if (rvm.Record.BooleanData.Where(m => m.FormFieldId == formfield.FormFieldId).FirstOrDefault()?.Value == false)
+                                                {
+                                                    <text>Nein</text>
+                                                }
 
+                                            }
+                                        }
+
+                                    </td>
+                                }
                             }
-                        }
-
-                    </td>
-                                    }
+                            <td>
+                                @{
+                                    var lastCl = rvm.Record.RecordChangeLogs.OrderBy(cl => cl.ChangeLogId).Last();
                                 }
-                        <td>
-                            @{
-                                        var lastCl = rvm.Record.RecordChangeLogs.OrderBy(cl => cl.ChangeLogId).Last();
-                            }
-                            @lastCl.ChangeLog.User.FirstName @lastCl.ChangeLog.User.Name
+                                @lastCl.ChangeLog.User.FirstName @lastCl.ChangeLog.User.Name
 
-                        </td>
-                        <td>
-                            @lastCl.ChangeLog.ChangeDate.ToLocalTime().ToString("dd.MM.yy")
-                        </td>
-                        <td>
-                            @lastCl.ChangeLog.ChangeDate.ToLocalTime().ToString("HH:mm")
-                        </td>
-                    </tr>
+                            </td>
+                            <td>
+                                @lastCl.ChangeLog.ChangeDate.ToLocalTime().ToString("dd.MM.yy")
+                            </td>
+                            <td>
+                                @lastCl.ChangeLog.ChangeDate.ToLocalTime().ToString("HH:mm")
+                            </td>
+                        </tr>
 
-                        }
+                    }
 
 
 
@@ -356,89 +355,89 @@
         $('#openEditModal').modal('show');
 
 
-        $('#Form_hidden_'+id).submit(function (e) {
+        $('#Form_hidden_' + id).submit(function (e) {
 
-                            e.preventDefault(); // avoid to execute the actual submit of the form.
+            e.preventDefault(); // avoid to execute the actual submit of the form.
 
-                            var form = $(this);
-                            var url = form.attr('action');
+            var form = $(this);
+            var url = form.attr('action');
 
-                            $.ajax({
-                                type: "POST",
-                                url: url,
-                                data: form.serialize(), // serializes the form's elements.
-                                success: function (data) {
-                                    $('#openEditModal').modal('hide');
-                                    $('#openEditModal').on('hidden.bs.modal', function (e) {
-                                        $(this).off('hidden.bs.modal');
-                                        loadBeobachtungsTableURL('@Url.Action("RecordsPerProjectAsTable", "Records", new { @id = Model.Project.ProjectId })');
-                                    });
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: form.serialize(), // serializes the form's elements.
+                success: function (data) {
+                    $('#openEditModal').modal('hide');
+                    $('#openEditModal').on('hidden.bs.modal', function (e) {
+                        $(this).off('hidden.bs.modal');
+                        loadBeobachtungsTableURL('@Url.Action("RecordsPerProjectAsTable", "Records", new { @id = Model.Project.ProjectId })');
+                    });
 
 
-                                    if (data == "OK") {
-                                        $.notify({
-                                            title: 'Speichern erfolgreich',
-                                            message: 'Der Eintrag wurde erfolgreich gespeichert.'
-                                        },
-                                            {
-                                                type: 'primary',
-                                                allow_dismiss: false,
-                                                newest_on_top: false,
-                                                mouse_over: false,
-                                                showProgressbar: false,
-                                                spacing: 10,
-                                                timer: 2000,
-                                                placement: {
-                                                    from: 'top',
-                                                    align: 'right'
-                                                },
-                                                offset: {
-                                                    x: 30,
-                                                    y: 100
-                                                },
-                                                delay: 1000,
-                                                z_index: 10000,
-                                                animate: {
-                                                    enter: 'animated fadeInDown',
-                                                    exit: 'animated bounceOutRight'
-                                                }
-                                            });
-                                    }
-                                    else {
-                                        $.notify({
-                                            title: 'Es gab ein Problem',
-                                            message: 'Fehler beim Speichern: ' + data
-                                        },
-                                            {
-                                                type: 'danger',
-                                                allow_dismiss: false,
-                                                newest_on_top: false,
-                                                mouse_over: false,
-                                                showProgressbar: false,
-                                                spacing: 10,
-                                                timer: 2000,
-                                                placement: {
-                                                    from: 'top',
-                                                    align: 'right'
-                                                },
-                                                offset: {
-                                                    x: 30,
-                                                    y: 100
-                                                },
-                                                delay: 1000,
-                                                z_index: 10000,
-                                                animate: {
-                                                    enter: 'animated fadeInDown',
-                                                    exit: 'animated bounceOutRight'
-                                                }
-                                            });
-                                    }
-
+                    if (data == "OK") {
+                        $.notify({
+                            title: 'Speichern erfolgreich',
+                            message: 'Der Eintrag wurde erfolgreich gespeichert.'
+                        },
+                            {
+                                type: 'primary',
+                                allow_dismiss: false,
+                                newest_on_top: false,
+                                mouse_over: false,
+                                showProgressbar: false,
+                                spacing: 10,
+                                timer: 2000,
+                                placement: {
+                                    from: 'top',
+                                    align: 'right'
+                                },
+                                offset: {
+                                    x: 30,
+                                    y: 100
+                                },
+                                delay: 1000,
+                                z_index: 10000,
+                                animate: {
+                                    enter: 'animated fadeInDown',
+                                    exit: 'animated bounceOutRight'
                                 }
                             });
+                    }
+                    else {
+                        $.notify({
+                            title: 'Es gab ein Problem',
+                            message: 'Fehler beim Speichern: ' + data
+                        },
+                            {
+                                type: 'danger',
+                                allow_dismiss: false,
+                                newest_on_top: false,
+                                mouse_over: false,
+                                showProgressbar: false,
+                                spacing: 10,
+                                timer: 2000,
+                                placement: {
+                                    from: 'top',
+                                    align: 'right'
+                                },
+                                offset: {
+                                    x: 30,
+                                    y: 100
+                                },
+                                delay: 1000,
+                                z_index: 10000,
+                                animate: {
+                                    enter: 'animated fadeInDown',
+                                    exit: 'animated bounceOutRight'
+                                }
+                            });
+                    }
+
+                }
+            });
 
 
-                        });
+        });
 
     }
 
