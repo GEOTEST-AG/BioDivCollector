@@ -501,6 +501,10 @@ namespace BioDivCollectorXamarin.ViewModels
                             var numList = await NumericData.FetchNumericDataByRecordId(RecId);
                                var num = numList.Where(NumericData => NumericData.formFieldId == formField.fieldId).Take(1).FirstOrDefault();
                             var textField = new CustomEntry();
+
+                            var numericBehaviour = new Xamarin.CommunityToolkit.Behaviors.NumericValidationBehavior();
+                            numericBehaviour.MaximumDecimalPlaces = 2;
+                            textField.Behaviors.Add(numericBehaviour);
                             if (num == null)
                             {
                                 //CreateNew
@@ -512,7 +516,14 @@ namespace BioDivCollectorXamarin.ViewModels
 
                             }
 
-                            textField = new CustomEntry { Text = ((double)num.value).ToString("F", CultureInfo.CreateSpecificCulture("de-CH")) };
+                            if (num.value == null)
+                            {
+                                textField = new CustomEntry { Text = String.Empty };
+                            }
+                            else
+                            {
+                                textField = new CustomEntry { Text = ((double)num.value).ToString("F", CultureInfo.CreateSpecificCulture("en-GB")) };
+                            }
 
                             textField.SetAppThemeColor(CustomEntry.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
                             textField.SetAppThemeColor(CustomEntry.TextColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightTextColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkTextColor"]);

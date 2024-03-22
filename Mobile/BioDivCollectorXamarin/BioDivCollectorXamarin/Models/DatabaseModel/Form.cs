@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using BioDivCollectorXamarin.Controls;
@@ -225,7 +226,10 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                             try
                             {
                                 var num = await conn.Table<NumericData>().Where(NumericData => NumericData.record_fk == RecId).Where(NumericData => NumericData.Id == txtField.ValueId).FirstOrDefaultAsync();
-                                num.value = Convert.ToDouble(txtField.Text);
+
+                                if (double.TryParse(txtField.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out double number))
+                                { num.value = number; }
+
                                 await conn.UpdateAsync(num);
                                 await Record.UpdateRecord(num.record_fk);
                             }
