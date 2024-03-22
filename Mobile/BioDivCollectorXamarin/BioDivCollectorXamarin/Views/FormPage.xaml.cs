@@ -95,6 +95,11 @@ namespace BioDivCollectorXamarin.Views
             {
                 OnAppearing();
             });
+            MessagingCenter.Unsubscribe<Application>(App.Current, "UpdateDataForm");
+            MessagingCenter.Subscribe<Application>(App.Current, "UpdateDataForm", (sender) =>
+            {
+                UpdateFormView();
+            });
         }
 
         private async void Initialise()

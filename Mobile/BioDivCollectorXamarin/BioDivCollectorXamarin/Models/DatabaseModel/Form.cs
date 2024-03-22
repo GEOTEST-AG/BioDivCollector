@@ -6,6 +6,7 @@ using BioDivCollectorXamarin.Controls;
 using SQLite;
 using SQLiteNetExtensions.Attributes;
 using SQLiteNetExtensionsAsync.Extensions;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace BioDivCollectorXamarin.Models.DatabaseModel
@@ -461,12 +462,62 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                     var area = ReferenceGeometry.CalculateAreaOfPolygon(geom);
                     return area.ToString("F2");
                 }
+                else if (standardValue == "coordinates()")
+                {
+                    var gpsWasRunning = App.GpsIsRunning;
+                    if (!App.GpsIsRunning)
+                    {
+                        Preferences.Set("GPS", true);
+                        App.Gps.StartGPSAsync();
+                        MessagingCenter.Subscribe<GPS>(App.Gps, "GPSPositionUpdate", (sender) => {
+                            Task.Run(async () => {
+                                var accuracy = (int)Preferences.Get("LastPositionAccuracy", 0);
+                                if (accuracy > 0 && accuracy < 20)
+                                {
+                                    text = await Form.SaveData(record, text);
+                                    GPS.StopGPSAsync();
+                                    MessagingCenter.Unsubscribe<GPS>(App.Gps, "GPSPositionUpdate");
+                                    MessagingCenter.Send<Application>(App.Current, "UpdateDataForm");
+                                    Preferences.Set("GPS", false);
+                                }
+                            });
+                        });
+                    }
+
+                    text = await Form.SaveData(record, text);
+
+                    return text.value;
+                }
                 else
                 {
                     return String.Empty;
                 }
             }
             return value;
+        }
+
+        private static async Task<TextData> SaveData(Record record, TextData text)
+        {
+            var accuracy = (int)Preferences.Get("LastPositionAccuracy", 0);
+
+            var lat = Preferences.Get("LastPositionLatitude", 0.0);
+            var lon = Preferences.Get("LastPositionLongitude", 0.0);
+
+            var conn = App.ActiveDatabaseConnection;
+
+            if (record == null)
+            {
+                await Record.CreateRecord(record.formId, record.geometry_fk);
+                text.value = lat.ToString("0.###").Replace(",", ".") + ", " + lon.ToString("0.###").Replace(",", ".") + " ±" + accuracy.ToString("0.###").Replace(",", ".") + " m";
+                await conn.UpdateAsync(text);
+            }
+            else
+            {
+                text.value = lat.ToString("0.###").Replace(",", ".") + ", " + lon.ToString("0.###").Replace(",", ".") + " ±" + accuracy.ToString("0.###").Replace(",", ".") + " m";
+                await conn.UpdateAsync(text);
+                await Record.UpdateRecord(record.recordId);
+            }
+            return text;
         }
     }
 
