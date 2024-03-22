@@ -1,4 +1,4 @@
-﻿using FeldAppX.Helpers;
+﻿using BioDivCollectorXamarin.Helpers;
 using Plugin.Geolocator;
 using Plugin.Geolocator.Abstractions;
 using System;

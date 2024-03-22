@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace FeldAppX.Helpers
+namespace BioDivCollectorXamarin.Helpers
 {
     public class KalmanLatLong
     {
