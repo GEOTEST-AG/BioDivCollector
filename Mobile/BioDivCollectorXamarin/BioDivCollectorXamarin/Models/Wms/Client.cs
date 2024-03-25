@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using Mapsui.Geometries;
+using Mapsui;
 using Mapsui.Logging;
 using Mapsui.Styles;
 
@@ -98,7 +98,7 @@ namespace BioDivCollectorXamarin.Models.Wms
             /// <summary>
             /// Coordinate Reference Systems supported by layer
             /// </summary>
-            public IDictionary<string, BoundingBox> BoundingBoxes;
+            public IDictionary<string, MRect> BoundingBoxes;
 
             /// <summary>
             /// Keywords
@@ -108,7 +108,7 @@ namespace BioDivCollectorXamarin.Models.Wms
             /// <summary>
             /// Latitudal/longitudal extent of this layer
             /// </summary>
-            public BoundingBox LatLonBoundingBox;
+            public MRect LatLonBoundingBox;
 
             /// <summary>
             /// Unique name of this layer used for requesting layer
@@ -538,14 +538,14 @@ namespace BioDivCollectorXamarin.Models.Wms
             XmlNodeList xnlBoundingBox = xmlLayer.SelectNodes("sm:BoundingBox", _nsmgr);
             if (xnlBoundingBox != null)
             {
-                wmsServerLayer.BoundingBoxes = new Dictionary<string, BoundingBox>();
+                wmsServerLayer.BoundingBoxes = new Dictionary<string, MRect>();
                 for (var i = 0; i < xnlBoundingBox.Count; i++)
                 {
                     var xmlAttributeCollection = xnlBoundingBox[i].Attributes;
                     if (xmlAttributeCollection != null)
                     {
                         var crs = (xmlAttributeCollection["CRS"] ?? xmlAttributeCollection["SRS"]).Value;
-                        wmsServerLayer.BoundingBoxes[crs] = new BoundingBox(
+                        wmsServerLayer.BoundingBoxes[crs] = new MRect(
                             double.Parse(xmlAttributeCollection["minx"].Value, NumberFormatInfo.InvariantInfo),
                             double.Parse(xmlAttributeCollection["miny"].Value, NumberFormatInfo.InvariantInfo),
                             double.Parse(xmlAttributeCollection["maxx"].Value, NumberFormatInfo.InvariantInfo),
@@ -610,7 +610,7 @@ namespace BioDivCollectorXamarin.Models.Wms
                     !double.TryParse(node.Attributes["maxx"].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out maxx) &
                     !double.TryParse(node.Attributes["maxy"].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out maxy))
                     throw new ArgumentException("Invalid LatLonBoundingBox on layer '" + wmsServerLayer.Name + "'");
-                wmsServerLayer.LatLonBoundingBox = new BoundingBox(minx, miny, maxx, maxy);
+                wmsServerLayer.LatLonBoundingBox = new MRect(minx, miny, maxx, maxy);
             }
             return wmsServerLayer;
         }

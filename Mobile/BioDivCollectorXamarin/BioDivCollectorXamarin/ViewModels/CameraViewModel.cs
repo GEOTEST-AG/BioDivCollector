@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Views;
+using Mapsui.Extensions;
 using NativeMedia;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -68,7 +69,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
                     using (var file = await MediaGallery.CapturePhotoAsync())
                     {
-                        var stream = await file.OpenReadAsync();
+                        Stream stream = await file.OpenReadAsync();
                         var arr = stream.ToBytes();
                         SaveToAlbum(arr);
                         var success = await SaveToFile(arr);

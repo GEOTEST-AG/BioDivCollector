@@ -127,7 +127,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="pointList"></param>
         /// <param name="name"></param>
-        public static async Task<string> SaveGeometry(List<Mapsui.Geometries.Point> pointList, string name)
+        public static async Task<string> SaveGeometry(List<Mapsui.MPoint> pointList, string name)
         {
             var geom = new ReferenceGeometry();
             geom.geometryId = Guid.NewGuid().ToString();
@@ -158,7 +158,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
         /// </summary>
         /// <param name="pointList"></param>
         /// <param name="name"></param>
-        public static async Task UpdateGeometry(List<Mapsui.Geometries.Point> pointList, int GeomId)
+        public static async Task UpdateGeometry(List<Mapsui.MPoint> pointList, int GeomId)
         {
             var conn = App.ActiveDatabaseConnection;
                 var geom = await conn.GetWithChildrenAsync<ReferenceGeometry>(GeomId);
@@ -242,8 +242,8 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var geometry = DataDAO.GeoJSON2Geometry(geom.geometry);
             var tpoints = ReferenceGeometry.TransformWGS84ToCH1903(geometry.Coordinates);
 
-            var polygon = new Mapsui.Geometries.Polygon();
-            polygon.ExteriorRing.Vertices = tpoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToArray();
+            var linearRing = new LinearRing(tpoints);
+            var polygon = new Polygon(linearRing);
             return polygon.Area;
         }
 
@@ -252,12 +252,11 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             var geometry = DataDAO.GeoJSON2Geometry(geom.geometry);
             var tpoints = ReferenceGeometry.TransformWGS84ToCH1903(geometry.Coordinates);
 
-            var line = new Mapsui.Geometries.LineString();
-            line.Vertices = tpoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToArray();
+            var line = new LineString(tpoints);
             return line.Length;
         }
 
-        public static string FindGeometryTypeFromCoordinateList(List<Mapsui.Geometries.Point>coordList)
+        public static string FindGeometryTypeFromCoordinateList(List<Mapsui.MPoint>coordList)
         {
             var start = coordList[0];
             var end = coordList[coordList.Count - 1];

@@ -30,8 +30,8 @@
     <MtouchDebug>true</MtouchDebug>
     <!-- <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey> -->
     <!-- <CodesignProvision>Wildcard</CodesignProvision> -->
-    <CodesignProvision>Wildcard</CodesignProvision>
-    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
+    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <CodesignKey>Apple Development: Oliver Frey (S2KS4AY53J)</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>none</DebugType>
@@ -55,12 +55,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchArch>ARM64</MtouchArch>
-    <CodesignKey>Apple Development: Nicholas Dawes (US48Y8844N)</CodesignKey>
+    <CodesignKey>Apple Development: Oliver Frey (S2KS4AY53J)</CodesignKey>
     <MtouchDebug>true</MtouchDebug>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <MtouchLink>None</MtouchLink>
     <MtouchInterpreter>-all</MtouchInterpreter>
-    <CodesignProvision>Wildcard</CodesignProvision>
+    <CodesignProvision>VS: WildCard Development</CodesignProvision>
     <IOSDebugOverWiFi>true</IOSDebugOverWiFi>
     <MtouchProfiling>true</MtouchProfiling>
   </PropertyGroup>
@@ -402,6 +402,19 @@
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
+  <Target Name="VSMac_RemoveSystemMemory" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <_ReferenceToRemove Include="@(Reference)" Condition="'%(Reference.Identity)'=='System.Memory'" />
+      <Reference Remove="@(_ReferenceToRemove)" />
+      <Reference Include="System.Memory" />
+    </ItemGroup>
+  </Target>
+  <Target Name="VS_RemoveSystemMemory" BeforeTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <_ReferencePathToRemove Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)'=='System.Memory'" />
+      <ReferencePath Remove="@(_ReferencePathToRemove)" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <ProjectReference Include="..\BioDivCollectorXamarin\BioDivCollectorXamarin.csproj">
       <Project>{791AB591-903A-41D3-824A-E7A8FAC45123}</Project>

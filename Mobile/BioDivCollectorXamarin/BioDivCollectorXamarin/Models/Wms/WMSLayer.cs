@@ -7,6 +7,7 @@ using BruTile.Predefined;
 using BruTile.Web;
 using BruTile.Wmsc;
 using Mapsui.Layers;
+using Mapsui.Tiling.Layers;
 using SQLite;
 
 namespace BioDivCollectorXamarin.Models.Wms
@@ -33,7 +34,7 @@ namespace BioDivCollectorXamarin.Models.Wms
                 TimeOut = 2000,
                 CRS = "EPSG:3857"
             };
-            urlString = provider2.GetRequestUrl(new Mapsui.Geometries.BoundingBox(new Mapsui.Geometries.Point(0,200000), new Mapsui.Geometries.Point(0, 200000)),256,256);
+            urlString = provider2.GetRequestUrl(new Mapsui.Geometries.BoundingBox(new Mapsui.MPoint(0,200000), new Mapsui.MPoint(0, 200000)),256,256);
             urlString = urlString.Split("?").FirstOrDefault() + "?SERVICE=WMS";
             var schema = new GlobalSphericalMercator("png", YAxis.OSM, 0, 21, null);
             var layers = new List<string>();
@@ -171,7 +172,7 @@ namespace BioDivCollectorXamarin.Models.Wms
             try
             {
                 ITileSource tileSource = CreateOfflineSource(filePath);
-                return new TileLayer(tileSource) { Name = tileSource.Name, CRS = "EPSG:3857" };
+                return new TileLayer(tileSource) { Name = tileSource.Name/*, CRS = "EPSG:3857"*/ };
             }
             catch
             {

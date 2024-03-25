@@ -9,11 +9,10 @@ using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Views;
 using BruTile;
 using Mapsui;
-using Mapsui.Geometries;
 using Mapsui.Layers;
-using Mapsui.Projection;
 using Mapsui.Providers;
 using Mapsui.Styles;
+using Mapsui.Projections;
 using Mapsui.UI;
 using Mapsui.Utilities;
 using MathNet.Numerics.Statistics;
@@ -21,6 +20,11 @@ using Plugin.Geolocator;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Exception = System.Exception;
+using Mapsui.Limiting;
+using Mapsui.Nts;
+using NetTopologySuite.Geometries;
+using Mapsui.Extensions;
+using Mapsui.Nts.Extensions;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
@@ -181,9 +185,9 @@ namespace BioDivCollectorXamarin.ViewModels
         /// <summary>
         /// A temporary list of coordinates used during geometry creation
         /// </summary>
-        private List<Mapsui.Geometries.Point> tempCoordinates;
+        private List<Mapsui.MPoint> tempCoordinates;
 
-        public List<Mapsui.Geometries.Point> TempCoordinates
+        public List<Mapsui.MPoint> TempCoordinates
         {
             get { return tempCoordinates; }
             set
@@ -294,24 +298,23 @@ namespace BioDivCollectorXamarin.ViewModels
             VMMapView.TouchMove += MapView_TouchMove;
             //VMMapView.ViewportInitialized += VMMapView_ViewportInitialized;
 
-            TempCoordinates = new List<Mapsui.Geometries.Point>();
+            TempCoordinates = new List<Mapsui.MPoint>();
 
             var positionLat = Preferences.Get("LastPositionLatitude", 47.36);
             var positionLong = Preferences.Get("LastPositionLongitude", 8.54);
-            Mapsui.Geometries.Point centre = new Mapsui.Geometries.Point(positionLong, positionLat);
+            Mapsui.MPoint centre = new Mapsui.MPoint(positionLong, positionLat);
             var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(centre.X, centre.Y);
 
-            VMMapView.Map.Limiter = new ViewportLimiterKeepWithin
-            {
-                PanLimits = new BoundingBox(SphericalMercator.FromLonLat(-180, -90), SphericalMercator.FromLonLat(180, 90))
-            };
+            MRect mRect = new MRect(SphericalMercator.FromLonLat(-180, -90).x, SphericalMercator.FromLonLat(-180, -90).y, SphericalMercator.FromLonLat(180, 90).x, SphericalMercator.FromLonLat(180, 90).y);
+
+            VMMapView.Map.Navigator.ZoomToBox(mRect);
 
             Task.Run(async () =>
             {
                 var allMapLayers = await MapModel.MakeArrayOfLayers();
                 MapLayers = new ObservableCollection<MapLayer>(new List<MapLayer>());
                 MapLayers = new ObservableCollection<MapLayer>(allMapLayers);
-                Map.Widgets.Add(new Mapsui.Widgets.ScaleBar.ScaleBarWidget(Map) { TextAlignment = Mapsui.Widgets.Alignment.Center, HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left, VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom });
+                Map.Widgets.Enqueue(new Mapsui.Widgets.ScaleBar.ScaleBarWidget(Map) { TextAlignment = Mapsui.Widgets.Alignment.Center, HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left, VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom });
             });
 
 
@@ -350,9 +353,19 @@ namespace BioDivCollectorXamarin.ViewModels
 
             MessagingCenter.Subscribe<MapPageVM>(this, "ShapeDrawingUndone", (sender) =>
             {
-                Map.Layers.Remove(TempLayer);
-                TempLayer = MapModel.CreateTempLayer(TempCoordinates);
-                Map.Layers.Insert(Map.Layers.Count, TempLayer);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                    Map.Layers.Remove(TempLayer);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                    TempLayer = MapModel.CreateTempLayer(TempCoordinates);
+                    Map.Layers.Insert(Map.Layers.Count, TempLayer);
+                });
             });
 
             MessagingCenter.Unsubscribe<Application, string>(App.Current, "EditGeometry");
@@ -361,7 +374,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 GeomToEdit = arg;
                 var tempGeom = await ReferenceGeometry.GetGeometry(GeomToEdit);
                 NetTopologySuite.Geometries.Coordinate[] tempPoints = DataDAO.GeoJSON2Geometry(tempGeom.geometry).Coordinates;
-                List<Mapsui.Geometries.Point> coordList = tempPoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToList();
+                List<Mapsui.MPoint> coordList = tempPoints.Select(c => new Mapsui.MPoint(c.X, c.Y)).ToList();
                 GeometryType = ReferenceGeometry.FindGeometryTypeFromCoordinateList(coordList);
                 TempCoordinates = coordList; //Not initially assigned to tempCoordinates, as we need to first know GeometryType to decide whether the save command can run
             });
@@ -495,14 +508,14 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (mapLayer != null)
                     Map.Layers.Remove(mapLayer);
 
-                var mapPt = new Mapsui.Geometries.Point(Convert.ToDouble(screenPt.Longitude), Convert.ToDouble(screenPt.Latitude));
+                var mapPt = new Mapsui.MPoint(Convert.ToDouble(screenPt.Longitude), Convert.ToDouble(screenPt.Latitude));
                 if (GeometryType == "Punkt")
                 {
-                    TempCoordinates = new List<Mapsui.Geometries.Point>() { mapPt };
+                    TempCoordinates = new List<Mapsui.MPoint>() { mapPt };
                 }
                 else if (GeometryType == "Polygon" && TempCoordinates.Count > 0)
                 {
-                    var prevCoords = new List<Mapsui.Geometries.Point>(TempCoordinates);
+                    var prevCoords = new List<Mapsui.MPoint>(TempCoordinates);
                     if (TempCoordinates.Count == 1)
                     {
                         //Complete the polygon
@@ -541,7 +554,7 @@ namespace BioDivCollectorXamarin.ViewModels
             this.Map = new Mapsui.Map
             {
                 CRS = "EPSG:3857",
-                Transformation = new MinimalTransformation(),
+                //Transformation = new MinimalTransformation(),
             };
         }
 
@@ -554,7 +567,7 @@ namespace BioDivCollectorXamarin.ViewModels
             {
                 var positionLat = Preferences.Get("LastPositionLatitude", 47.36);
                 var positionLong = Preferences.Get("LastPositionLongitude", 8.54);
-                Mapsui.Geometries.Point centre = new Mapsui.Geometries.Point(positionLong, positionLat);
+                Mapsui.MPoint centre = new Mapsui.MPoint(positionLong, positionLat);
 
                 var BBLLx = Double.Parse(Preferences.Get("BBLLx", "100"));
                 var BBLLy = Double.Parse(Preferences.Get("BBLLy", "100"));
@@ -562,10 +575,10 @@ namespace BioDivCollectorXamarin.ViewModels
                 var BBURy = Double.Parse(Preferences.Get("BBURy", "100"));
                 if (BBLLx != 100)
                 {
-                    var bbox = new Mapsui.Geometries.BoundingBox(BBLLx, BBLLy, BBURx, BBURy);
+                    var bbox = new Mapsui.MRect(BBLLx, BBLLy, BBURx, BBURy);
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        VMMapView.Navigator.NavigateTo(bbox, ScaleMethod.Fill);
+                        VMMapView.Map.Navigator.ZoomToBox(bbox);
                     });
                 }
                 var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(centre.X, centre.Y);
@@ -633,7 +646,7 @@ namespace BioDivCollectorXamarin.ViewModels
                 {
                     var tempGeom = await ReferenceGeometry.GetGeometry(GeomToEdit);
                     NetTopologySuite.Geometries.Coordinate[] tempPoints = DataDAO.GeoJSON2Geometry(tempGeom.geometry).Coordinates;
-                    List<Mapsui.Geometries.Point> coordList = tempPoints.Select(c => new Mapsui.Geometries.Point(c.X, c.Y)).ToList();
+                    List<Mapsui.MPoint> coordList = tempPoints.Select(c => new Mapsui.MPoint(c.X, c.Y)).ToList();
                     GeometryType = ReferenceGeometry.FindGeometryTypeFromCoordinateList(coordList);
                     TempCoordinates = coordList; //Not initially assigned to tempCoordinates, as we need to first know GeometryType to decide whether the save command can run
 
@@ -748,7 +761,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             var centre = await MapModel.GetCentreOfGeometry(geomId);
                             if (centre != null)
                             {
-                                VMMapView.Navigator.NavigateTo(centre, VMMapView.Viewport.Resolution);
+                                VMMapView.Map.Navigator.FlyTo(centre, VMMapView.Map.Navigator.Resolutions.FirstOrDefault());
                                 SetBoundingBox();
                             }
                             else
@@ -812,15 +825,15 @@ namespace BioDivCollectorXamarin.ViewModels
                 if (allShapesLayer != null)
                 {
                     //VMMapView.Navigator.NavigateTo(allShapesLayer.Envelope, Mapsui.Utilities.ScaleMethod.Fit);
-                    if (allShapesLayer.Envelope.Width > 400 || allShapesLayer.Envelope.Height > 400)
+                    if (allShapesLayer.Extent.Width > 400 || allShapesLayer.Extent.Height > 400)
                     {
-                        VMMapView.Navigator.NavigateTo(GetBoundingBoxWithBuffer(allShapesLayer), Mapsui.Utilities.ScaleMethod.Fit);
+                        VMMapView.Map.Navigator.ZoomToBox(GetBoundingBoxWithBuffer(allShapesLayer), MBoxFit.Fit);
                     }
                     else
                     {
                         //Make sure it doesn't zoom in too far if e.g. there is only one point
-                        var bb = new BoundingBox(allShapesLayer.Envelope.Centroid.X - 200, allShapesLayer.Envelope.Centroid.Y - 200, allShapesLayer.Envelope.Centroid.X + 200, allShapesLayer.Envelope.Centroid.Y + 200);
-                        VMMapView.Navigator.NavigateTo(bb, Mapsui.Utilities.ScaleMethod.Fit);
+                        MRect bb = new MRect(allShapesLayer.Extent.Centroid.X - 200, allShapesLayer.Extent.Centroid.Y - 200, allShapesLayer.Extent.Centroid.X + 200, allShapesLayer.Extent.Centroid.Y + 200);
+                        VMMapView.Map.Navigator.ZoomToBox(bb, MBoxFit.Fit);
                     }
                 }
             }
@@ -847,32 +860,32 @@ namespace BioDivCollectorXamarin.ViewModels
             if (allShapesLayer != null)
             {
                 //VMMapView.Navigator.NavigateTo(allShapesLayer.Envelope, Mapsui.Utilities.ScaleMethod.Fit);
-                if (allShapesLayer.Envelope.Width > 400 || allShapesLayer.Envelope.Height > 400)
+                if (allShapesLayer.Extent.Width > 400 || allShapesLayer.Extent.Height > 400)
                 {
-                    VMMapView.Navigator.NavigateTo(GetBoundingBoxWithBuffer(allShapesLayer), Mapsui.Utilities.ScaleMethod.Fit, 2);
+                    VMMapView.Map.Navigator.ZoomToBox(GetBoundingBoxWithBuffer(allShapesLayer), MBoxFit.Fit, 2);
                 }
                 else
                 {
                     //Make sure it doesn't zoom in too far if e.g. there is only one point
-                    var bb = new BoundingBox(allShapesLayer.Envelope.Centroid.X - 200, allShapesLayer.Envelope.Centroid.Y - 200, allShapesLayer.Envelope.Centroid.X + 200, allShapesLayer.Envelope.Centroid.Y + 200);
-                    VMMapView.Navigator.NavigateTo(bb, Mapsui.Utilities.ScaleMethod.Fit);
+                    MRect bb = new MRect(allShapesLayer.Extent.Centroid.X - 200, allShapesLayer.Extent.Centroid.Y - 200, allShapesLayer.Extent.Centroid.X + 200, allShapesLayer.Extent.Centroid.Y + 200);
+                    VMMapView.Map.Navigator.ZoomToBox(bb, MBoxFit.Fit);
                 }
             }
             else
             {
-                Mapsui.Geometries.Point LL = new Mapsui.Geometries.Point(Convert.ToDouble(5.84), 45.86);
+                Mapsui.MPoint LL = new Mapsui.MPoint(Convert.ToDouble(5.84), 45.86);
                 var sphericalMercatorCoordinateLL = SphericalMercator.FromLonLat(LL.X, LL.Y);
-                Mapsui.Geometries.Point UR = new Mapsui.Geometries.Point(Convert.ToDouble(10.56), 47.83);
+                Mapsui.MPoint UR = new Mapsui.MPoint(Convert.ToDouble(10.56), 47.83);
                 var sphericalMercatorCoordinateUR = SphericalMercator.FromLonLat(UR.X, UR.Y);
-                VMMapView.Navigator.NavigateTo(new BoundingBox(sphericalMercatorCoordinateLL, sphericalMercatorCoordinateUR), Mapsui.Utilities.ScaleMethod.Fit);
+                VMMapView.Map.Navigator.ZoomToBox(new MRect(sphericalMercatorCoordinateLL.x, sphericalMercatorCoordinateLL.y, sphericalMercatorCoordinateUR.x, sphericalMercatorCoordinateUR.y), MBoxFit.Fit);
             }
         }
 
-        private BoundingBox GetBoundingBoxWithBuffer(ILayer layer)
+        private MRect GetBoundingBoxWithBuffer(ILayer layer)
         {
-            var width = (layer.Envelope.Width / 2) * 1.2;
-            var height = (layer.Envelope.Height / 2) * 1.2;
-            var bb = new BoundingBox(layer.Envelope.Centroid.X - width, layer.Envelope.Centroid.Y - height, layer.Envelope.Centroid.X + width, layer.Envelope.Centroid.Y + height);
+            var width = (layer.Extent.Width / 2) * 1.2;
+            var height = (layer.Extent.Height / 2) * 1.2;
+            MRect bb = new MRect(layer.Extent.Centroid.X - width, layer.Extent.Centroid.Y - height, layer.Extent.Centroid.X + width, layer.Extent.Centroid.Y + height);
             return bb;
         }
 
@@ -1179,15 +1192,15 @@ namespace BioDivCollectorXamarin.ViewModels
                 var y2 = Double.Parse(Preferences.Get("BBURy", "1000"));
                 var dy = y2 - y1;
 
-                var newx1 = coords.X - (dx / 2);
-                var newx2 = coords.X + (dx / 2);
-                var newy1 = coords.Y - (dy / 2);
-                var newy2 = coords.Y + (dy / 2);
+                double newx1 = coords.x - (dx / 2);
+                double newx2 = coords.x + (dx / 2);
+                double newy1 = coords.y - (dy / 2);
+                double newy2 = coords.y + (dy / 2);
 
-                var bbox = new BoundingBox(newx1, newy1, newx2, newy2);
+                MRect bbox = new MRect(newx1, newy1, newx2, newy2);
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    VMMapView.Navigator.NavigateTo(bbox, ScaleMethod.Fit);
+                    VMMapView.Map.Navigator.ZoomToBox(bbox, MBoxFit.Fit);
                 });
 
                 SetBoundingBox();
@@ -1236,17 +1249,17 @@ namespace BioDivCollectorXamarin.ViewModels
             
             try
             {
-                if (Device.RuntimePlatform == Device.iOS)
-                {
-                    ReplaceGPSLayers(newLayers);
-                }
-                else if (Device.RuntimePlatform == Device.Android)
-                {
-                    Device.BeginInvokeOnMainThread(async () =>
+                //if (Device.RuntimePlatform == Device.iOS)
+                //{
+                //    ReplaceGPSLayers(newLayers);
+                //}
+                //else if (Device.RuntimePlatform == Device.Android)
+                //{
+                    Device.BeginInvokeOnMainThread(() =>
                     {
                         ReplaceGPSLayers(newLayers);
                     });
-                }
+                //}
 
 
                 Preferences.Set("PrevLastPositionLatitude", latitude);
@@ -1361,7 +1374,7 @@ namespace BioDivCollectorXamarin.ViewModels
                         Width = 5
                     }
             } };
-            var points = new List<Feature>() { c.Feature };
+            var points = new List<GeometryFeature>() { c.Feature };
             ILayer gpsLayer = MapModel.CreatePolygonLayer(points, Mapsui.Styles.Color.Transparent, Mapsui.Styles.Color.FromArgb(50, 66, 135, 245));
             gpsLayer.Name = "GPS";
             gpsLayer.IsMapInfoLayer = false;
@@ -1371,21 +1384,23 @@ namespace BioDivCollectorXamarin.ViewModels
         private ILayer CreateGPSPointLayer(double latitude, double longitude, int accuracy, int heading)
         {
             var point = SphericalMercator.FromLonLat(longitude, latitude);
+            var netPoint = new NetTopologySuite.Geometries.Point(point.x, point.y);
 
-            var feature = new Feature
+            var feature = new GeometryFeature
             {
-                Geometry = point,
+                Geometry = netPoint,
                 ["Name"] = "GPS",
                 ["Label"] = "GPS"
             };
 
-            var points = new List<Feature>() { feature };
+            var points = new List<GeometryFeature>() { feature };
             var path = "BioDivCollectorXamarin.Images.loc.png";
             var bitmapId = MapModel.GetBitmapIdForEmbeddedResource(path);
             var style = new SymbolStyle { BitmapId = bitmapId, SymbolScale = 0.40, SymbolOffset = new Offset(0, 0) };
             ILayer gpsLayer = new Mapsui.Layers.Layer("Points")
             {
-                CRS = "EPSG:3857",
+                //TODO add correct projection
+                //CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(points),
                 IsMapInfoLayer = false,
                 Style = style
@@ -1399,8 +1414,6 @@ namespace BioDivCollectorXamarin.ViewModels
         private ILayer CreateBearingLayer(double latitude, double longitude, double accuracy, double heading)
         {
             //Polygon
-            var polygon = new Mapsui.Geometries.Polygon();
-
             var R = 6378.1; //Radius of the Earth
             var brng = (Math.PI / 180) * heading; //Bearing is 90 degrees converted to radians.
             var d = accuracy / 1000;
@@ -1470,33 +1483,43 @@ namespace BioDivCollectorXamarin.ViewModels
             lat8 = lat8 * 180 / Math.PI;
             lon8 = lon8 * 180 / Math.PI;
 
+            GeometryFactory geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory();
+
             var pt1e = SphericalMercator.FromLonLat(lon1e, lat1e);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1e.X, pt1e.Y));
             var pt1d = SphericalMercator.FromLonLat(lon1d, lat1d);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1d.X, pt1d.Y));
             var pt1c = SphericalMercator.FromLonLat(lon1c, lat1c);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1c.X, pt1c.Y));
             var pt1b = SphericalMercator.FromLonLat(lon1b, lat1b);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1b.X, pt1b.Y));
             var pt1a = SphericalMercator.FromLonLat(lon1a, lat1a);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt1a.X, pt1a.Y));
             var pt2 = SphericalMercator.FromLonLat(lon2, lat2);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt2.X, pt2.Y));
             var pt3 = SphericalMercator.FromLonLat(lon3, lat3);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt3.X, pt3.Y));
             var pt4 = SphericalMercator.FromLonLat(lon4, lat4);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt4.X, pt4.Y));
             var pt5 = SphericalMercator.FromLonLat(lon5, lat5);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt5.X, pt5.Y));
             var pt6 = SphericalMercator.FromLonLat(lon6, lat6);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt6.X, pt6.Y));
             var pt7 = SphericalMercator.FromLonLat(lon7, lat7);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt7.X, pt7.Y));
             var pt8 = SphericalMercator.FromLonLat(lon8, lat8);
-            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt8.X, pt8.Y));
 
+            Coordinate[] tpoints = new Coordinate[]
+            {
+                new NetTopologySuite.Geometries.Coordinate(pt1e.x, pt1e.y),
+                new NetTopologySuite.Geometries.Coordinate(pt1d.x, pt1d.y),
+                new NetTopologySuite.Geometries.Coordinate(pt1c.x, pt1c.y),
+                new NetTopologySuite.Geometries.Coordinate(pt1b.x, pt1b.y),
+                new NetTopologySuite.Geometries.Coordinate(pt1a.x, pt1a.y),
+                new NetTopologySuite.Geometries.Coordinate(pt2.x, pt2.y),
+                new NetTopologySuite.Geometries.Coordinate(pt3.x, pt3.y),
+                new NetTopologySuite.Geometries.Coordinate(pt4.x, pt4.y),
+                new NetTopologySuite.Geometries.Coordinate(pt5.x, pt5.y),
+                new NetTopologySuite.Geometries.Coordinate(pt6.x, pt6.y),
+                new NetTopologySuite.Geometries.Coordinate(pt7.x, pt7.y),
+                new NetTopologySuite.Geometries.Coordinate(pt8.x, pt8.y),
+                //To create a LinearRing first and last coordinate must be equal
+                new NetTopologySuite.Geometries.Coordinate(pt1e.x, pt1e.y)
+            };
 
-            var bearingfeature = new Feature
+            var linearRing = new LinearRing(tpoints);
+            var polygon = new Polygon(linearRing);
+
+            var bearingfeature = new GeometryFeature
             {
                 Geometry = polygon,
                 ["Name"] = "Bearing",
@@ -1514,7 +1537,7 @@ namespace BioDivCollectorXamarin.ViewModels
             };
 
 
-            var points = new List<Feature>() { bearingfeature };
+            var points = new List<GeometryFeature>() { bearingfeature };
             ILayer gpsLayer = MapModel.CreatePolygonLayer(points, Mapsui.Styles.Color.Transparent, Mapsui.Styles.Color.FromArgb(100, 66, 135, 245));
             gpsLayer.Name = "Bearing";
             gpsLayer.IsMapInfoLayer = false;
@@ -1544,7 +1567,7 @@ namespace BioDivCollectorXamarin.ViewModels
         /// </summary>
         private void SetBoundingBox()
         {
-            var bb = VMMapView.Viewport.Extent;
+            MRect bb = VMMapView.Map.Navigator.Viewport.ToExtent();
             Preferences.Set("BBLLx", bb.BottomLeft.X.ToString());
             Preferences.Set("BBLLy", bb.BottomLeft.Y.ToString());
             Preferences.Set("BBURx", bb.TopRight.X.ToString());
@@ -1705,9 +1728,9 @@ namespace BioDivCollectorXamarin.ViewModels
             }
             else
             {
-                Mapsui.Geometries.Point point = TempCoordinates[0];
-                var coords = point.ToDoubleArray();
-                var coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
+                Mapsui.MPoint point = TempCoordinates[0];
+                Coordinate coords = point.ToCoordinate();
+                string coordString = coords[1].ToString("#.000#") + ", " + coords[0].ToString("#.000#");
 
                 string geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Bitte geben Sie einen Geometrienamen ein", accept: "Speichern", cancel: "Abbrechen");
 
@@ -1716,10 +1739,10 @@ namespace BioDivCollectorXamarin.ViewModels
                     geomName = await Shell.Current.CurrentPage.DisplayPromptAsync("Geometriename", "Leere Geometrienamen zurzeit nicht möglich. Bitte geben Sie einen Geometrienamen ein", accept: "Speichern", cancel: "Abbrechen");
                 }
 
-                var geomNames = await ReferenceGeometry.GetAllGeometryNames();
-                var geomNameExists = false;
+                List<string> geomNames = await ReferenceGeometry.GetAllGeometryNames();
+                bool geomNameExists = false;
 
-                foreach (var name in geomNames)
+                foreach (string name in geomNames)
                 {
                     if (name == geomName)
                     {
@@ -1750,7 +1773,7 @@ namespace BioDivCollectorXamarin.ViewModels
 
                 string geomId = await ReferenceGeometry.SaveGeometry(TempCoordinates, geomName);
 
-                var geom = await ReferenceGeometry.GetGeometry(geomId);
+                ReferenceGeometry geom = await ReferenceGeometry.GetGeometry(geomId);
 
                 if (geom != null)
                 {
@@ -1872,7 +1895,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             if (TempCoordinates.Count > 1)
             {
-                TempCoordinates = new List<Mapsui.Geometries.Point>();
+                TempCoordinates = new List<Mapsui.MPoint>();
                 //Map.Layers.Remove(TempLayer);
                 var mapLayer = Map.Layers.Where(x => x == TempLayer).FirstOrDefault();
                 if (mapLayer != null)
@@ -1949,7 +1972,7 @@ namespace BioDivCollectorXamarin.ViewModels
         {
             Device.InvokeOnMainThreadAsync(() =>
             {
-                TempCoordinates = new List<Mapsui.Geometries.Point>();
+                TempCoordinates = new List<Mapsui.MPoint>();
                 var mapLayer = Map.Layers.Where(x => x == TempLayer).FirstOrDefault();
                 if (mapLayer != null)
                     Map.Layers.Remove(mapLayer);
@@ -1971,8 +1994,8 @@ namespace BioDivCollectorXamarin.ViewModels
                     SaveCountText = "Berechnet welche Kacheln zu speichern sind";
                 });
 
-                BoundingBox bb = VMMapView.Viewport.Extent;
-                var extent = new Extent(bb.MinX, bb.MinY, bb.MaxX, bb.MaxY);
+                MRect bb = VMMapView.Map.Navigator.Viewport.ToExtent();
+                Extent extent = new Extent(bb.MinX, bb.MinY, bb.MaxX, bb.MaxY);
                 await MapModel.saveMaps(extent);
             });
         }
