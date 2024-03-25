@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.LoginModel;
-using Mapsui.UI.Forms;
+using ExCSS;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
@@ -1308,32 +1308,39 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="pointList"></param>
         /// <returns>GeoJSON</returns>
-        public static string CoordinatesToGeoJSON(List<Mapsui.Geometries.Point> pointList)
+        public static string CoordinatesToGeoJSON(List<Mapsui.MPoint> pointList)
         {
-            var wkt = "";
+            NetTopologySuite.Geometries.Geometry geom;
             if (pointList.Count == 1)
             {
-                var point = pointList[0];
-                wkt = Mapsui.Geometries.WellKnownText.GeometryToWKT.Write(point);
+                geom = new NetTopologySuite.Geometries.Point(pointList[0].X, pointList[0].Y);
             }
             else if (pointList[0] == pointList[pointList.Count - 1])
             {
-                var polygon = new Mapsui.Geometries.Polygon();
+                Coordinate[] coordinates = new Coordinate[pointList.Count()];
+                int i = 0;
 
                 foreach (var coord in pointList)
                 {
-                    polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(coord.X, coord.Y));
+                    coordinates[i] = new Coordinate(coord.X, coord.Y);
+                    i++;
                 }
-                wkt = Mapsui.Geometries.WellKnownText.GeometryToWKT.Write(polygon);
+                var polygonLine = new LinearRing(coordinates);
+                geom = new Polygon(polygonLine);
             }
             else
             {
-                var line = new Mapsui.Geometries.LineString(pointList);
-                wkt = Mapsui.Geometries.WellKnownText.GeometryToWKT.Write(line);
+                Coordinate[] coordinates = new Coordinate[pointList.Count()];
+                int i = 0;
+
+                foreach (var coord in pointList)
+                {
+                    coordinates[i] = new Coordinate(coord.X, coord.Y);
+                    i++;
+                }
+                geom = new LineString(coordinates);
             }
 
-            WKTReader reader = new WKTReader();
-            NetTopologySuite.Geometries.Geometry geom = reader.Read(wkt);
             var geojson = Geometry2GeoJSON(geom);
             return geojson;
         }

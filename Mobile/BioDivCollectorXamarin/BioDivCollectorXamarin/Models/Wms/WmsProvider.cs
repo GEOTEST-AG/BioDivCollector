@@ -28,7 +28,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Mapsui;
-using Mapsui.Geometries;
+using Mapsui.Extensions;
+using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Rendering;
 
@@ -305,7 +306,7 @@ namespace BioDivCollectorXamarin.Models.Wms
             _mimeType = mimeType;
         }
 
-        public bool TryGetMap(IViewport viewport, ref IRaster raster)
+        public bool TryGetMap(Viewport viewport, ref MRaster raster)
         {
 
             int width;
@@ -322,7 +323,8 @@ namespace BioDivCollectorXamarin.Models.Wms
                 return false;
             }
 
-            var url = GetRequestUrl(viewport.Extent, width, height);
+            var extent = viewport.ToExtent();
+            var url = GetRequestUrl(viewport.ToExtent(), width, height);
 
             try
             {
@@ -331,7 +333,7 @@ namespace BioDivCollectorXamarin.Models.Wms
 				{
 					// PDD: This could be more efficient
 					var bytes = BruTile.Utilities.ReadFully(result);
-					raster = new Raster(new MemoryStream(bytes), viewport.Extent);	// This can throw exception
+					raster = new MRaster(bytes, viewport.ToExtent());	// This can throw exception
 				}
                 return true;
             }
@@ -356,7 +358,7 @@ namespace BioDivCollectorXamarin.Models.Wms
         /// Gets the URL for a map request base on current settings, the image size and boundingbox
         /// </summary>
         /// <returns>URL for WMS request</returns>
-        public string GetRequestUrl(BoundingBox box, int width, int height)
+        public string GetRequestUrl(MRect box, int width, int height)
         {
             var resource = GetPreferredMethod();
             var strReq = new StringBuilder(resource.OnlineResource);
@@ -464,7 +466,7 @@ namespace BioDivCollectorXamarin.Models.Wms
 
         public Dictionary<string, string> ExtraParams { get; set; }
 
-        public BoundingBox GetExtents()
+        public MRect GetExtents()
         {
             return _wmsClient.Layer.BoundingBoxes.ContainsKey(CRS) ? _wmsClient.Layer.BoundingBoxes[CRS] : null;
         }
@@ -481,19 +483,19 @@ namespace BioDivCollectorXamarin.Models.Wms
             //nothing to dispose
         }
 
-        public IEnumerable<IFeature> GetFeaturesInView(BoundingBox box, double resolution)
-        {
-            var features = new Features();
-            IRaster raster = null;
-            var view = new Viewport { Resolution = resolution, Center = box.Centroid, Width = (box.Width / resolution), Height = (box.Height / resolution) };
-            if (TryGetMap(view, ref raster))
-            {
-                var feature = features.New();
-                feature.Geometry = raster;
-                features.Add(feature);
-            }
-            return features;
-        }
+        //public IEnumerable<IFeature> GetFeaturesInView(MRect box, double resolution)
+        //{
+        //    var features = new Features();
+        //    MRaster raster = null;
+        //    var view = new Viewport { Resolution = resolution, Center = box.Centroid, Width = (box.Width / resolution), Height = (box.Height / resolution) };
+        //    if (TryGetMap(view, ref raster))
+        //    {
+        //        var feature = features.New();
+        //        feature.Geometry = raster;
+        //        features.Add(feature);
+        //    }
+        //    return features;
+        //}
 
         private async Task<Stream> GetStreamAsync(string url)
         {
@@ -513,6 +515,16 @@ namespace BioDivCollectorXamarin.Models.Wms
             }
        
             return await response.Content.ReadAsStreamAsync();
+        }
+
+        public MRect GetExtent()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<IFeature>> GetFeaturesAsync(FetchInfo fetchInfo)
+        {
+            throw new NotImplementedException();
         }
     }
 }

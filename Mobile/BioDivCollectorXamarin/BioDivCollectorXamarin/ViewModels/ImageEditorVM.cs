@@ -6,6 +6,7 @@ using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
 using BioDivCollectorXamarin.Models.DatabaseModel;
+using Mapsui.Extensions;
 using NativeMedia;
 using Syncfusion.SfImageEditor.XForms;
 using Xamarin.Essentials;

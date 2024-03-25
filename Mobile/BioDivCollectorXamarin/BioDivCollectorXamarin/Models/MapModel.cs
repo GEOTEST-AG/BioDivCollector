@@ -9,12 +9,16 @@ using BioDivCollectorXamarin.Models.MBTiles;
 using BioDivCollectorXamarin.Models.Wms;
 using BioDivCollectorXamarin.ViewModels;
 using BruTile;
-using Mapsui.Geometries;
 using Mapsui.Layers;
-using Mapsui.Projection;
+using Mapsui.Nts;
+using Mapsui.Projections;
 using Mapsui.Providers;
 using Mapsui.Styles;
+using Mapsui.Tiling;
+using Mapsui.Tiling.Layers;
 using Mapsui.Utilities;
+using NetTopologySuite.Algorithm;
+using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -270,7 +274,7 @@ namespace BioDivCollectorXamarin.Models
 
             if (BL == "osm")
             {
-                wmtsLayer = OpenStreetMap.CreateTileLayer();
+                wmtsLayer = OpenStreetMap.CreateTileLayer("BioDivCollector");
             }
             else if (BL == "swissimage")
             {
@@ -304,11 +308,11 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="points"></param>
         /// <returns>layer</returns>
-        private static ILayer CreatePointLayer(List<Feature> points)
+        private static ILayer CreatePointLayer(List<GeometryFeature> points)
         {
             return new Mapsui.Layers.Layer("Points")
             {
-                CRS = "EPSG:3857",
+                //CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(points),
                 IsMapInfoLayer = true,
                 Style = CreateSavedBitmapStyle()
@@ -320,11 +324,11 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="points"></param>
         /// <returns>layer</returns>
-        private static ILayer CreatePointLayerNoRecords(List<Feature> points)
+        private static ILayer CreatePointLayerNoRecords(List<GeometryFeature> points)
         {
             return new Mapsui.Layers.Layer("Points")
             {
-                CRS = "EPSG:3857",
+                //CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(points),
                 IsMapInfoLayer = true,
                 Style = CreateSavedBitmapStyleNoRecords()
@@ -336,11 +340,11 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="points"></param>
         /// <returns>layer</returns>
-        private static ILayer CreateTempPointLayer(List<Feature> points)
+        private static ILayer CreateTempPointLayer(List<GeometryFeature> points)
         {
             return new Mapsui.Layers.Layer("Points")
             {
-                CRS = "EPSG:3857",
+                //CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(points),
                 IsMapInfoLayer = true,
                 Style = CreateBitmapStyle()
@@ -399,11 +403,11 @@ namespace BioDivCollectorXamarin.Models
         /// <param name="lineColour"></param>
         /// <param name="fillColour"></param>
         /// <returns>The polygon layer</returns>
-        public static ILayer CreatePolygonLayer(List<Feature> polygons, Mapsui.Styles.Color lineColour, Mapsui.Styles.Color fillColour)
+        public static ILayer CreatePolygonLayer(List<GeometryFeature> polygons, Mapsui.Styles.Color lineColour, Mapsui.Styles.Color fillColour)
         {
             return new Mapsui.Layers.Layer("Polygons")
             {
-                CRS = "EPSG:3857",
+                //CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(polygons),
                 IsMapInfoLayer = true,
                 Style = new VectorStyle
@@ -426,11 +430,11 @@ namespace BioDivCollectorXamarin.Models
         /// <param name="lines"></param>
         /// <param name="colour"></param>
         /// <returns>The line layer</returns>
-        public static ILayer CreateLineLayer(List<Feature> lines, Mapsui.Styles.Color colour)
+        public static ILayer CreateLineLayer(List<GeometryFeature> lines, Mapsui.Styles.Color colour)
         {
             return new Mapsui.Layers.Layer("Lines")
             {
-                CRS = "EPSG:3857",
+                //CRS = "EPSG:3857",
                 DataSource = new MemoryProvider(lines),
                 IsMapInfoLayer = true,
                 Style = new VectorStyle
@@ -451,7 +455,7 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="geometryId"></param>
         /// <returns>A point object representing the centroid</returns>
-        public static async Task<Mapsui.Geometries.Point> GetCentreOfGeometry(int geometryId)
+        public static async Task<Mapsui.MPoint> GetCentreOfGeometry(int geometryId)
         {
             var items = await DataDAO.getDataForMap(App.CurrentProjectId);
             foreach (var item in items)
@@ -459,7 +463,8 @@ namespace BioDivCollectorXamarin.Models
                 if (item.geomId == geometryId)
                 {
                     var coords = item.shapeGeom.Centroid;
-                    var centre = SphericalMercator.FromLonLat(coords.X, coords.Y);
+                    var points = SphericalMercator.FromLonLat(coords.X, coords.Y);
+                    var centre = new Mapsui.MPoint(points.x, points.y);
                     return centre;
                 }
             }
@@ -478,13 +483,13 @@ namespace BioDivCollectorXamarin.Models
 
             if (items != null && items.Count > 0)
             {
-                var points = new List<Feature>();
-                var polygons = new List<Feature>();
-                var lines = new List<Feature>();
-                var pointsNoRecords = new List<Feature>();
-                var polygonsNoRecords = new List<Feature>();
-                var linesNoRecords = new List<Feature>();
-                var allShapes = new List<Feature>();
+                var points = new List<GeometryFeature>();
+                var polygons = new List<GeometryFeature>();
+                var lines = new List<GeometryFeature>();
+                var pointsNoRecords = new List<GeometryFeature>();
+                var polygonsNoRecords = new List<GeometryFeature>();
+                var linesNoRecords = new List<GeometryFeature>();
+                var allShapes = new List<GeometryFeature>();
 
                 foreach (Shape item in items)
                 {
@@ -502,10 +507,11 @@ namespace BioDivCollectorXamarin.Models
                             var coord = coords[0];
 
                             var point = SphericalMercator.FromLonLat(coord.X, coord.Y);
+                            var MPoint = new NetTopologySuite.Geometries.Point(point.x, point.y);
 
-                            var feature = new Feature
+                            var feature = new GeometryFeature
                             {
-                                Geometry = point,
+                                Geometry = MPoint,
                                 ["Name"] = item.geomId.ToString(),
                                 ["Label"] = item.title
                             };
@@ -527,16 +533,20 @@ namespace BioDivCollectorXamarin.Models
                             if (coord0.X == coordx.X && coord0.Y == coordx.Y)
                             {
                                 //Polygon
-                                var polygon = new Polygon();
+                                Coordinate[] coordinates = new Coordinate[coords.Count()];
 
                                 var localCoords = coords;
+                                int i = 0;
                                 foreach (NetTopologySuite.Geometries.Coordinate coord in localCoords)
                                 {
                                     var pt = SphericalMercator.FromLonLat(coord.X, coord.Y);
-                                    polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt.X, pt.Y));
-
+                                    coordinates[i] = new Coordinate(pt.x, pt.y);
+                                    i++;
                                 }
-                                var feature = new Feature
+                                var polygonLine = new LinearRing(coordinates);
+                                var polygon = new Polygon(polygonLine);
+                                
+                                var feature = new GeometryFeature
                                 {
                                     Geometry = polygon,
                                     ["Name"] = item.geomId.ToString(),
@@ -555,14 +565,19 @@ namespace BioDivCollectorXamarin.Models
                             else
                             {
                                 //Line
-                                var line = new LineString();
+                                Coordinate[] coordinates = new Coordinate[coords.Count()];
                                 var localCoords = coords;
+                                int i = 0;
                                 foreach (NetTopologySuite.Geometries.Coordinate coord in localCoords)
                                 {
                                     var pt = SphericalMercator.FromLonLat(coord.X, coord.Y);
-                                    line.Vertices.Add(new Mapsui.Geometries.Point(pt.X, pt.Y));
+                                    coordinates[i] = new Coordinate(pt.x, pt.y);
+                                    i++;
                                 }
-                                var feature = new Feature
+
+                                var line = new LineString(coordinates);
+
+                                var feature = new GeometryFeature
                                 {
                                     Geometry = line,
                                     ["Name"] = item.geomId.ToString(),
@@ -607,19 +622,22 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="pointList"></param>
         /// <returns>Valid/not valid</returns>
-        public static bool CheckValidityOfPolygon(List<Mapsui.Geometries.Point> pointList)
+        public static bool CheckValidityOfPolygon(List<Mapsui.MPoint> pointList)
         {
             if (pointList.Count() < 4) { return false; }
-            var polygon = new Polygon();
+            Coordinate[] coordinates = new Coordinate[pointList.Count()];
+            int i = 0;
 
             foreach (var coord in pointList)
             {
-                polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(coord.X, coord.Y));
+                coordinates[i] = new Coordinate(coord.X, coord.Y);
+                i++;
             }
-            var wkt = Mapsui.Geometries.WellKnownText.GeometryToWKT.Write(polygon);
-            WKTReader reader = new WKTReader();
-            NetTopologySuite.Geometries.Geometry geom = reader.Read(wkt);
-            return geom.IsValid;
+
+            var polygonLine = new LinearRing(coordinates);
+            var polygon = new Polygon(polygonLine);
+
+            return polygon.IsValid;
         }
 
         /// <summary>
@@ -627,15 +645,15 @@ namespace BioDivCollectorXamarin.Models
         /// </summary>
         /// <param name="pointList"></param>
         /// <returns>Temporary geometry layer</returns>
-        public static ILayer CreateTempLayer(List<Mapsui.Geometries.Point> pointList)
+        public static ILayer CreateTempLayer(List<Mapsui.MPoint> pointList)
         {
             var layerDic = new Dictionary<string, ILayer>();
 
 
-            var points = new List<Feature>();
-            var polygons = new List<Feature>();
-            var lines = new List<Feature>();
-            var allShapes = new List<Feature>();
+            var points = new List<GeometryFeature>();
+            var polygons = new List<GeometryFeature>();
+            var lines = new List<GeometryFeature>();
+            var allShapes = new List<GeometryFeature>();
 
             var coords = pointList;
             var coordCount = pointList.Count;
@@ -647,10 +665,11 @@ namespace BioDivCollectorXamarin.Models
                     var coord = coords[0];
 
                     var point = SphericalMercator.FromLonLat(coord.X, coord.Y);
+                    var newPoint = new NetTopologySuite.Geometries.Point(point.x, point.y);
 
-                    var feature = new Feature
+                    var feature = new GeometryFeature
                     {
-                        Geometry = point,
+                        Geometry = newPoint,
                         ["Name"] = Guid.NewGuid().ToString(),
                         ["Label"] = ""
                     };
@@ -673,16 +692,21 @@ namespace BioDivCollectorXamarin.Models
                     if (coord0.X == coordx.X && coord0.Y == coordx.Y)
                     {
                         //Polygon
-                        var polygon = new Polygon();
+                        Coordinate[] coordinates = new Coordinate[pointList.Count()];
+                        int i = 0;
 
                         var localCoords = coords;
                         foreach (var coord in pointList)
                         {
                             var pt = SphericalMercator.FromLonLat(coord.X, coord.Y);
-                            polygon.ExteriorRing.Vertices.Add(new Mapsui.Geometries.Point(pt.X, pt.Y));
-
+                            coordinates[i] = new Coordinate(pt.x, pt.y);
+                            i++;
                         }
-                        var feature = new Feature
+
+                        var polygonLine = new LinearRing(coordinates);
+                        var polygon = new Polygon(polygonLine);
+
+                        var feature = new GeometryFeature
                         {
                             Geometry = polygon,
                             ["Name"] = Guid.NewGuid().ToString(),
@@ -703,14 +727,19 @@ namespace BioDivCollectorXamarin.Models
                     else
                     {
                         //Line
-                        var line = new LineString();
+                        Coordinate[] coordinates = new Coordinate[pointList.Count()];
+                        int i = 0;
                         var localCoords = coords;
                         foreach (var coord in localCoords)
                         {
                             var pt = SphericalMercator.FromLonLat(coord.X, coord.Y);
-                            line.Vertices.Add(new Mapsui.Geometries.Point(pt.X, pt.Y));
+                            coordinates[i] = new Coordinate(pt.x, pt.y);
+                            i++;
                         }
-                        var feature = new Feature
+
+                        var line = new LineString(coordinates);
+
+                        var feature = new GeometryFeature
                         {
                             Geometry = line,
                             ["Name"] = Guid.NewGuid().ToString(),
@@ -799,7 +828,7 @@ namespace BioDivCollectorXamarin.Models
             else
             {
                 string osmDbpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "mbtiles/osm.mbtiles");
-                TileLayer osm = OpenStreetMap.CreateTileLayer();
+                TileLayer osm = OpenStreetMap.CreateTileLayer("BioDivCollector");
                 foreach (var zoomScale in osm.TileSource.Schema.Resolutions)
                 {
                     var osmTileInfos = osm.TileSource.Schema.GetTileInfos(extent, zoomScale.Value.UnitsPerPixel);
@@ -860,10 +889,10 @@ namespace BioDivCollectorXamarin.Models
                                foreach (var tileInfo in tileInfos)
                                {
                                    if (cancel) { break; }
-                                   await Task.Run(() =>
+                                   await Task.Run(async () =>
                                   {
                                       tilesSaved++;
-                                      saveTile(tileSource, tileInfo, dbpath, layer);
+                                      await saveTile(tileSource, tileInfo, dbpath, layer);
                                   });
                                }
                            });
@@ -888,7 +917,7 @@ namespace BioDivCollectorXamarin.Models
                 if (basemap == "osm") //OSM case
                 {
                     baselayerDbsavepath = Path.Combine(DependencyService.Get<FileInterface>().GetMbTilesPath(), "osm.mbtiles");
-                    baselayer = OpenStreetMap.CreateTileLayer();
+                    baselayer = OpenStreetMap.CreateTileLayer("BioDivCollector");
 
                     //Create the database
                     baseLayer = new BioDivCollectorXamarin.Models.DatabaseModel.Layer();
@@ -916,10 +945,10 @@ namespace BioDivCollectorXamarin.Models
                         {
 
                             if (cancel) { break; }
-                            await Task.Run(() =>
+                            await Task.Run(async () =>
                             {
                                 tilesSaved++;
-                                saveTile(baselayer.TileSource, tileInfo, baselayerDbsavepath, baseLayer);
+                                await saveTile(baselayer.TileSource, tileInfo, baselayerDbsavepath, baseLayer);
                             });
                         }
                     });
@@ -938,13 +967,13 @@ namespace BioDivCollectorXamarin.Models
         /// <param name="tileInfo"></param>
         /// <param name="dbpath"></param>
         /// <param name="layer"></param>
-        public static void saveTile(ITileSource tileSource, TileInfo tileInfo, string dbpath, BioDivCollectorXamarin.Models.DatabaseModel.Layer layer)
+        public static async Task saveTile(ITileSource tileSource, TileInfo tileInfo, string dbpath, BioDivCollectorXamarin.Models.DatabaseModel.Layer layer)
         {
             if (!Mbtiles.TileExists(tileInfo, dbpath))
             {
                 try
                 {
-                    var tile = tileSource.GetTile(tileInfo);
+                    var tile = await tileSource.GetTileAsync(tileInfo);
                     Mbtiles.PopulateMbtilesWith(tile, tileInfo, dbpath);
                 }
                 catch (Exception e)
