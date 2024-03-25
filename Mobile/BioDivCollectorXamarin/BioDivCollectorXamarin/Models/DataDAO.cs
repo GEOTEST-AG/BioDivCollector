@@ -487,6 +487,7 @@ namespace BioDivCollectorXamarin.Models
                                                     }
                                                     else
                                                     {
+                                                        num.record_fk = existingrec.recordId;
                                                         await conn.InsertAsync(num);
                                                     }
                                                 }
