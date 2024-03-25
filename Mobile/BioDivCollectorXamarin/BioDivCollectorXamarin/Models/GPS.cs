@@ -120,12 +120,30 @@ namespace BioDivCollectorXamarin.Models
 
                                 Device.BeginInvokeOnMainThread(() =>
                                 {
-                                    if (!Compass.IsMonitoring && Device.RuntimePlatform == "iOS")
+                                    try
                                     {
-                                        Compass.ReadingChanged += Compass_ReadingChanged;
-                                        Compass.Start(SensorSpeed.UI, true);
+                                        if (!Compass.IsMonitoring && Device.RuntimePlatform == "iOS")
+                                        {
+                                            Compass.ReadingChanged += Compass_ReadingChanged;
+                                            Compass.Start(SensorSpeed.UI, false);
+                                        }
                                     }
+                                    catch (FeatureNotSupportedException e)
+                                    {
+
+                                    }
+                                    catch (Exception e)
+                                    {
+
+                                    }
+                                    //Heading auf Android schwankt zu stark
+                                    //else if (!Compass.IsMonitoring && Device.RuntimePlatform == "Android")
+                                    //{
+                                    //    Compass.ReadingChanged += Compass_ReadingChanged;
+                                    //    Compass.Start(SensorSpeed.UI, applyLowPassFilter: true);
+                                    //}
                                 });
+
                                 break;
                             }
                             catch (FeatureNotSupportedException fnsEx)

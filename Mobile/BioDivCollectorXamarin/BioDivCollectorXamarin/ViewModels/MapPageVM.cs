@@ -25,7 +25,6 @@ using Mapsui.Nts;
 using NetTopologySuite.Geometries;
 using Mapsui.Extensions;
 using Mapsui.Nts.Extensions;
-using Mapsui.UI.Forms;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
@@ -354,9 +353,19 @@ namespace BioDivCollectorXamarin.ViewModels
 
             MessagingCenter.Subscribe<MapPageVM>(this, "ShapeDrawingUndone", (sender) =>
             {
-                Map.Layers.Remove(TempLayer);
-                TempLayer = MapModel.CreateTempLayer(TempCoordinates);
-                Map.Layers.Insert(Map.Layers.Count, TempLayer);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                    Map.Layers.Remove(TempLayer);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                    TempLayer = MapModel.CreateTempLayer(TempCoordinates);
+                    Map.Layers.Insert(Map.Layers.Count, TempLayer);
+                });
             });
 
             MessagingCenter.Unsubscribe<Application, string>(App.Current, "EditGeometry");
@@ -1240,17 +1249,17 @@ namespace BioDivCollectorXamarin.ViewModels
             
             try
             {
-                if (Device.RuntimePlatform == Device.iOS)
-                {
-                    ReplaceGPSLayers(newLayers);
-                }
-                else if (Device.RuntimePlatform == Device.Android)
-                {
-                    Device.BeginInvokeOnMainThread(async () =>
+                //if (Device.RuntimePlatform == Device.iOS)
+                //{
+                //    ReplaceGPSLayers(newLayers);
+                //}
+                //else if (Device.RuntimePlatform == Device.Android)
+                //{
+                    Device.BeginInvokeOnMainThread(() =>
                     {
                         ReplaceGPSLayers(newLayers);
                     });
-                }
+                //}
 
 
                 Preferences.Set("PrevLastPositionLatitude", latitude);
@@ -1405,8 +1414,6 @@ namespace BioDivCollectorXamarin.ViewModels
         private ILayer CreateBearingLayer(double latitude, double longitude, double accuracy, double heading)
         {
             //Polygon
-            var polygon = new NetTopologySuite.Geometries.Polygon(null);
-
             var R = 6378.1; //Radius of the Earth
             var brng = (Math.PI / 180) * heading; //Bearing is 90 degrees converted to radians.
             var d = accuracy / 1000;
@@ -1478,7 +1485,6 @@ namespace BioDivCollectorXamarin.ViewModels
 
             GeometryFactory geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory();
 
-
             var pt1e = SphericalMercator.FromLonLat(lon1e, lat1e);
             var pt1d = SphericalMercator.FromLonLat(lon1d, lat1d);
             var pt1c = SphericalMercator.FromLonLat(lon1c, lat1c);
@@ -1492,7 +1498,7 @@ namespace BioDivCollectorXamarin.ViewModels
             var pt7 = SphericalMercator.FromLonLat(lon7, lat7);
             var pt8 = SphericalMercator.FromLonLat(lon8, lat8);
 
-            polygon = geometryFactory.CreatePolygon(new[]
+            Coordinate[] tpoints = new Coordinate[]
             {
                 new NetTopologySuite.Geometries.Coordinate(pt1e.x, pt1e.y),
                 new NetTopologySuite.Geometries.Coordinate(pt1d.x, pt1d.y),
@@ -1505,8 +1511,13 @@ namespace BioDivCollectorXamarin.ViewModels
                 new NetTopologySuite.Geometries.Coordinate(pt5.x, pt5.y),
                 new NetTopologySuite.Geometries.Coordinate(pt6.x, pt6.y),
                 new NetTopologySuite.Geometries.Coordinate(pt7.x, pt7.y),
-                new NetTopologySuite.Geometries.Coordinate(pt8.x, pt8.y)
-            });
+                new NetTopologySuite.Geometries.Coordinate(pt8.x, pt8.y),
+                //To create a LinearRing first and last coordinate must be equal
+                new NetTopologySuite.Geometries.Coordinate(pt1e.x, pt1e.y)
+            };
+
+            var linearRing = new LinearRing(tpoints);
+            var polygon = new Polygon(linearRing);
 
             var bearingfeature = new GeometryFeature
             {
