@@ -551,7 +551,7 @@ namespace BioDivCollectorXamarin.ViewModels
             Mapsui.MPoint mapPt = new Mapsui.MPoint(Convert.ToDouble(screenPt.Longitude), Convert.ToDouble(screenPt.Latitude));
             List<Mapsui.MPoint> tempCoordinates = new List<Mapsui.MPoint>() { mapPt };
             string fullUserName = App.CurrentUser.firstName + " " + App.CurrentUser.name;
-            string date = DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString() + DateTime.Now.Day.ToString() + DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
+            string date = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString("D2") + "-" + DateTime.Now.Day.ToString("D2") + "T" + DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString();
             string geomId = await ReferenceGeometry.SaveGeometry(tempCoordinates, fullUserName + "_" + date);
 
             ReferenceGeometry geom = await ReferenceGeometry.GetGeometry(geomId);
