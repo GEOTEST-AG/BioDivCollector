@@ -283,6 +283,7 @@ namespace BioDivCollectorXamarin.ViewModels
             mapView.MyLocationFollow = false;
             mapView.RotationLock = true;
             mapView.MyLocationEnabled = false;
+            mapView.MyLocationLayer.Enabled = false;
             mapView.Info += MapOnInfo;
             OSAppTheme currentTheme = Application.Current.RequestedTheme;
             if (currentTheme == OSAppTheme.Dark)
