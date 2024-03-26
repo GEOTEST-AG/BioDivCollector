@@ -546,6 +546,28 @@ namespace BioDivCollectorXamarin.ViewModels
             }
         }
 
+        public async Task AddLongClickPoint(Mapsui.UI.Forms.Position screenPt)
+        {
+            Mapsui.MPoint mapPt = new Mapsui.MPoint(Convert.ToDouble(screenPt.Longitude), Convert.ToDouble(screenPt.Latitude));
+            List<Mapsui.MPoint> tempCoordinates = new List<Mapsui.MPoint>() { mapPt };
+            string fullUserName = App.CurrentUser.firstName + " " + App.CurrentUser.name;
+            string date = DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString() + DateTime.Now.Day.ToString() + DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
+            string geomId = await ReferenceGeometry.SaveGeometry(tempCoordinates, fullUserName + "_" + date);
+
+            ReferenceGeometry geom = await ReferenceGeometry.GetGeometry(geomId);
+
+            if (geom != null)
+            {
+                //Wait to ensure that the records page has been created before sending the GenerateNewForm message
+                MessagingCenter.Subscribe<Application>(App.Current, "RecordsPageReady", async (sender) =>
+                {
+                    MessagingCenter.Send<MapPageVM, string>(this, "GenerateNewForm", geomId);
+                    MessagingCenter.Unsubscribe<Application>(App.Current, "RecordsPageReady");
+                });
+                await Shell.Current.GoToAsync($"//Records?objectId={geom.Id}", true);
+            }
+        }
+
         /// <summary>
         /// Create the map
         /// </summary>

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.ViewModels;
 using Mapsui.UI.Forms;
 using Xamarin.Essentials;
@@ -107,7 +110,7 @@ namespace BioDivCollectorXamarin.Views
         {
             ViewModel.CanAddMapGeometry = true;
             var mp = sender as Mapsui.Map;
-            ViewModel.AddTempPoint(e.Point);
+            ViewModel.AddLongClickPoint(e.Point);
         }
 
         /// <summary>
