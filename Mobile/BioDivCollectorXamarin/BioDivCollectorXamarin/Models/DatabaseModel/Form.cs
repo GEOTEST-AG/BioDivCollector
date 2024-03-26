@@ -514,13 +514,13 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             {
                 await Record.CreateRecord(record.formId, record.geometry_fk);
                 var CHCoords = Coordinates.TransformCoordFromWGSToSwissOffline(lat, lon);
-                text.value = CHCoords[0].ToString("0.").Replace(",", ".") + ", " + CHCoords[1].ToString("0.").Replace(",", ".") + " ±" + accuracy.ToString("0.###").Replace(",", ".") + " m";
+                text.value = CHCoords[0].ToString("0.").Replace(",", ".") + ", " + CHCoords[1].ToString("0.").Replace(",", ".") + " Â±" + accuracy.ToString("0.###").Replace(",", ".") + " m";
                 await conn.UpdateAsync(text);
             }
             else
             {
                 var CHCoords = Coordinates.TransformCoordFromWGSToSwissOffline(lat, lon);
-                text.value = CHCoords[0].ToString("0.").Replace(",", ".") + ", " + CHCoords[1].ToString("0.").Replace(",", ".") + " ±" + accuracy.ToString("0.###").Replace(",", ".") + " m"; 
+                text.value = CHCoords[0].ToString("0.").Replace(",", ".") + ", " + CHCoords[1].ToString("0.").Replace(",", ".") + " Â±" + accuracy.ToString("0.###").Replace(",", ".") + " m"; 
                 await conn.UpdateAsync(text);
                 await Record.UpdateRecord(record.recordId);
             }
