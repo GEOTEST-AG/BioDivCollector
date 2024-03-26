@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using BioDivCollectorXamarin.Controls;
+using BioDivCollectorXamarin.Helpers;
 using SQLite;
 using SQLiteNetExtensions.Attributes;
 using SQLiteNetExtensionsAsync.Extensions;
@@ -512,12 +513,14 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
             if (record == null)
             {
                 await Record.CreateRecord(record.formId, record.geometry_fk);
-                text.value = lat.ToString("0.###").Replace(",", ".") + ", " + lon.ToString("0.###").Replace(",", ".") + " ±" + accuracy.ToString("0.###").Replace(",", ".") + " m";
+                var CHCoords = Coordinates.TransformCoordFromWGSToSwissOffline(lat, lon);
+                text.value = CHCoords[0].ToString("0.").Replace(",", ".") + ", " + CHCoords[1].ToString("0.").Replace(",", ".") + " ±" + accuracy.ToString("0.###").Replace(",", ".") + " m";
                 await conn.UpdateAsync(text);
             }
             else
             {
-                text.value = lat.ToString("0.###").Replace(",", ".") + ", " + lon.ToString("0.###").Replace(",", ".") + " ±" + accuracy.ToString("0.###").Replace(",", ".") + " m";
+                var CHCoords = Coordinates.TransformCoordFromWGSToSwissOffline(lat, lon);
+                text.value = CHCoords[0].ToString("0.").Replace(",", ".") + ", " + CHCoords[1].ToString("0.").Replace(",", ".") + " ±" + accuracy.ToString("0.###").Replace(",", ".") + " m"; 
                 await conn.UpdateAsync(text);
                 await Record.UpdateRecord(record.recordId);
             }
