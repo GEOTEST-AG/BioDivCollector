@@ -111,6 +111,7 @@ namespace BioDivCollectorXamarin.Views
             ViewModel.CanAddMapGeometry = true;
             var mp = sender as Mapsui.Map;
             ViewModel.AddLongClickPoint(e.Point);
+            ViewModel.CanAddMapGeometry = false;
         }
 
         /// <summary>
