@@ -522,7 +522,7 @@ namespace BioDivCollectorXamarin.ViewModels
                             }
                             else
                             {
-                                textField = new CustomEntry { Text = ((double)num.value).ToString("F", CultureInfo.CreateSpecificCulture("en-GB")) };
+                                textField = new CustomEntry { Text = String.Format("{0:0.##}", (double)num.value) };
                             }
 
                             textField.SetAppThemeColor(CustomEntry.BackgroundColorProperty, (Color)Xamarin.Forms.Application.Current.Resources["LightBackgroundColor"], (Color)Xamarin.Forms.Application.Current.Resources["DarkBackgroundColor"]);
