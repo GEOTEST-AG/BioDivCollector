@@ -133,12 +133,22 @@ namespace BioDivCollector.WebApp.Controllers
             
 
             ReferenceGeometry rg = await db.Geometries.FindAsync(GeometryId);
-            Form f = await db.Forms.FindAsync(FormId);
+            Form f = await db.Forms.Include(f => f.FormFormFields).ThenInclude(fff => fff.FormField).Where(f => f.FormId == FormId).FirstOrDefaultAsync();
 
             // Check if correct rights for user
             if ((myGroups.Any(m => m.GroupId == GroupId)) && (projects.Any(m => m.ProjectId == ProjectId)) && (rg != null) && (f != null))
             {
                 Record r = new Record() { Form = f, Geometry = rg, ProjectGroupGroupId = GroupId, ProjectGroupProjectId = ProjectId };
+
+                var formFormFields = f.FormFormFields.FindAll(fff => fff.FormField.StandardValue != null).ToList();
+                if (formFormFields.Count > 0)
+                {
+                    foreach (var formFormField in formFormFields) 
+                    {
+                        await AddStandardValueToRecord(formFormField.FormField, r);
+                    }
+                }
+
                 ChangeLog cl = new ChangeLog() { Log = "created new record", User = user };
                 db.ChangeLogs.Add(cl);
                 ChangeLogRecord clr = new ChangeLogRecord() { ChangeLog = cl, Record = r };
@@ -153,6 +163,98 @@ namespace BioDivCollector.WebApp.Controllers
 
 
             return StatusCode(403);
+        }
+
+        public async Task AddStandardValueToRecord(FormField ff, Record r)
+        {
+            if (ff.FieldTypeId == FieldTypeEnum.Text)
+            {
+                
+                        TextData td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = ff.StandardValue };
+                        r.TextData.Add(td);
+                        db.Entry(td).State = EntityState.Added;
+                        db.Entry(r).State = EntityState.Modified;
+            }
+            else if (ff.FieldTypeId == FieldTypeEnum.Number)
+            {
+                        //NumericData nd = new NumericData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = ff.StandardValue };
+                        //r.NumericData.Add(nd);
+                        //db.Entry(nd).State = EntityState.Added;
+                        //db.Entry(r).State = EntityState.Modified;
+            }
+            else if (ff.FieldTypeId == FieldTypeEnum.DateTime)
+            {
+                            //TextData td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = zulu };
+                            //r.TextData.Add(td);
+                            //db.Entry(td).State = EntityState.Added;
+                            //db.Entry(r).State = EntityState.Modified;
+            }
+            else if (ff.FieldTypeId == FieldTypeEnum.Choice)
+            {
+                //if (parameters.GetValue("Field_" + ff.FormFieldId) != null)
+                //{
+                //    string newValue = parameters.GetValue("Field_" + ff.FormFieldId).ToString();
+                //    await db.Entry(ff).Collection(m => m.FieldChoices).LoadAsync();
+                //    FieldChoice fc = ff.FieldChoices.Where(m => m.Text == newValue).FirstOrDefault();
+                //    if (ff.PublicMotherFormField != null)
+                //    {
+                //        await db.Entry(ff.PublicMotherFormField).Collection(m => m.FieldChoices).LoadAsync();
+                //        fc = ff.PublicMotherFormField.FieldChoices.Where(m => m.Text == newValue).FirstOrDefault();
+                //    }
+
+                //    // do we have fieldchoices with option|label?
+                //    if (fc == null)
+                //    {
+                //        if (ff.PublicMotherFormField != null)
+                //        {
+                //            foreach (FieldChoice fcSplit in ff.PublicMotherFormField.FieldChoices)
+                //            {
+
+                //                if ((fcSplit.Text.Contains("|" + newValue)) || (fcSplit.Text.Contains("| " + newValue)))
+                //                {
+                //                    fc = fcSplit;
+                //                    newValue = fcSplit.Text.Split('|')[0];
+                //                }
+                //            }
+                //        }
+                //        else
+                //        {
+                //            foreach (FieldChoice fcSplit in ff.FieldChoices)
+                //            {
+
+                //                if ((fcSplit.Text.Contains("|" + newValue)) || (fcSplit.Text.Contains("| " + newValue)))
+                //                {
+                //                    fc = fcSplit;
+                //                    newValue = fcSplit.Text.Split('|')[0];
+                //                }
+                //            }
+                //        }
+                //    }
+
+                //    TextData td = r.TextData.Where(m => m.FormField != null && m.FormField.FormFieldId == ff.FormFieldId).FirstOrDefault();
+                //    if (td == null)
+                //    {
+                //        td = new TextData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = newValue, FieldChoice = fc };
+                //        r.TextData.Add(td);
+                //        db.Entry(td).State = EntityState.Added;
+                //        db.Entry(r).State = EntityState.Modified;
+                //    }
+                //    else
+                //    {
+                //        td.Value = newValue;
+                //        td.FieldChoice = fc;
+                //        db.Entry(td).State = EntityState.Modified;
+                //    }
+
+                //}
+            }
+            else if (ff.FieldTypeId == FieldTypeEnum.Boolean)
+            {
+                        //BooleanData bd = new BooleanData() { FormField = ff, Record = r, Id = Guid.NewGuid(), Value = newValue };
+                        //r.BooleanData.Add(bd);
+                        //db.Entry(bd).State = EntityState.Added;
+                        //db.Entry(r).State = EntityState.Modified;
+            }
         }
 
         public async Task<IActionResult> AddToProject(Guid ProjectId, Guid GroupId, int FormId, bool CopyFromLast = false)
