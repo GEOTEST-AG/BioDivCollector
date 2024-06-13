@@ -495,7 +495,7 @@ namespace BioDivCollectorXamarin.Models.DatabaseModel
                 }
                 else
                 {
-                    return String.Empty;
+                    return standardValue;
                 }
             }
             return value;

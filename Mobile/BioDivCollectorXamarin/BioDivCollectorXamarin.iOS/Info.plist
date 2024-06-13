@@ -28,7 +28,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>ch.geotest.BioDivCollector</string>
 	<key>CFBundleVersion</key>
-	<string>74</string>
+	<string>87</string>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>CFBundleName</key>
@@ -48,7 +48,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>CFBundleShortVersionString</key>
-	<string>1.3.1</string>
+	<string>1.4</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

@@ -70,10 +70,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Syncfusion.Xamarin.Core">
-      <Version>21.1.35</Version>
+      <Version>25.1.40</Version>
     </PackageReference>
     <PackageReference Include="Syncfusion.Licensing">
-      <Version>21.1.35</Version>
+      <Version>25.1.40</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

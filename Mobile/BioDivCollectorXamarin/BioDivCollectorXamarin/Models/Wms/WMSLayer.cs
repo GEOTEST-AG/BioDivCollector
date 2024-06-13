@@ -74,7 +74,13 @@ namespace BioDivCollectorXamarin.Models.Wms
                 { format = "image/jpg"; }
             else if (urlString.Contains("image/jpeg"))
                 { format = "image/jpeg"; }
+
             urlString = "https://biodivcollector.ch/ProxyWMSSecure/" + wmsId + "?";
+            if (App.IsTest)
+            {
+                urlString = "https://test.biodivcollector.ch/ProxyWMSSecure/" + wmsId + "?";
+            }
+            
             var schema = new GlobalSphericalMercator(format, YAxis.OSM, 0, 21, null);
             var layers = new List<string>();
             layers.Add(layerName);
