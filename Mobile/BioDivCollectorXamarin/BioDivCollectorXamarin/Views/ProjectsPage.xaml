@@ -32,7 +32,7 @@
                            VerticalOptions="Start">
                         <StackLayout Orientation="Horizontal" Margin="0,10,0,0" >
                             <Button x:Name ="ProjectSelectionButton" Text="MEINE PROJEKTE" Clicked="ProjectSelectionButton_Clicked" CornerRadius="10" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" HeightRequest="50" MinimumHeightRequest="50" Margin="0"/>
-                        <Button x:Name="LogoutButton"  HorizontalOptions="Center" VerticalOptions="FillAndExpand" WidthRequest="60" HeightRequest="50" MinimumHeightRequest="50" CornerRadius="10" Command = "{Binding LogoutCommand}" Text="&#xe87c;" FontFamily="Material" FontSize="25" />
+                        <Button x:Name="LogoutButton"  HorizontalOptions="Center" VerticalOptions="FillAndExpand" WidthRequest="60" HeightRequest="50" MinimumHeightRequest="50" CornerRadius="10" Command = "{Binding LogoutCommand}" Text="&#xe8b8;" FontFamily="Material" FontSize="25" />
                         </StackLayout>
                     </Frame>
                     <Frame Margin ="0,10,0,0" Padding="0" WidthRequest="40" HeightRequest="40" IsClippedToBounds="True" HorizontalOptions="Center" VerticalOptions="Start" BorderColor="{StaticResource BioDivGrey}" CornerRadius="20" BackgroundColor="White" HasShadow="False" >

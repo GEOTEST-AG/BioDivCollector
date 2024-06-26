@@ -83,10 +83,18 @@ namespace BioDivCollectorXamarin.Views
         /// </summary>
         private async void ShowUserChoice()
         {
-            string action = await DisplayActionSheet("Version " + VersionTracking.CurrentVersion + ". Willkommen " + App.CurrentUser.firstName + " " + App.CurrentUser.name, "Cancel", "Abmelden");
+            string action = await DisplayActionSheet("Version " + VersionTracking.CurrentVersion + ". Willkommen " + App.CurrentUser.firstName + " " + App.CurrentUser.name, "Cancel", "Abmelden", new String[2]{"Daten sichern (Backup)", "Aus Backup wiederherstellen"});
             if (action == "Abmelden")
             {
                 ViewModel.Logout();
+            }
+            else if (action == "Daten sichern (Backup)")
+            {
+                ViewModel.CreateBackup(null);
+            }
+            else if (action == "Aus Backup wiederherstellen")
+            {
+                ViewModel.RestoreData(null);
             }
         }
 

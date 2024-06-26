@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BioDivCollectorXamarin.Models.DatabaseModel;
 using BioDivCollectorXamarin.Models.LoginModel;
 using Xamarin.Essentials;
 using Xamarin.Forms;
+using BioDivCollectorXamarin.Helpers;
 
 namespace BioDivCollectorXamarin.ViewModels
 {
@@ -210,8 +212,82 @@ namespace BioDivCollectorXamarin.ViewModels
             SetProject("");
             Login.Logout();
         }
+        
+        /// <summary>
+        /// Create a copy of the database as a backup
+        /// </summary>
+        /// <param name="obj"></param>
+        public async void CreateBackup(object obj)
+        {
+            string fileloc;
+            if (Device.RuntimePlatform == Device.iOS)
+            {
+                fileloc = DependencyService.Get<Interfaces.FileInterface>().GetBackupPath() + "/biodivcollector_database.sqlite";
+            }
+            else
+            {
+                fileloc = Path.Combine(DependencyService.Get<Interfaces.FileInterface>().GetPathToDownloads() + "/biodivcollector_database.sqlite");
+            }
+
+            if (File.Exists(Constants.DatabasePath))
+            {
+                if (File.Exists(fileloc))
+                {
+                    await App.Current.MainPage.DisplayAlert("Backup-Datei schon vorhanden", "Ein Backup befindet sich unter: " + fileloc + ". Bitte verschieben oder löschen Sie dieses Dokument, um ein neues zu erstellen.", "OK");
+                }
+                else
+                {
+                    File.Copy(Constants.DatabasePath, fileloc);
+                    await App.Current.MainPage.DisplayAlert("Backup erstellt", "Ein Backup befindet sich unter: " + fileloc, "OK");
+                }
+            }
+            else
+            {
+                await App.Current.MainPage.DisplayAlert("Fehler", "Datenbank nicht vorhanden", "OK");
+            }
+
+        }
+        
+        /// <summary>
+        /// Restore data from an existing backup
+        /// </summary>
+        /// <param name="obj"></param>
+        public async void RestoreData(object obj)
+        {
+            var restore = await App.Current.MainPage.DisplayAlert("Daten wiederherstellen?", "Möchten Sie die Daten aus der vorhandenen Datensicherung wiederherstellen?", "Ja", "Nein");
+            if (restore == true)
+            {
+                string backupFile;
+                if (Device.RuntimePlatform == Device.iOS)
+                {
+                    backupFile = DependencyService.Get<Interfaces.FileInterface>().GetBackupPath() + "/biodivcollector_database.sqlite";
+                }
+                else
+                {
+                    backupFile = Path.Combine(DependencyService.Get<Interfaces.FileInterface>().GetPathToDownloads() + "/biodivcollector_database.sqlite");
+                }
+
+                if (File.Exists(backupFile))
+                {
+                    await App.ActiveDatabaseConnection.CloseAsync();
+                    if (File.Exists(Constants.DatabasePath))
+                    {
+                        File.Delete(Constants.DatabasePath);
+                    }
+                    File.Copy(backupFile, Constants.DatabasePath);
+                    App.ActiveDatabaseConnection = await DatabaseConnection.Instance;
+                    await App.Current.MainPage.DisplayAlert("Daten wiederhergestellt", String.Empty, "OK");
+                }
+                else
+                {
+                    await App.Current.MainPage.DisplayAlert("Fehler", "Die Daten könnten nicht wiederhergestellt werden", "OK");
+                }
+            }
+        }
     }
 
+    
+    
     /// <summary>
     /// Button command for synchronising the project
     /// </summary>

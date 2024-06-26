@@ -59,6 +59,16 @@ namespace BioDivCollectorXamarin.Droid
             string pathToNewFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(path).ToString();
             return pathToNewFolder;
         }
+        
+        public string GetBackupPath()
+        {
+            string pathToNewFolder = Path.Combine(GetRootFolder(), "backup");
+            if (!Directory.Exists(pathToNewFolder))
+            {
+                Directory.CreateDirectory(pathToNewFolder);
+            }
+            return pathToNewFolder;
+        }
     }
 }
 

@@ -29,7 +29,18 @@ namespace BioDivCollectorXamarin.iOS
             }
             return directory;
         }
-
+        
+        public string GetBackupPath()
+        {
+            var path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var directory = System.IO.Path.Combine(path, "backup");
+            if (!File.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            return directory;
+        }
+        
         public string GetPathToDownloads()
         {
             return String.Empty;
