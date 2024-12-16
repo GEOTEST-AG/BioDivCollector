@@ -2,7 +2,7 @@
 @using BioDivCollector.DB.Models.Domain
 @using BioDivCollector.WebApp.Controllers
 
-@model IEnumerable<BioDivCollector.WebApp.Controllers.ProjectPocoForIndex>
+@model IEnumerable<BioDivCollector.WebApp.Controllers.FileDetails>
 
 @{
     Layout = "_Layout";
@@ -10,10 +10,8 @@
 }
 
 @section Styles {
-<link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
+    <link href="~/js/jquery-transfer/css/jquery.transfer.css" rel="stylesheet" />
 }
-
-
 
 <div class="modal fade" id="waitExportModal" tabindex="-1" role="dialog" aria-labelledby="changeProjectStateLabel2" aria-hidden="true" style="z-index:100000;">
     <div class="modal-dialog" role="document">
@@ -151,16 +149,40 @@
                             <button type="submit" class="btn btn-primary">Exportieren</button>
                             <button class="btn btn-secondary" onclick="location.href = '@Url.Action("Index","Projects")'; return false;">Abbrechen</button>
                         </div>
-
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 
-
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card height-equal" style="min-height: 685px;">
+                <div class="card-header">
+                    <h5>Bestehende Datenpackete herunterladen</h5>
+                </div>
+                <div class="card-body">
+                    <div style="margin-bottom: 5px">
+                        <div style="width: 150px; display: inline-block">Filename</div>
+                        <div style="width: 150px; display: inline-block">Filegrösse</div>
+                        <div style="width: 150px; display: inline-block">Erstelldatum</div>
+                    </div>
+                    @foreach (var file in Model)
+                    {
+                        <div style="margin-bottom: 5px">
+                            <div style="width: 150px; display: inline-block">@file.Name</div>
+                            <div style="width: 150px; display: inline-block">@file.Size KB</div>
+                            <div style="width: 150px; display: inline-block">@file.Creationdate</div>
+                            <button class="btn btn-primary" onclick="location.href = '@Url.Action("Download", "Projects", new { @filename = file.Name })'">Herunterladen</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     $('#waitExportModal').on('shown.bs.modal', function () {

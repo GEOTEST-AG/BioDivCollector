@@ -464,7 +464,25 @@ namespace BioDivCollector.WebApp.Controllers
 
         public IActionResult Export()
         {
-            return View();
+            string dataDir = AppDomain.CurrentDomain.GetData("DataDirectory").ToString();
+            string exportDir = dataDir + "//Export";
+            if (!Directory.Exists(exportDir)) Directory.CreateDirectory(exportDir);
+            DirectoryInfo d = new DirectoryInfo(exportDir);
+            string fileList = "";
+            FileInfo[] files = d.GetFiles();
+            var simpleFiles = new List<FileDetails>();
+            
+            foreach (FileInfo file in files.OrderByDescending(x => x.CreationTime))
+            {
+                simpleFiles.Add(new FileDetails
+                {
+                    Name = file.Name,
+                    Size = file.Length / 100,
+                    Creationdate = file.CreationTime
+                });
+            }
+            
+            return View(simpleFiles);
         }
 
         private async Task<string> ImportTable(string tablename, string geometriecolumn, List<Project> erfassendeProjects, User user)
@@ -1742,6 +1760,13 @@ namespace BioDivCollector.WebApp.Controllers
         }
     }
 
+    public class FileDetails
+    {
+        public string Name { get; set; }
+        public long Size { get; set; }
+        public DateTime Creationdate { get; set; }
+    }
+    
     public class ProjectPocoForIndex
     {
         public Project Project { get; set; }
