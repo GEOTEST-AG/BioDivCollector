@@ -474,6 +474,7 @@ namespace BioDivCollector.WebApp.Controllers
             
             foreach (FileInfo file in files.OrderByDescending(x => x.CreationTime))
             {
+                if (simpleFiles.Count == 20) break;
                 simpleFiles.Add(new FileDetails
                 {
                     Name = file.Name,
@@ -481,8 +482,10 @@ namespace BioDivCollector.WebApp.Controllers
                     Creationdate = file.CreationTime
                 });
             }
+
+            ViewBag.FileList = simpleFiles;
             
-            return View(simpleFiles);
+            return View();
         }
 
         private async Task<string> ImportTable(string tablename, string geometriecolumn, List<Project> erfassendeProjects, User user)
@@ -1104,6 +1107,9 @@ namespace BioDivCollector.WebApp.Controllers
                     }
                 }
             }
+            
+            if (exportprojects.Count == 0 || forms.Count == 0)
+                return Json(new { success = false, error = "Kein Projekt oder keine Formulare zum Verarbeiten vorhanden." }); 
 
             string prefix = "exp_" + RandomString(4);
 
@@ -1126,11 +1132,11 @@ namespace BioDivCollector.WebApp.Controllers
 
 
             /* local */
-            /*psi.FileName = @"C:\gdal\bin\gdal\apps\ogr2ogr.exe";
-            psi.WorkingDirectory = @"C:\gdal\bin\gdal\apps";
-            psi.EnvironmentVariables["GDAL_DATA"] = @"C:\gdal\bin\gdal-data";
-            psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\gdal\bin\gdal\plugins";
-            psi.EnvironmentVariables["PATH"] = "C:\\gdal\\bin;" + psi.EnvironmentVariables["PATH"];*/
+            // psi.FileName = @"C:\Program Files (x86)\GDAL\ogr2ogr.exe";
+            // psi.WorkingDirectory = @"C:\Program Files (x86)\GDAL";
+            // psi.EnvironmentVariables["GDAL_DATA"] = @"C:\Program Files (x86)\GDAL\gdal-data";
+            // psi.EnvironmentVariables["GDAL_DRIVER_PATH"] = @"C:\Program Files (x86)\GDAL\gdalplugins";
+            // psi.EnvironmentVariables["PATH"] = "C:\\Program Files (x86)\\GDAL;" + psi.EnvironmentVariables["PATH"];
 
             string db = Configuration["Environment:DB"];
             string host = Configuration["Environment:DBHost"];

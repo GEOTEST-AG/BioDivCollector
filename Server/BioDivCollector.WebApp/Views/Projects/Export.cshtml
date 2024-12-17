@@ -2,7 +2,7 @@
 @using BioDivCollector.DB.Models.Domain
 @using BioDivCollector.WebApp.Controllers
 
-@model IEnumerable<BioDivCollector.WebApp.Controllers.FileDetails>
+@model IEnumerable<BioDivCollector.WebApp.Controllers.ProjectPocoForIndex>
 
 @{
     Layout = "_Layout";
@@ -169,7 +169,7 @@
                         <div style="width: 150px; display: inline-block">Filegrösse</div>
                         <div style="width: 150px; display: inline-block">Erstelldatum</div>
                     </div>
-                    @foreach (var file in Model)
+                    @foreach (var file in @ViewBag.FileList)
                     {
                         <div style="margin-bottom: 5px">
                             <div style="width: 150px; display: inline-block">@file.Name</div>

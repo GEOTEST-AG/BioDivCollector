@@ -7,11 +7,11 @@
     <UserSecretsId>d6d1fa8b-f7af-438b-a3ed-c066f2744147</UserSecretsId>
     <Authors>Christoph Suter</Authors>
     <Company>GEOTEST AG</Company>
-    <Copyright>2022 GEOTEST AG</Copyright>
+    <Copyright>2025 GEOTEST AG</Copyright>
     <PackageLicenseExpression>Apache Licence 2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://www.biodivcollector.ch</PackageProjectUrl>
     <AssemblyVersion>1.2.0.0</AssemblyVersion>
-    <Version>1.3</Version>
+    <Version>1.3.1</Version>
     <FileVersion>1.2.0.0</FileVersion>
   </PropertyGroup>
 
