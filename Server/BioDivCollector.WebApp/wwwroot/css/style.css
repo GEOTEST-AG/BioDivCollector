@@ -14626,7 +14626,7 @@ body[main-theme-layout="main-theme-layout-3"] {
     body[main-theme-layout="main-theme-layout-3"] .page-wrapper .comingsoon .comingsoon-inner img {
       filter: brightness(1) invert(100%); }
   body[main-theme-layout="main-theme-layout-3"] .page-wrapper .authentication-main .auth-innerleft {
-    background: url(/auth/resources/dvxk4/login/biodivcollector/img/handbild.jpg), rgba(54, 64, 74, 0.9);
+    background: url(/resources/dvxk4/login/biodivcollector/img/handbild.jpg), rgba(54, 64, 74, 0.9);
     background-blend-mode: overlay; }
     body[main-theme-layout="main-theme-layout-3"] .page-wrapper .authentication-main .auth-innerleft .text-center img {
       filter: brightness(1) invert(100%); }

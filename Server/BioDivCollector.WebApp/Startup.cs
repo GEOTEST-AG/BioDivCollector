@@ -125,7 +125,7 @@ namespace BioDivCollector.WebApp
             .AddOpenIdConnect(options =>
             {
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.Authority = Configuration["JWT:Url"]+"/auth/realms/"+ Configuration["JWT:Realm"];
+                options.Authority = Configuration["JWT:Url"]+"/realms/"+ Configuration["JWT:Realm"];
                 options.RequireHttpsMetadata = true;
                 options.ClientId = "BioDivCollector";
                 options.ClientSecret = Configuration["JWT:Key"];

@@ -56,7 +56,7 @@ namespace BioDivCollector.Connector
             });
 
             //string openidConfigUrl = $"https://id.geotest.ch/auth/realms/BioDivCollector/.well-known/openid-configuration";    //and Configuration["JWT:Issuer"] https://id.geotest.ch/auth/realms/BioDivCollector
-            string openidConfigUrl = Configuration["JWT:Url"] + "/auth/realms/" + Configuration["JWT:Realm"] + "/.well-known/openid-configuration";
+            string openidConfigUrl = Configuration["JWT:Url"] + "/realms/" + Configuration["JWT:Realm"] + "/.well-known/openid-configuration";
 
             //Check crucial URLs
             List<string> testUrls = new List<string>() { openidConfigUrl, Configuration["JWT:Issuer"] };

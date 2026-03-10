@@ -173,7 +173,7 @@ namespace BioDivCollector.WebApp.Controllers
             string access_token = GetAdminAccessToken();
             if (access_token != "Error")
             {
-                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users/" + ups.Where(m => m.username == deleteUser.UserId).FirstOrDefault().id);
+                var client = new RestClient(Configuration["Jwt:Url"] + "/admin/realms/" + Configuration["Jwt:Realm"] + "/users/" + ups.Where(m => m.username == deleteUser.UserId).FirstOrDefault().id);
                 client.Timeout = -1;
                 var request = new RestRequest(Method.DELETE);
                 request.AddHeader("Content-Type", "application/json");
@@ -198,7 +198,7 @@ namespace BioDivCollector.WebApp.Controllers
             string access_token = GetAdminAccessToken();
             if (access_token != "Error")
             {
-                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users/" + ups.Where(m => m.username == edituser.UserId).FirstOrDefault().id + "/role-mappings/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4");
+                var client = new RestClient(Configuration["Jwt:Url"] + "/admin/realms/" + Configuration["Jwt:Realm"] + "/users/" + ups.Where(m => m.username == edituser.UserId).FirstOrDefault().id + "/role-mappings/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.POST);
                 request.AddHeader("Content-Type", "application/json");
@@ -227,7 +227,7 @@ namespace BioDivCollector.WebApp.Controllers
             string access_token = GetAdminAccessToken();
             if (access_token != "Error")
             {
-                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users/" + ups.Where(m => m.username == edituser.UserId).FirstOrDefault().id + "/role-mappings/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4");
+                var client = new RestClient(Configuration["Jwt:Url"] + "/admin/realms/" + Configuration["Jwt:Realm"] + "/users/" + ups.Where(m => m.username == edituser.UserId).FirstOrDefault().id + "/role-mappings/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.DELETE);
                 request.AddHeader("Content-Type", "application/json");
@@ -244,7 +244,7 @@ namespace BioDivCollector.WebApp.Controllers
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
 
-            var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users?max=1000");
+            var client = new RestClient(Configuration["Jwt:Url"] + "/admin/realms/" + Configuration["Jwt:Realm"] + "/users?max=1000");
             client.Timeout = -1;
             var request = new RestRequest(Method.GET);
             request.AddHeader("Authorization", "Bearer " + accessToken);
@@ -269,9 +269,9 @@ namespace BioDivCollector.WebApp.Controllers
 
                 var accessToken = await HttpContext.GetTokenAsync("access_token");
 
-                string initPassword = generate_password(7);
+                string initPassword = generate_password(12);
 
-                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users/");
+                var client = new RestClient(Configuration["Jwt:Url"] + "/admin/realms/" + Configuration["Jwt:Realm"] + "/users/");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.POST);
                 request.AddHeader("Content-Type", "application/json");
@@ -331,7 +331,7 @@ namespace BioDivCollector.WebApp.Controllers
 
         public string GetAdminAccessToken()
         {
-            var client = new RestClient(Configuration["Jwt:Url"] + "/auth/realms/" + Configuration["Jwt:Realm"] + "/protocol/openid-connect/token");
+            var client = new RestClient(Configuration["Jwt:Url"] + "/realms/" + Configuration["Jwt:Realm"] + "/protocol/openid-connect/token");
             client.Timeout = -1;
             var request = new RestRequest(Method.POST);
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -362,7 +362,7 @@ namespace BioDivCollector.WebApp.Controllers
             string access_token = GetAdminAccessToken();
             if (access_token != "Error")
             {
-                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4/roles/" + Role + "/users");
+                var client = new RestClient(Configuration["Jwt:Url"] + "/admin/realms/" + Configuration["Jwt:Realm"] + "/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4/roles/" + Role + "/users");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.GET);
                 request.AddHeader("Authorization", "Bearer " + access_token);
@@ -397,7 +397,7 @@ namespace BioDivCollector.WebApp.Controllers
             string access_token = GetAdminAccessToken();
             if (access_token != "Error")
             {
-                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users?max=1000");
+                var client = new RestClient(Configuration["Jwt:Url"] + "/admin/realms/" + Configuration["Jwt:Realm"] + "/users?max=1000");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.GET);
                 request.AddHeader("Authorization", "Bearer " + access_token);
@@ -476,7 +476,7 @@ namespace BioDivCollector.WebApp.Controllers
                         }
 
                         // search for client Roles
-                        var clientRoles = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/users/" + up.id + "/role-mappings/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4");
+                        var clientRoles = new RestClient(Configuration["Jwt:Url"] + "/admin/realms/" + Configuration["Jwt:Realm"] + "/users/" + up.id + "/role-mappings/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4");
                         clientRoles.Timeout = -1;
                         var request2 = new RestRequest(Method.GET);
                         request2.AddHeader("Authorization", "Bearer " + access_token);
@@ -511,7 +511,7 @@ namespace BioDivCollector.WebApp.Controllers
             string access_token = GetAdminAccessToken();
             if (access_token != "Error")
             {
-                var client = new RestClient(Configuration["Jwt:Url"] + "/auth/admin/realms/" + Configuration["Jwt:Realm"] + "/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4/roles");
+                var client = new RestClient(Configuration["Jwt:Url"] + "/admin/realms/" + Configuration["Jwt:Realm"] + "/clients/ebe1c5ca-02f1-4ce1-b5a2-a39d7b9c83c4/roles");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.GET);
                 request.AddHeader("Authorization", "Bearer " + access_token);
@@ -547,7 +547,7 @@ namespace BioDivCollector.WebApp.Controllers
         /// <returns></returns>
         private string generate_password(int lang)
         {
-            string pw = ""; // "" = leerer String
+            string pw = "d.P-"; // "" = leerer String
             int zeichen, n = 0;
             Random zufall = new Random();
 
@@ -568,7 +568,7 @@ namespace BioDivCollector.WebApp.Controllers
         public string RenewTokens(string refreshToken)
         {
 
-            var client = new RestClient(Configuration["Jwt:Url"] + "/auth/realms/" + Configuration["Jwt:Realm"] + "/protocol/openid-connect/token");
+            var client = new RestClient(Configuration["Jwt:Url"] + "/realms/" + Configuration["Jwt:Realm"] + "/protocol/openid-connect/token");
             client.Timeout = -1;
             var request = new RestRequest(Method.POST);
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");

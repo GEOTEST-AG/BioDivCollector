@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using static System.Net.WebRequestMethods;
 
 namespace BioDivCollector.WebApp.Controllers
@@ -69,6 +70,8 @@ namespace BioDivCollector.WebApp.Controllers
             HttpRequest original = this.HttpContext.Request;
 
             HttpWebRequest newRequest = (HttpWebRequest)WebRequest.Create(Configuration["Environment:Geoserver"] + workbench + "/ows?");
+
+            System.IO.File.WriteAllText("log.txt", newRequest.RequestUri.ToString());
 
             newRequest.ContentType = original.ContentType;
             newRequest.Method = original.Method;

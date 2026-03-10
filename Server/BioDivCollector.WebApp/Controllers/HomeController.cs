@@ -76,7 +76,7 @@ namespace BioDivCollector.WebApp.Controllers
             }
 
 
-            ViewBag.registerLink = Configuration["Jwt:Url"] + "/auth/realms/" + Configuration["Jwt:Realm"];
+            ViewBag.registerLink = Configuration["Jwt:Url"] + "/realms/" + Configuration["Jwt:Realm"];
 
             return View();
         }
